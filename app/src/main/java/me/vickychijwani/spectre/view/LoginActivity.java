@@ -25,6 +25,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +43,7 @@ import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit.converter.GsonConverter;
 
 
 /**
@@ -104,8 +108,14 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             @Override
             public void onClick(View view) {
                 final String blogUrl = mBlogUrlView.getText().toString();
+
+                Gson gson = new GsonBuilder()
+                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                        .create();
+
                 RestAdapter restAdapter = new RestAdapter.Builder()
                         .setEndpoint(Uri.withAppendedPath(Uri.parse(blogUrl), "ghost/api/v0.1").toString())
+                        .setConverter(new GsonConverter(gson))
                         .setLogLevel(RestAdapter.LogLevel.HEADERS)
                         .build();
 

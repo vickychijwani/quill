@@ -19,6 +19,7 @@ import me.vickychijwani.spectre.Globals;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.PostList;
+import me.vickychijwani.spectre.util.DateTimeUtils;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -61,8 +62,10 @@ public class PostListActivity extends BaseActivity {
 
         private final LayoutInflater mLayoutInflater;
         private final List<Post> mPosts;
+        private final Context mContext;
 
         public PostAdapter(Context context, List<Post> posts) {
+            mContext = context;
             mLayoutInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
             mPosts = posts;
         }
@@ -101,12 +104,22 @@ public class PostListActivity extends BaseActivity {
             }
 
             holder.title.setText(item.title);
+            String publishedStatus;
+            if (item.published_at != null) {
+                publishedStatus = String.format(
+                        mContext.getString(R.string.published),
+                        DateTimeUtils.dateToIsoDateString(item.published_at));
+            } else {
+                publishedStatus = mContext.getString(R.string.draft);
+            }
+            holder.published.setText(publishedStatus);
 
             return convertView;
         }
 
         static class PostViewHolder {
             @InjectView(R.id.post_title)        TextView title;
+            @InjectView(R.id.post_published)    TextView published;
 
             public PostViewHolder(View view) {
                 ButterKnife.inject(this, view);

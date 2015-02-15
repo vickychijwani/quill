@@ -1,3 +1,9 @@
 <resources>
+
     <string name="app_name">Spectre for Ghost</string>
+
+    <!-- posts -->
+    <string name="published">Published on %s</string>
+    <string name="draft">Draft</string>
+
 </resources>
