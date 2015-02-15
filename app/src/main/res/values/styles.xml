@@ -1,8 +1,129 @@
-<resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <!-- Text styles -->
+    <style name="TextAppearance" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@color/text_default</item>
+        <item name="android:textSize">@dimen/text_size_xmedium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif</item>
+    </style>
+
+    <style name="TextAppearance.Dim">
+        <item name="android:textColor">@color/text_dim</item>
+    </style>
+
+    <style name="TextAppearance.Light">
+        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+    </style>
+
+    <style name="TextAppearance.Primary">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+    </style>
+
+    <style name="TextAppearance.XSmall">
+        <item name="android:textSize">@dimen/text_size_xsmall</item>
+    </style>
+
+    <style name="TextAppearance.XSmall.Dim">
+        <item name="android:textColor">@color/text_dim</item>
+    </style>
+
+    <style name="TextAppearance.XSmall.Label">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.Small">
+        <item name="android:textSize">@dimen/text_size_small</item>
+    </style>
+
+    <style name="TextAppearance.Small.Dim">
+        <item name="android:textColor">@color/text_dim</item>
+    </style>
+
+    <style name="TextAppearance.Small.Primary">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.Small.Label">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.Small.Dim.Label">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.Medium">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+    </style>
+
+    <style name="TextAppearance.Medium.Dim">
+        <item name="android:textColor">@color/text_dim</item>
+    </style>
+
+    <style name="TextAppearance.Medium.Label">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.Medium.Light">
+        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+    </style>
+
+    <style name="TextAppearance.Medium.Light.Dim">
+        <item name="android:textColor">@color/text_dim</item>
+    </style>
+
+    <style name="TextAppearance.Large">
+        <item name="android:textSize">@dimen/text_size_large</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.Large.Light">
+        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+    </style>
+
+    <style name="TextAppearance.UltraLarge">
+        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+        <item name="android:textSize">@dimen/text_size_ultralarge</item>
+    </style>
+
+    <style name="TextAppearance.HyperLarge">
+        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-thin</item>
+        <item name="android:textSize">@dimen/text_size_hyperlarge</item>
+    </style>
+
+    <!-- easy layouting -->
+    <style name="DefaultPadding" />
+
+    <style name="DefaultPadding.Page">
+        <item name="android:paddingTop">@dimen/padding_default</item>
+        <item name="android:paddingBottom">@dimen/padding_default</item>
+        <item name="android:paddingLeft">@dimen/padding_default</item>
+        <item name="android:paddingRight">@dimen/padding_default</item>
+    </style>
+
+    <style name="DefaultPadding.Blocks">
+        <item name="android:paddingLeft">@dimen/padding_default</item>
+        <item name="android:paddingRight">@dimen/padding_default</item>
+    </style>
+
+    <style name="DefaultPadding.Blocks.WithTopMargin">
+        <item name="android:layout_marginTop">@dimen/padding_inline</item>
+    </style>
+
+    <style name="DefaultPadding.Blocks.WithBottomMargin">
+        <item name="android:layout_marginBottom">@dimen/padding_default</item>
+    </style>
+
+    <style name="DefaultPadding.Blocks.WithBottomMargin.FlowText">
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <!-- action bar -->
+    <style name="ActionBar" parent="@android:style/Widget.Holo.ActionBar.Solid">
+        <!--<item name="android:background">@android:color/darker_gray</item>-->
     </style>
 
 </resources>
