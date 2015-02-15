@@ -12,6 +12,7 @@
         android:layout_height="match_parent"
         android:padding="@dimen/padding_large"
         android:clipToPadding="false"
+        android:scrollbarStyle="outsideOverlay"
         tools:listitem="@layout/post_list_item">
 
     </ListView>
