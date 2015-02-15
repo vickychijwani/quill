@@ -93,7 +93,7 @@ public class PostListActivity extends BaseActivity {
             final Post item = (Post) getItem(position);
 
             if (convertView == null) {
-                convertView = mLayoutInflater.inflate(R.layout.post_list_item, null);
+                convertView = mLayoutInflater.inflate(R.layout.post_list_item, parent, false);
                 holder = new PostViewHolder(convertView);
                 convertView.setTag(holder);
             } else {
