@@ -24,7 +24,6 @@ import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.util.DateTimeUtils;
-import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -56,7 +55,7 @@ public class PostListActivity extends BaseActivity {
                 int pos = mPostList.getPositionForView(v);
                 Post post = (Post) mPostAdapter.getItem(pos);
                 Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-                intent.putExtra(PostViewFragment.ARG_POST, Parcels.wrap(post));
+                intent.putExtra(BundleKeys.POST, Parcels.wrap(post));
                 startActivity(intent);
             }
         });

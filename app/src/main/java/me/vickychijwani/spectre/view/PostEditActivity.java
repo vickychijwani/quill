@@ -9,9 +9,9 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
-import me.vickychijwani.spectre.view.fragments.PostViewFragment;
+import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 
-public class PostViewActivity extends BaseActivity {
+public class PostEditActivity extends BaseActivity {
 
     @InjectView(R.id.toolbar)
     Toolbar mToolbar;
@@ -24,10 +24,10 @@ public class PostViewActivity extends BaseActivity {
         setSupportActionBar(mToolbar);
 
         Post post = Parcels.unwrap(getIntent().getExtras().getParcelable(BundleKeys.POST));
-        PostViewFragment postViewFragment = PostViewFragment.newInstance(post);
+        PostEditFragment postEditFragment = PostEditFragment.newInstance(post);
         getSupportFragmentManager()
                 .beginTransaction()
-                .add(R.id.fragment_container, postViewFragment)
+                .add(R.id.fragment_container, postEditFragment)
                 .commit();
     }
 

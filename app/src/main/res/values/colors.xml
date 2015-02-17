@@ -4,6 +4,8 @@
     <color name="primary">#795548</color>
     <color name="primary_dark">#5D4037</color>
     <color name="accent">#009688</color>
+    <color name="accent_light">#4DB6AC</color>
+    <color name="accent_lighter">#B2DFDB</color>
 
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#727272</color>

@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <WebView
         android:id="@+id/post_html"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        />
 
-    </WebView>
+    <com.melnykov.fab.FloatingActionButton
+        android:id="@+id/edit_post_btn"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/padding_large"
+        android:src="@drawable/edit"
+        app:fab_colorNormal="?attr/colorFab"
+        app:fab_colorPressed="?attr/colorFabPressed"
+        app:fab_colorRipple="?attr/colorFabRipple"
+        />
 
 </FrameLayout>

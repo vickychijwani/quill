@@ -2,12 +2,19 @@
 <resources>
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- main -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
 
+        <!-- toolbar -->
         <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
+
+        <!-- floating action button -->
+        <item name="colorFab">@color/accent</item>
+        <item name="colorFabPressed">@color/accent_light</item>
+        <item name="colorFabRipple">@color/accent_lighter</item>
     </style>
 
 </resources>
