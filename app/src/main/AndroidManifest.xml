@@ -17,7 +17,6 @@
 
         <activity
             android:name=".view.LoginActivity"
-            android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize|stateVisible">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -27,7 +26,6 @@
 
         <activity
             android:name=".view.PostListActivity"
-            android:label="@string/app_name"
             android:parentActivityName=".view.LoginActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -36,7 +34,6 @@
 
         <activity
             android:name=".view.PostViewActivity"
-            android:label="@string/app_name"
             android:parentActivityName=".view.PostListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -45,7 +42,6 @@
 
         <activity
             android:name=".view.PostEditActivity"
-            android:label="@string/app_name"
             android:parentActivityName=".view.PostViewActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

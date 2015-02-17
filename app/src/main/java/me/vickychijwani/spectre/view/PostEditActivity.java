@@ -24,6 +24,8 @@ public class PostEditActivity extends BaseActivity {
         setSupportActionBar(mToolbar);
 
         Post post = Parcels.unwrap(getIntent().getExtras().getParcelable(BundleKeys.POST));
+        getSupportActionBar().setTitle(post.title);
+
         PostEditFragment postEditFragment = PostEditFragment.newInstance(post);
         getSupportFragmentManager()
                 .beginTransaction()
