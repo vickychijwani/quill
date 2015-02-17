@@ -21,9 +21,10 @@
         android:id="@+id/post_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/padding_large"
         android:clipToPadding="false"
         android:scrollbarStyle="outsideOverlay"
+        android:divider="@color/divider"
+        android:dividerHeight="0.5dp"
         tools:listitem="@layout/post_list_item">
 
     </ListView>

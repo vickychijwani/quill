@@ -3,22 +3,17 @@
 
     <!-- Text styles -->
     <style name="TextAppearance" parent="@android:style/TextAppearance">
-        <item name="android:textColor">@color/text_default</item>
+        <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">@dimen/text_size_xmedium</item>
         <item name="android:textStyle">normal</item>
         <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif</item>
     </style>
 
     <style name="TextAppearance.Dim">
-        <item name="android:textColor">@color/text_dim</item>
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 
     <style name="TextAppearance.Light">
-        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
-    </style>
-
-    <style name="TextAppearance.Primary">
-        <item name="android:textColor">@color/text_primary</item>
         <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
     </style>
 
@@ -27,7 +22,7 @@
     </style>
 
     <style name="TextAppearance.XSmall.Dim">
-        <item name="android:textColor">@color/text_dim</item>
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 
     <style name="TextAppearance.XSmall.Label">
@@ -39,11 +34,7 @@
     </style>
 
     <style name="TextAppearance.Small.Dim">
-        <item name="android:textColor">@color/text_dim</item>
-    </style>
-
-    <style name="TextAppearance.Small.Primary">
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 
     <style name="TextAppearance.Small.Label">
@@ -60,7 +51,7 @@
     </style>
 
     <style name="TextAppearance.Medium.Dim">
-        <item name="android:textColor">@color/text_dim</item>
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 
     <style name="TextAppearance.Medium.Label">
@@ -72,7 +63,7 @@
     </style>
 
     <style name="TextAppearance.Medium.Light.Dim">
-        <item name="android:textColor">@color/text_dim</item>
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 
     <style name="TextAppearance.Large">

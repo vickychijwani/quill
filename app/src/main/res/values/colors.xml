@@ -5,11 +5,13 @@
     <color name="primary_dark">#5D4037</color>
     <color name="accent">#009688</color>
 
-    <color name="text_default">#414141</color>
-    <color name="text_primary">#ff0E0E0E</color>
-    <color name="text_dim">#80414141</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#727272</color>
+    <color name="text_primary_inverted">#FFFFFF</color>
+    <color name="text_secondary_inverted">#D7CCC8</color>
     <color name="text_shadow">#000000</color>
 
+    <color name="divider">#B6B6B6</color>
     <color name="image_placeholder">#CCCCCC</color>
 
 </resources>
