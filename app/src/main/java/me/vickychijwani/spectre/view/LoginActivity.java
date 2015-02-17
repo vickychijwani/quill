@@ -40,6 +40,7 @@ import me.vickychijwani.spectre.model.AuthReqBody;
 import me.vickychijwani.spectre.model.AuthToken;
 import me.vickychijwani.spectre.network.GhostApiService;
 import me.vickychijwani.spectre.pref.UserPrefs;
+import me.vickychijwani.spectre.util.AppUtils;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -123,7 +124,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                         .create();
 
                 RestAdapter restAdapter = new RestAdapter.Builder()
-                        .setEndpoint(Uri.withAppendedPath(Uri.parse(blogUrl), "ghost/api/v0.1").toString())
+                        .setEndpoint(AppUtils.pathJoin(blogUrl, "ghost/api/v0.1"))
                         .setConverter(new GsonConverter(gson))
                         .setLogLevel(RestAdapter.LogLevel.HEADERS)
                         .build();

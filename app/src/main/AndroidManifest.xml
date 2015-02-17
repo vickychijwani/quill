@@ -34,6 +34,15 @@
                 android:value=".view.LoginActivity"/>
         </activity>
 
+        <activity
+            android:name=".view.PostViewActivity"
+            android:label="@string/app_name"
+            android:parentActivityName=".view.PostListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.PostListActivity"/>
+        </activity>
+
     </application>
 
 </manifest>

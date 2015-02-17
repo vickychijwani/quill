@@ -1,6 +1,7 @@
 package me.vickychijwani.spectre.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -10,6 +11,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +24,7 @@ import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.util.DateTimeUtils;
+import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -46,7 +50,16 @@ public class PostListActivity extends BaseActivity {
         setSupportActionBar(mToolbar);
 
         mPosts = new ArrayList<>();
-        mPostAdapter = new PostAdapter(this, mPosts);
+        mPostAdapter = new PostAdapter(this, mPosts, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pos = mPostList.getPositionForView(v);
+                Post post = (Post) mPostAdapter.getItem(pos);
+                Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
+                intent.putExtra(PostViewFragment.ARG_POST, Parcels.wrap(post));
+                startActivity(intent);
+            }
+        });
         mPostList.setAdapter(mPostAdapter);
 
         Globals.getInstance().api.getPosts("Bearer " + sAuthToken.access_token, new Callback<PostList>() {
@@ -69,11 +82,13 @@ public class PostListActivity extends BaseActivity {
         private final LayoutInflater mLayoutInflater;
         private final List<Post> mPosts;
         private final Context mContext;
+        private final View.OnClickListener mItemClickListener;
 
-        public PostAdapter(Context context, List<Post> posts) {
+        public PostAdapter(Context context, List<Post> posts, View.OnClickListener itemClickListener) {
             mContext = context;
             mLayoutInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
             mPosts = posts;
+            mItemClickListener = itemClickListener;
         }
 
         @Override
@@ -104,6 +119,7 @@ public class PostListActivity extends BaseActivity {
             if (convertView == null) {
                 convertView = mLayoutInflater.inflate(R.layout.post_list_item, parent, false);
                 holder = new PostViewHolder(convertView);
+                convertView.setOnClickListener(mItemClickListener);
                 convertView.setTag(holder);
             } else {
                 holder = (PostViewHolder) convertView.getTag();
