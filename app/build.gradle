@@ -29,5 +29,8 @@ dependencies {
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'org.parceler:parceler:0.2.15'
+
+    // material design
     compile 'com.melnykov:floatingactionbutton:1.2.0'
+    compile 'com.rengwuxian.materialedittext:library:1.8.2'
 }
