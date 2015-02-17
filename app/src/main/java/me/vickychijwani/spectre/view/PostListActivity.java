@@ -2,6 +2,7 @@ package me.vickychijwani.spectre.view;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,13 +32,18 @@ public class PostListActivity extends BaseActivity {
     private List<Post> mPosts;
     private PostAdapter mPostAdapter;
 
-    @InjectView(R.id.post_list)     ListView mPostList;
+    @InjectView(R.id.toolbar)
+    Toolbar mToolbar;
+
+    @InjectView(R.id.post_list)
+    ListView mPostList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_list);
         ButterKnife.inject(this);
+        setSupportActionBar(mToolbar);
 
         mPosts = new ArrayList<>();
         mPostAdapter = new PostAdapter(this, mPosts);

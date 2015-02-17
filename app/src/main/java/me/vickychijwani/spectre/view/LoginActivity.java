@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -67,14 +68,21 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
     private UserLoginTask mAuthTask = null;
 
     // UI references
+    @InjectView(R.id.toolbar)
+    Toolbar mToolbar;
+
     @InjectView(R.id.blog_url)
     EditText mBlogUrlView;
+
     @InjectView(R.id.email)
     AutoCompleteTextView mEmailView;
+
     @InjectView(R.id.password)
     EditText mPasswordView;
+
     @InjectView(R.id.login_progress)
     View mProgressView;
+
     @InjectView(R.id.login_form)
     View mLoginFormView;
 
@@ -83,6 +91,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
+        setSupportActionBar(mToolbar);
 
         // Set up the login form.
         populateAutoComplete();

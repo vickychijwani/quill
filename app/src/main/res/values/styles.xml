@@ -121,9 +121,4 @@
         <item name="android:lineSpacingMultiplier">1.2</item>
     </style>
 
-    <!-- action bar -->
-    <style name="ActionBar" parent="@android:style/Widget.Holo.ActionBar.Solid">
-        <!--<item name="android:background">@android:color/darker_gray</item>-->
-    </style>
-
 </resources>
