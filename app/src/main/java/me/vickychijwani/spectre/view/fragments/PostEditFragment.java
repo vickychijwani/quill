@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.commonsware.cwac.anddown.AndDown;
+import com.melnykov.fab.FloatingActionButton;
+import com.melnykov.fab.ObservableScrollView;
 
 import org.parceler.Parcels;
 
@@ -26,7 +28,10 @@ public class PostEditFragment extends Fragment {
     EditText mPostEditView;
 
     @InjectView(R.id.preview_btn)
-    View mPreviewBtn;
+    FloatingActionButton mPreviewBtn;
+
+    @InjectView(R.id.post_markdown_scroll_view)
+    ObservableScrollView mScrollView;
 
     private OnPreviewClickListener mCallback;
     private Post mPost;
@@ -60,6 +65,7 @@ public class PostEditFragment extends Fragment {
         mPost = Parcels.unwrap(getArguments().getParcelable(BundleKeys.POST));
 
         // set up preview button
+        mPreviewBtn.attachToScrollView(mScrollView);
         mPreviewBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ScrollView
+    <com.melnykov.fab.ObservableScrollView
+        android:id="@+id/post_markdown_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -17,7 +18,7 @@
             android:background="@android:color/transparent"
             />
 
-    </ScrollView>
+    </com.melnykov.fab.ObservableScrollView>
 
     <com.melnykov.fab.FloatingActionButton
         android:id="@+id/preview_btn"
