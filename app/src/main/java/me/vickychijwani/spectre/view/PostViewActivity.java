@@ -9,12 +9,18 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 
-public class PostViewActivity extends BaseActivity {
+public class PostViewActivity extends BaseActivity
+        implements PostViewFragment.OnEditClickListener, PostEditFragment.OnPreviewClickListener {
 
     @InjectView(R.id.toolbar)
     Toolbar mToolbar;
+
+    private Post mPost;
+    private PostViewFragment mPostViewFragment;
+    private PostEditFragment mPostEditFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,13 +29,29 @@ public class PostViewActivity extends BaseActivity {
         ButterKnife.inject(this);
         setSupportActionBar(mToolbar);
 
-        Post post = Parcels.unwrap(getIntent().getExtras().getParcelable(BundleKeys.POST));
-        getSupportActionBar().setTitle(post.title);
+        mPost = Parcels.unwrap(getIntent().getExtras().getParcelable(BundleKeys.POST));
+        getSupportActionBar().setTitle(mPost.title);
 
-        PostViewFragment postViewFragment = PostViewFragment.newInstance(post);
+        mPostViewFragment = PostViewFragment.newInstance(mPost);
+        mPostEditFragment = PostEditFragment.newInstance(mPost);
+
+        // begin in preview mode, initially
+        onPreviewClicked();
+    }
+
+    @Override
+    public void onPreviewClicked() {
         getSupportFragmentManager()
                 .beginTransaction()
-                .add(R.id.fragment_container, postViewFragment)
+                .replace(R.id.fragment_container, mPostViewFragment)
+                .commit();
+    }
+
+    @Override
+    public void onEditClicked() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, mPostEditFragment)
                 .commit();
     }
 

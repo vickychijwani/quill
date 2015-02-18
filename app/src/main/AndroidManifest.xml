@@ -40,14 +40,6 @@
                 android:value=".view.PostListActivity"/>
         </activity>
 
-        <activity
-            android:name=".view.PostEditActivity"
-            android:parentActivityName=".view.PostViewActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.PostViewActivity"/>
-        </activity>
-
     </application>
 
 </manifest>
