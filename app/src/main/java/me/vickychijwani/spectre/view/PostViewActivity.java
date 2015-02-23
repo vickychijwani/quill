@@ -28,6 +28,7 @@ public class PostViewActivity extends BaseActivity
         setContentView(R.layout.activity_post_view);
         ButterKnife.inject(this);
         setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mPost = Parcels.unwrap(getIntent().getExtras().getParcelable(BundleKeys.POST));
         getSupportActionBar().setTitle(mPost.title);

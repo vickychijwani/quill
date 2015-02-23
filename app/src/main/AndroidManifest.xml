@@ -26,7 +26,8 @@
 
         <activity
             android:name=".view.PostListActivity"
-            android:parentActivityName=".view.LoginActivity">
+            android:parentActivityName=".view.LoginActivity"
+            android:launchMode="singleTop">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".view.LoginActivity"/>
