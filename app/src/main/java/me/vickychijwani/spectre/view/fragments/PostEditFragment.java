@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -24,14 +23,11 @@ import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCal
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.melnykov.fab.FloatingActionButton;
 
-import org.parceler.Parcels;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.util.AppUtils;
-import me.vickychijwani.spectre.view.BundleKeys;
 import me.vickychijwani.spectre.view.PostViewActivity;
 
 public class PostEditFragment extends BaseFragment implements
@@ -76,12 +72,8 @@ public class PostEditFragment extends BaseFragment implements
     }
 
 
-    public static PostEditFragment newInstance(@NonNull Post post) {
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(BundleKeys.POST, Parcels.wrap(post));
-        PostEditFragment fragment = new PostEditFragment();
-        fragment.setArguments(bundle);
-        return fragment;
+    public static PostEditFragment newInstance() {
+        return new PostEditFragment();
     }
 
     @Override
@@ -97,8 +89,8 @@ public class PostEditFragment extends BaseFragment implements
         View view = inflater.inflate(R.layout.fragment_post_edit, container, false);
         ButterKnife.inject(this, view);
 
-        mPost = Parcels.unwrap(getArguments().getParcelable(BundleKeys.POST));
         mActivity = ((PostViewActivity) getActivity());
+        mPost = mActivity.getPost();
 
         mActivity.setTitle(null);
         mPostTitleEditView.setText(mPost.title);

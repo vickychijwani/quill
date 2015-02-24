@@ -2,21 +2,18 @@ package me.vickychijwani.spectre.view.fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 
-import org.parceler.Parcels;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.view.BundleKeys;
+import me.vickychijwani.spectre.view.PostViewActivity;
 
 public class PostViewFragment extends BaseFragment {
 
@@ -34,12 +31,8 @@ public class PostViewFragment extends BaseFragment {
         public void onEditClicked();
     }
 
-    public static PostViewFragment newInstance(@NonNull Post post) {
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(BundleKeys.POST, Parcels.wrap(post));
-        PostViewFragment fragment = new PostViewFragment();
-        fragment.setArguments(bundle);
-        return fragment;
+    public static PostViewFragment newInstance() {
+        return new PostViewFragment();
     }
 
     @Nullable
@@ -49,7 +42,7 @@ public class PostViewFragment extends BaseFragment {
         View view = inflater.inflate(R.layout.fragment_post_view, container, false);
         ButterKnife.inject(this, view);
 
-        mPost = Parcels.unwrap(getArguments().getParcelable(BundleKeys.POST));
+        mPost = ((PostViewActivity) getActivity()).getPost();
 
         UserPrefs prefs = UserPrefs.getInstance(getActivity());
         mBlogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);

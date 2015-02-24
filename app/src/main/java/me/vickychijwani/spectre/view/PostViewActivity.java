@@ -36,8 +36,8 @@ public class PostViewActivity extends BaseActivity implements
 
         mPost = Parcels.unwrap(getIntent().getExtras().getParcelable(BundleKeys.POST));
 
-        mPostViewFragment = PostViewFragment.newInstance(mPost);
-        mPostEditFragment = PostEditFragment.newInstance(mPost);
+        mPostViewFragment = PostViewFragment.newInstance();
+        mPostEditFragment = PostEditFragment.newInstance();
 
         getSupportFragmentManager()
                 .beginTransaction()
@@ -86,6 +86,10 @@ public class PostViewActivity extends BaseActivity implements
     public void resetNavigationItem() {
         mToolbar.setNavigationIcon(R.drawable.arrow_left);
         mToolbar.setNavigationOnClickListener(mUpClickListener);
+    }
+
+    public Post getPost() {
+        return mPost;
     }
 
 }
