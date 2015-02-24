@@ -10,6 +10,8 @@
         <!-- toolbar -->
         <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionBarSize">@dimen/toolbar_height</item>
 
         <!-- floating action button -->
         <item name="colorFab">@color/accent</item>

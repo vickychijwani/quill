@@ -10,11 +10,12 @@
     <dimen name="text_size_small">14sp</dimen>
     <dimen name="text_size_xmedium">16sp</dimen>
     <dimen name="text_size_medium">18sp</dimen>
-    <dimen name="text_size_large">22sp</dimen>
-    <dimen name="text_size_ultralarge">32sp</dimen>
+    <dimen name="text_size_large">24sp</dimen>
+    <dimen name="text_size_ultralarge">34sp</dimen>
     <dimen name="text_size_hyperlarge">72sp</dimen>
 
     <!-- view dimensions and spacing -->
+    <dimen name="toolbar_height">56dp</dimen>
 
     <!-- integers -->
     <integer name="animation_duration">200</integer>

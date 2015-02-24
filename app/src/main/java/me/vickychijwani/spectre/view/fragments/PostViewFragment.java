@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +18,7 @@ import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.view.BundleKeys;
 
-public class PostViewFragment extends Fragment {
+public class PostViewFragment extends BaseFragment {
 
     @InjectView(R.id.post_html)
     WebView mPostHtmlView;
@@ -71,6 +70,13 @@ public class PostViewFragment extends Fragment {
         super.onResume();
         String postUrl = mPost.getAbsoluteUrl(mBlogUrl);
         mPostHtmlView.loadDataWithBaseURL(mBlogUrl, mPost.html, "text/html", "UTF-8", postUrl);
+    }
+
+    @Override
+    public void onShow() {
+        if (getActivity() != null) {
+            getActivity().setTitle(mPost.title);
+        }
     }
 
     @Override

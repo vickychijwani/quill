@@ -35,7 +35,8 @@
 
         <activity
             android:name=".view.PostViewActivity"
-            android:parentActivityName=".view.PostListActivity">
+            android:parentActivityName=".view.PostListActivity"
+            android:windowSoftInputMode="adjustResize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".view.PostListActivity"/>

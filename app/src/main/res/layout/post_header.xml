@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/primary"
+    >
+
+    <RelativeLayout
+        android:id="@+id/post_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/padding_large"
+        android:paddingEnd="@dimen/padding_large"
+        android:paddingBottom="@dimen/padding_large"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        tools:ignore="UselessParent"
+        >
+
+        <EditText
+            android:id="@+id/post_title_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text|textCapSentences"
+            android:imeOptions="actionDone"
+            android:textColor="@color/text_primary_inverted"
+            android:textSize="@dimen/text_size_large"
+            android:nextFocusUp="@id/post_title_edit"
+            android:nextFocusLeft="@id/post_title_edit"
+            />
+
+    </RelativeLayout>
+
+</FrameLayout>

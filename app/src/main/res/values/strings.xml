@@ -2,8 +2,12 @@
 
     <string name="app_name">Spectre for Ghost</string>
 
+    <!-- generic -->
+    <string name="done">Done</string>
+
     <!-- posts -->
     <string name="published">Published on %s</string>
     <string name="draft">Draft</string>
+    <string name="edit_title">Edit title</string>
 
 </resources>
