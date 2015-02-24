@@ -23,13 +23,15 @@ public class PostViewFragment extends BaseFragment {
     @InjectView(R.id.edit_post_btn)
     View mEditBtn;
 
-    private OnEditClickListener mCallback;
+    private OnEditClickListener mEditClickListener;
     private Post mPost;
     private String mBlogUrl;
+    private int mHtmlHashCode;
 
     public interface OnEditClickListener {
         public void onEditClicked();
     }
+
 
     public static PostViewFragment newInstance() {
         return new PostViewFragment();
@@ -51,7 +53,7 @@ public class PostViewFragment extends BaseFragment {
         mEditBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCallback.onEditClicked();
+                mEditClickListener.onEditClicked();
             }
         });
 
@@ -59,16 +61,20 @@ public class PostViewFragment extends BaseFragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        String postUrl = mPost.getAbsoluteUrl(mBlogUrl);
-        mPostHtmlView.loadDataWithBaseURL(mBlogUrl, mPost.html, "text/html", "UTF-8", postUrl);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        hide();
     }
 
     @Override
     public void onShow() {
         if (getActivity() != null) {
             getActivity().setTitle(mPost.title);
+        }
+        int htmlHashCode = mPost.html.hashCode();
+        if (htmlHashCode != mHtmlHashCode) {
+            String postUrl = mPost.getAbsoluteUrl(mBlogUrl);
+            mPostHtmlView.loadDataWithBaseURL(mBlogUrl, mPost.html, "text/html", "UTF-8", postUrl);
+            mHtmlHashCode = htmlHashCode;
         }
     }
 
@@ -77,7 +83,7 @@ public class PostViewFragment extends BaseFragment {
         super.onAttach(activity);
 
         try {
-            mCallback = (OnEditClickListener) activity;
+            mEditClickListener = (OnEditClickListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + "must implement OnEditClickListener");

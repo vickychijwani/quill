@@ -125,7 +125,7 @@ public class LoginActivity extends BaseActivity {
                     @Override
                     public void success(AuthToken authToken, Response response) {
                         sAuthToken = authToken;
-                        Log.e(TAG, "Got new access token = " + sAuthToken.access_token);
+                        Log.d(TAG, "Got new access token = " + sAuthToken.access_token);
 
                         UserPrefs prefs = UserPrefs.getInstance(LoginActivity.this);
                         prefs.setString(UserPrefs.Key.BLOG_URL, blogUrl);

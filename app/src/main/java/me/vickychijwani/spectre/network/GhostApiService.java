@@ -8,6 +8,8 @@ import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Header;
 import retrofit.http.POST;
+import retrofit.http.PUT;
+import retrofit.http.Path;
 
 public interface GhostApiService {
 
@@ -16,5 +18,9 @@ public interface GhostApiService {
 
     @GET("/posts/?status=all&staticPages=all&page=1&include=tags")
     void getPosts(@Header("Authorization") String authorization, Callback<PostList> cb);
+
+    @PUT("/posts/{id}/?include=tags")
+    void updatePost(@Header("Authorization") String authorization, @Path("id") int id,
+                    @Body PostList posts, Callback<PostList> cb);
 
 }

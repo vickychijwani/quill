@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.commonsware.cwac.anddown.AndDown;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
@@ -25,13 +27,21 @@ import com.melnykov.fab.FloatingActionButton;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import me.vickychijwani.spectre.Globals;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.view.BaseActivity;
 import me.vickychijwani.spectre.view.PostViewActivity;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class PostEditFragment extends BaseFragment implements
         ObservableScrollViewCallbacks {
+
+    private static final String TAG = "PostEditFragment";
 
     @InjectView(R.id.post_header)
     View mPostHeader;
@@ -48,7 +58,7 @@ public class PostEditFragment extends BaseFragment implements
     @InjectView(R.id.post_markdown_scroll_view)
     ObservableScrollView mScrollView;
 
-    private OnPreviewClickListener mCallback;
+    private OnPreviewClickListener mPreviewClickListener;
     private Post mPost;
     private AndDown mAndDown;   // Markdown parser
 
@@ -99,7 +109,7 @@ public class PostEditFragment extends BaseFragment implements
             @Override
             public void onClick(View v) {
                 mPostTitleEditView.setText(mPost.title);
-                onCloseActionMode(true);
+                stopActionMode(true);
             }
         };
 
@@ -110,9 +120,9 @@ public class PostEditFragment extends BaseFragment implements
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (mActionModeState == ActionModeState.STOPPED) {
-                    onStartActionMode();
+                    startActionMode();
                 } else if (mActionModeState == ActionModeState.STARTED) {
-                    onCloseActionMode(true);
+                    stopActionMode(true);
                 }
             }
         });
@@ -125,7 +135,7 @@ public class PostEditFragment extends BaseFragment implements
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     mPost.title = mPostTitleEditView.getText().toString();
-                    onCloseActionMode(false);
+                    stopActionMode(false);
                     return true;
                 }
                 return false;
@@ -136,7 +146,7 @@ public class PostEditFragment extends BaseFragment implements
         mPreviewBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCallback.onPreviewClicked();
+                mPreviewClickListener.onPreviewClicked();
             }
         });
 
@@ -149,16 +159,14 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mPostEditView.setText(mPost.markdown);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        show();
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        mPost.markdown = mPostEditView.getText().toString();
-        mPost.html = mAndDown.markdownToHtml(mPost.markdown);
+    public void onResume() {
+        super.onResume();
+        mPostEditView.setText(mPost.markdown);
     }
 
     @Override
@@ -169,11 +177,17 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     @Override
+    public void onHide() {
+        mPost.markdown = mPostEditView.getText().toString();
+        mPost.html = mAndDown.markdownToHtml(mPost.markdown);
+    }
+
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
         try {
-            mCallback = (OnPreviewClickListener) activity;
+            mPreviewClickListener = (OnPreviewClickListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                 + "must implement OnPreviewClickListener");
@@ -182,7 +196,7 @@ public class PostEditFragment extends BaseFragment implements
 
 
     // action mode
-    private void onStartActionMode() {
+    private void startActionMode() {
         mActionModeState = ActionModeState.STARTING;
         mPostTitleEditView.setBackgroundDrawable(mEditTextDefaultBackground);
         mActivity.setTitle(getString(R.string.edit_title));
@@ -192,7 +206,7 @@ public class PostEditFragment extends BaseFragment implements
         mActionModeState = ActionModeState.STARTED;
     }
 
-    private void onCloseActionMode(boolean discardChanges) {
+    private void stopActionMode(boolean discardChanges) {
         if (discardChanges) {
             mPostTitleEditView.setText(mPost.title);
         } else {
@@ -212,7 +226,7 @@ public class PostEditFragment extends BaseFragment implements
     @Override
     public boolean onBackPressed() {
         if (mActionModeState == ActionModeState.STARTED) {
-            onCloseActionMode(true);
+            stopActionMode(true);
             return true;
         }
         return super.onBackPressed();
@@ -225,20 +239,46 @@ public class PostEditFragment extends BaseFragment implements
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        menu.findItem(R.id.action_done).setVisible(
+        boolean actionModeActive =
                 mActionModeState == ActionModeState.STARTING ||
-                mActionModeState == ActionModeState.STARTED);
+                mActionModeState == ActionModeState.STARTED;
+        menu.findItem(R.id.action_done).setVisible(actionModeActive);
+        menu.findItem(R.id.action_save).setVisible(! actionModeActive);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_done:
-                onCloseActionMode(false);
+                stopActionMode(false);
+                return true;
+            case R.id.action_save:
+                onSaveClicked();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void onSaveClicked() {
+        mPost.markdown = mPostEditView.getText().toString();
+        mPost.html = null;   // omit stale HTML from request body
+        Globals.getInstance().api.updatePost(
+                "Bearer " + BaseActivity.getAuthToken().access_token,
+                mPost.id,
+                PostList.from(mPost),
+                new Callback<PostList>() {
+                    @Override
+                    public void success(PostList postList, Response response) {
+                        Toast.makeText(mActivity, "Post saved!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Log.e(TAG, Log.getStackTraceString(error));
+                    }
+                }
+        );
     }
 
 

@@ -15,6 +15,10 @@ public abstract class BaseActivity extends ActionBarActivity {
     // TODO get rid of this shit
     protected static AuthToken sAuthToken = null;
 
+    public static AuthToken getAuthToken() {
+        return sAuthToken;
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {

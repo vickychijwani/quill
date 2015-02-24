@@ -4,6 +4,7 @@
 
     <!-- generic -->
     <string name="done">Done</string>
+    <string name="save">Save</string>
 
     <!-- posts -->
     <string name="published">Published on %s</string>

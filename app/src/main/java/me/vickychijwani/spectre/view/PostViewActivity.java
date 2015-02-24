@@ -18,6 +18,8 @@ public class PostViewActivity extends BaseActivity implements
         PostViewFragment.OnEditClickListener,
         PostEditFragment.OnPreviewClickListener {
 
+    private static final String TAG = "PostViewActivity";
+
     @InjectView(R.id.toolbar)
     Toolbar mToolbar;
 
@@ -45,9 +47,6 @@ public class PostViewActivity extends BaseActivity implements
                 .add(R.id.fragment_container, mPostEditFragment)
                 .commit();
 
-        // begin in edit mode
-        onEditClicked();
-
         mUpClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -58,24 +57,14 @@ public class PostViewActivity extends BaseActivity implements
 
     @Override
     public void onPreviewClicked() {
-        mPostViewFragment.onShow();
-        getSupportFragmentManager()
-                .beginTransaction()
-                .show(mPostViewFragment)
-                .hide(mPostEditFragment)
-                .commit();
-        mPostEditFragment.onHide();
+        mPostEditFragment.hide();
+        mPostViewFragment.show();
     }
 
     @Override
     public void onEditClicked() {
-        mPostEditFragment.onShow();
-        getSupportFragmentManager()
-                .beginTransaction()
-                .show(mPostEditFragment)
-                .hide(mPostViewFragment)
-                .commit();
-        mPostViewFragment.onHide();
+        mPostViewFragment.hide();
+        mPostEditFragment.show();
     }
 
     public void setNavigationItem(int iconResId, View.OnClickListener clickListener) {

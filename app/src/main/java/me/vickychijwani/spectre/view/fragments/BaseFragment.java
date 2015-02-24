@@ -1,8 +1,29 @@
 package me.vickychijwani.spectre.view.fragments;
 
 import android.support.v4.app.Fragment;
+import android.view.View;
 
 public class BaseFragment extends Fragment {
+
+    /**
+     * Hide the root {@link android.view.View} of this Fragment.
+     */
+    public void hide() {
+        if (getView() != null) {
+            getView().setVisibility(View.GONE);
+            onHide();
+        }
+    }
+
+    /**
+     * Show the root {@link android.view.View} of this Fragment.
+     */
+    public void show() {
+        if (getView() != null) {
+            onShow();
+            getView().setVisibility(View.VISIBLE);
+        }
+    }
 
     /**
      * Called by the hosting {@link me.vickychijwani.spectre.view.BaseActivity} when the fragment is
