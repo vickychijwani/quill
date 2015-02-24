@@ -75,6 +75,10 @@
         <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
     </style>
 
+    <style name="TextAppearance.Large.Light.Inverse">
+        <item name="android:textColor">@color/text_primary_inverted</item>
+    </style>
+
     <style name="TextAppearance.UltraLarge">
         <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
         <item name="android:textSize">@dimen/text_size_ultralarge</item>

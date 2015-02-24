@@ -3,22 +3,27 @@ package me.vickychijwani.spectre.view.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
+import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import in.uncod.android.bypass.Bypass;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.network.PicassoImageGetter;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.view.PostViewActivity;
 
 public class PostViewFragment extends BaseFragment {
 
     @InjectView(R.id.post_html)
-    WebView mPostHtmlView;
+    TextView mPostHtmlView;
 
     @InjectView(R.id.edit_post_btn)
     View mEditBtn;
@@ -26,7 +31,9 @@ public class PostViewFragment extends BaseFragment {
     private OnEditClickListener mEditClickListener;
     private Post mPost;
     private String mBlogUrl;
-    private int mHtmlHashCode;
+    private int mMarkdownHashCode;
+    private Bypass mBypass;
+    private PicassoImageGetter mImageGetter;
 
     public interface OnEditClickListener {
         public void onEditClicked();
@@ -57,6 +64,10 @@ public class PostViewFragment extends BaseFragment {
             }
         });
 
+        mBypass = new Bypass(getActivity());
+        mImageGetter = new PicassoImageGetter(mBlogUrl, mPostHtmlView, getResources(),
+                Picasso.with(getActivity()));
+
         return view;
     }
 
@@ -70,11 +81,11 @@ public class PostViewFragment extends BaseFragment {
         if (getActivity() != null) {
             getActivity().setTitle(mPost.title);
         }
-        int htmlHashCode = mPost.html.hashCode();
-        if (htmlHashCode != mHtmlHashCode) {
-            String postUrl = mPost.getAbsoluteUrl(mBlogUrl);
-            mPostHtmlView.loadDataWithBaseURL(mBlogUrl, mPost.html, "text/html", "UTF-8", postUrl);
-            mHtmlHashCode = htmlHashCode;
+        int markdownHashCode = mPost.markdown.hashCode();
+        if (markdownHashCode != mMarkdownHashCode) {
+            mPostHtmlView.setText(mBypass.markdownToSpannable(mPost.markdown, mImageGetter));
+            mPostHtmlView.setMovementMethod(LinkMovementMethod.getInstance());
+            mMarkdownHashCode = markdownHashCode;
         }
     }
 

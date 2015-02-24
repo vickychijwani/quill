@@ -2,14 +2,26 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <WebView
-        android:id="@+id/post_html"
+    <com.github.ksoichiro.android.observablescrollview.ObservableScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        />
+        android:overScrollMode="never"
+        >
+
+        <TextView
+            android:id="@+id/post_html"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/padding_large"
+            android:textAppearance="@style/TextAppearance.Medium.Light"
+            tools:text="@string/lorem_ipsum"
+            />
+
+    </com.github.ksoichiro.android.observablescrollview.ObservableScrollView>
 
     <com.melnykov.fab.FloatingActionButton
         android:id="@+id/edit_post_btn"

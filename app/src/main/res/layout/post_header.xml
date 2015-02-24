@@ -29,6 +29,8 @@
             android:textSize="@dimen/text_size_large"
             android:nextFocusUp="@id/post_title_edit"
             android:nextFocusLeft="@id/post_title_edit"
+            android:textAppearance="@style/TextAppearance.Large.Light.Inverse"
+            tools:text="My awesome post title"
             />
 
     </RelativeLayout>

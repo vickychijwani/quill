@@ -19,7 +19,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.commonsware.cwac.anddown.AndDown;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
@@ -60,7 +59,6 @@ public class PostEditFragment extends BaseFragment implements
 
     private OnPreviewClickListener mPreviewClickListener;
     private Post mPost;
-    private AndDown mAndDown;   // Markdown parser
 
     // action mode
     private enum ActionModeState {
@@ -89,7 +87,6 @@ public class PostEditFragment extends BaseFragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAndDown = new AndDown();
     }
 
     @Nullable
@@ -179,7 +176,6 @@ public class PostEditFragment extends BaseFragment implements
     @Override
     public void onHide() {
         mPost.markdown = mPostEditView.getText().toString();
-        mPost.html = mAndDown.markdownToHtml(mPost.markdown);
     }
 
     @Override
