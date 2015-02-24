@@ -16,7 +16,10 @@
             android:id="@+id/post_html"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/padding_large"
+            android:paddingLeft="@dimen/padding_large"
+            android:paddingRight="@dimen/padding_large"
+            android:paddingTop="@dimen/padding_large"
+            android:paddingBottom="@dimen/padding_fab_normal"
             android:textAppearance="@style/TextAppearance.Medium.Light"
             tools:text="@string/lorem_ipsum"
             />
