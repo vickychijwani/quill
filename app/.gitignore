@@ -1,1 +1,4 @@
 /build
+src/main/res/values/secrets.xml
+src/main/res/values/com_crashlytics_export_strings.xml
+crashlytics.properties
