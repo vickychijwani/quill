@@ -33,10 +33,16 @@ public abstract class BaseActivity extends ActionBarActivity {
     @Override
     public void onBackPressed() {
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
-        for (Fragment f : fragments) {
-            BaseFragment bf = (BaseFragment) f;
-            if (bf.onBackPressed()) {
-                return;
+        if (fragments != null) {
+            for (Fragment f : fragments) {
+                if (!(f instanceof BaseFragment)) {
+                    continue;  // vanilla fragments don't have onBackPressed
+                }
+
+                BaseFragment bf = (BaseFragment) f;
+                if (bf.onBackPressed()) {
+                    return;
+                }
             }
         }
         super.onBackPressed();
