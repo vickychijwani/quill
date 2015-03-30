@@ -2,19 +2,17 @@ package me.vickychijwani.spectre.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -22,10 +20,15 @@ import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.Globals;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.model.ApiError;
+import me.vickychijwani.spectre.model.ApiErrorList;
 import me.vickychijwani.spectre.model.AuthReqBody;
 import me.vickychijwani.spectre.model.AuthToken;
 import me.vickychijwani.spectre.network.GhostApiService;
@@ -41,22 +44,9 @@ import retrofit.converter.GsonConverter;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends BaseActivity {
-
-    /**
-     * A dummy authentication store containing known user names and passwords. TODO: remove after
-     * connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
+public class LoginActivity extends BaseActivity implements OnClickListener, TextView.OnEditorActionListener {
 
     private final String TAG = "LoginActivity";
-
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private UserLoginTask mAuthTask = null;
 
     // UI references
     @InjectView(R.id.toolbar)
@@ -85,92 +75,66 @@ public class LoginActivity extends BaseActivity {
         ButterKnife.inject(this);
         setSupportActionBar(mToolbar);
 
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
-                }
-                return false;
-            }
-        });
+        mPasswordView.setOnEditorActionListener(this);
 
         UserPrefs prefs = UserPrefs.getInstance(this);
         mBlogUrlView.setText(prefs.getString(UserPrefs.Key.BLOG_URL));
         mEmailView.setText(prefs.getString(UserPrefs.Key.USERNAME));
         mPasswordView.setText(prefs.getString(UserPrefs.Key.PASSWORD));
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final String blogUrl = mBlogUrlView.getText().toString();
+        findViewById(R.id.email_sign_in_button).setOnClickListener(this);
+    }
 
-                Gson gson = new GsonBuilder()
-                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                        .create();
+    @Override
+    public void onClick(View v) {
+        attemptLogin();
+    }
 
-                RestAdapter restAdapter = new RestAdapter.Builder()
-                        .setEndpoint(AppUtils.pathJoin(blogUrl, "ghost/api/v0.1"))
-                        .setConverter(new GsonConverter(gson))
-                        .setLogLevel(RestAdapter.LogLevel.HEADERS)
-                        .build();
-
-                Globals.getInstance().api = restAdapter.create(GhostApiService.class);
-
-                final AuthReqBody credentials = new AuthReqBody();
-                credentials.username = mEmailView.getText().toString();
-                credentials.password = mPasswordView.getText().toString();
-
-                Globals.getInstance().api.getAuthToken(credentials, new Callback<AuthToken>() {
-                    @Override
-                    public void success(AuthToken authToken, Response response) {
-                        sAuthToken = authToken;
-                        Log.d(TAG, "Got new access token = " + sAuthToken.access_token);
-
-                        UserPrefs prefs = UserPrefs.getInstance(LoginActivity.this);
-                        prefs.setString(UserPrefs.Key.BLOG_URL, blogUrl);
-                        prefs.setString(UserPrefs.Key.USERNAME, credentials.username);
-                        prefs.setString(UserPrefs.Key.PASSWORD, credentials.password);
-
-                        Intent intent = new Intent(LoginActivity.this, PostListActivity.class);
-                        startActivity(intent);
-                    }
-
-                    @Override
-                    public void failure(RetrofitError error) {
-                        Log.e(TAG, Log.getStackTraceString(error));
-                    }
-                });
-            }
-        });
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if (actionId == getResources().getInteger(R.integer.ime_action_id_signin)
+                || actionId == EditorInfo.IME_NULL) {
+            attemptLogin();
+            return true;
+        }
+        return false;
     }
 
     /**
-     * Attempts to sign in or register the account specified by the login form. If there are form
-     * errors (invalid email, missing fields, etc.), the errors are presented and no actual login
-     * attempt is made.
+     * Attempts to sign in the account specified by the login form. If there are form errors
+     * (invalid email, missing fields, etc.), the errors are presented and no actual login attempt
+     * is made.
      */
     public void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
+        String blogUrl = mBlogUrlView.getText().toString();
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
 
+        // check for a valid url
+        if (TextUtils.isEmpty(blogUrl)) {
+            mBlogUrlView.setError(getString(R.string.error_field_required));
+            focusView = mBlogUrlView;
+            cancel = true;
+        } else if (! isBlogUrlValid(blogUrl)) {
+            mBlogUrlView.setError(getString(R.string.error_invalid_url));
+            focusView = mBlogUrlView;
+            cancel = true;
+        }
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+        if (TextUtils.isEmpty(password)) {
+            mPasswordView.setError(getString(R.string.error_field_required));
+            focusView = mPasswordView;
+            cancel = true;
+        } else if (! isPasswordValid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
@@ -181,7 +145,7 @@ public class LoginActivity extends BaseActivity {
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
-        } else if (!isEmailValid(email)) {
+        } else if (! isEmailValid(email)) {
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
@@ -195,110 +159,108 @@ public class LoginActivity extends BaseActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+            sendLoginRequest();
         }
     }
 
+    public void sendLoginRequest() {
+        final String blogUrl = mBlogUrlView.getText().toString();
+
+        Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                .create();
+
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(AppUtils.pathJoin(blogUrl, "ghost/api/v0.1"))
+                .setConverter(new GsonConverter(gson))
+                .setLogLevel(RestAdapter.LogLevel.HEADERS)
+                .build();
+
+        Globals.getInstance().api = restAdapter.create(GhostApiService.class);
+
+        final AuthReqBody credentials = new AuthReqBody();
+        credentials.username = mEmailView.getText().toString();
+        credentials.password = mPasswordView.getText().toString();
+
+        Globals.getInstance().api.getAuthToken(credentials, new Callback<AuthToken>() {
+            @Override
+            public void success(AuthToken authToken, Response response) {
+                sAuthToken = authToken;
+                Log.d(TAG, "Got new access token = " + sAuthToken.access_token);
+
+                UserPrefs prefs = UserPrefs.getInstance(LoginActivity.this);
+                prefs.setString(UserPrefs.Key.BLOG_URL, blogUrl);
+                prefs.setString(UserPrefs.Key.USERNAME, credentials.username);
+                prefs.setString(UserPrefs.Key.PASSWORD, credentials.password);
+                finish();
+
+                Intent intent = new Intent(LoginActivity.this, PostListActivity.class);
+                startActivity(intent);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(TAG, Log.getStackTraceString(error));
+                showProgress(false);
+                try {
+                    ApiErrorList errorList = (ApiErrorList) error.getBodyAs(ApiErrorList.class);
+                    ApiError apiError = errorList.errors.get(0);
+                    EditText errorView = mPasswordView;
+                    if (apiError.type.equals("NotFoundError")) {
+                        errorView = mEmailView;
+                    } else if (apiError.type.equals("UnauthorizedError")) {
+                        errorView = mPasswordView;
+                    }
+                    errorView.setError(Html.fromHtml(apiError.message));
+                    errorView.requestFocus();
+                } catch (Exception ignored) {
+                    if (error.getKind() == RetrofitError.Kind.NETWORK
+                            && (error.getCause() instanceof UnknownHostException ||
+                            error.getCause() instanceof MalformedURLException)) {
+                        String blogUrl = mBlogUrlView.getText().toString();
+                        mBlogUrlView.setError(String.format(getString(R.string.no_such_blog), blogUrl));
+                        mBlogUrlView.requestFocus();
+                    }
+                }
+            }
+        });
+    }
+
+    private boolean isBlogUrlValid(String blogUrl) {
+        return Patterns.WEB_URL.matcher(blogUrl).matches();
+    }
+
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return password.length() >= 8;
     }
 
     /**
      * Shows the progress UI and hides the login form.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     public void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
-    /**
-     * Represents an asynchronous login/registration task used to authenticate the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-            // TODO: register the new account here.
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
-    }
 }

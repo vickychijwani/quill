@@ -6,6 +6,9 @@
     <string name="done">Done</string>
     <string name="save">Save</string>
 
+    <!-- login -->
+    <string name="no_such_blog">There is no Ghost blog at %s/ghost.</string>
+
     <!-- posts -->
     <string name="published">Published on %s</string>
     <string name="draft">Draft</string>
