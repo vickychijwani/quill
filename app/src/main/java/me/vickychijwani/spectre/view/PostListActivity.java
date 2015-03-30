@@ -63,9 +63,10 @@ public class PostListActivity extends BaseActivity {
         ButterKnife.inject(this);
         setSupportActionBar(mToolbar);
 
-        // hide the default action bar confetti
+        // get rid of the default action bar confetti
         getSupportActionBar().setDisplayOptions(0);
 
+        // initialize post list UI
         mPosts = new ArrayList<>();
         mPostAdapter = new PostAdapter(this, mPosts, new View.OnClickListener() {
             @Override
@@ -79,59 +80,64 @@ public class PostListActivity extends BaseActivity {
         });
         mPostList.setAdapter(mPostAdapter);
 
+        // fire network requests
         String authorization = "Bearer " + sAuthToken.access_token;
-        final UserPrefs prefs = UserPrefs.getInstance(this);
-
-        Globals.getInstance().api.getCurrentUser(authorization, new Callback<UserList>() {
-            @Override
-            public void success(UserList userList, Response response) {
-                String imageUrl = AppUtils.pathJoin(prefs.getString(UserPrefs.Key.BLOG_URL),
-                        userList.users.get(0).image);
-                Picasso.with(PostListActivity.this)
-                        .load(imageUrl)
-                        .transform(new BorderedCircleTransformation())
-                        .fit()
-                        .into(mUserImageView);
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.e(TAG, Log.getStackTraceString(error));
-            }
-        });
-
-        Globals.getInstance().api.getSettings(authorization, new Callback<SettingsList>() {
-            @Override
-            public void success(SettingsList settingsList, Response response) {
-                String blogTitle = getString(R.string.app_name);
-                for (Setting setting : settingsList.settings) {
-                    if (setting.key.equals("title")) {
-                        blogTitle = setting.value;
-                    }
-                }
-                mBlogTitleView.setText(blogTitle);
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.e(TAG, Log.getStackTraceString(error));
-            }
-        });
-
-        Globals.getInstance().api.getPosts(authorization, new Callback<PostList>() {
-            @Override
-            public void success(PostList postList, Response response) {
-                mPosts.clear();
-                mPosts.addAll(postList.posts);
-                mPostAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.e(TAG, Log.getStackTraceString(error));
-            }
-        });
+        Globals.getInstance().api.getCurrentUser(authorization, mUsersCB);
+        Globals.getInstance().api.getSettings(authorization, mSettingsCB);
+        Globals.getInstance().api.getPosts(authorization, mPostsCB);
     }
+
+    private final Callback<UserList> mUsersCB = new Callback<UserList>() {
+        @Override
+        public void success(UserList userList, Response response) {
+            UserPrefs prefs = UserPrefs.getInstance(PostListActivity.this);
+            String imageUrl = AppUtils.pathJoin(prefs.getString(UserPrefs.Key.BLOG_URL),
+                    userList.users.get(0).image);
+            Picasso.with(PostListActivity.this)
+                    .load(imageUrl)
+                    .transform(new BorderedCircleTransformation())
+                    .fit()
+                    .into(mUserImageView);
+        }
+
+        @Override
+        public void failure(RetrofitError error) {
+            Log.e(TAG, Log.getStackTraceString(error));
+        }
+    };
+
+    private final Callback<SettingsList> mSettingsCB = new Callback<SettingsList>() {
+        @Override
+        public void success(SettingsList settingsList, Response response) {
+            String blogTitle = getString(R.string.app_name);
+            for (Setting setting : settingsList.settings) {
+                if (setting.key.equals("title")) {
+                    blogTitle = setting.value;
+                }
+            }
+            mBlogTitleView.setText(blogTitle);
+        }
+
+        @Override
+        public void failure(RetrofitError error) {
+            Log.e(TAG, Log.getStackTraceString(error));
+        }
+    };
+
+    private final Callback<PostList> mPostsCB = new Callback<PostList>() {
+        @Override
+        public void success(PostList postList, Response response) {
+            mPosts.clear();
+            mPosts.addAll(postList.posts);
+            mPostAdapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void failure(RetrofitError error) {
+            Log.e(TAG, Log.getStackTraceString(error));
+        }
+    };
+
 
     static class PostAdapter extends BaseAdapter {
 
