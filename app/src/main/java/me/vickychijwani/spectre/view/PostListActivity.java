@@ -9,8 +9,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import org.parceler.Parcels;
 
@@ -23,6 +26,12 @@ import me.vickychijwani.spectre.Globals;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.PostList;
+import me.vickychijwani.spectre.model.Setting;
+import me.vickychijwani.spectre.model.SettingsList;
+import me.vickychijwani.spectre.model.UserList;
+import me.vickychijwani.spectre.network.BorderedCircleTransformation;
+import me.vickychijwani.spectre.pref.UserPrefs;
+import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -38,6 +47,12 @@ public class PostListActivity extends BaseActivity {
     @InjectView(R.id.toolbar)
     Toolbar mToolbar;
 
+    @InjectView(R.id.user_image)
+    ImageView mUserImageView;
+
+    @InjectView(R.id.user_blog_title)
+    TextView mBlogTitleView;
+
     @InjectView(R.id.post_list)
     ListView mPostList;
 
@@ -47,6 +62,9 @@ public class PostListActivity extends BaseActivity {
         setContentView(R.layout.activity_post_list);
         ButterKnife.inject(this);
         setSupportActionBar(mToolbar);
+
+        // hide the default action bar confetti
+        getSupportActionBar().setDisplayOptions(0);
 
         mPosts = new ArrayList<>();
         mPostAdapter = new PostAdapter(this, mPosts, new View.OnClickListener() {
@@ -61,7 +79,46 @@ public class PostListActivity extends BaseActivity {
         });
         mPostList.setAdapter(mPostAdapter);
 
-        Globals.getInstance().api.getPosts("Bearer " + sAuthToken.access_token, new Callback<PostList>() {
+        String authorization = "Bearer " + sAuthToken.access_token;
+        final UserPrefs prefs = UserPrefs.getInstance(this);
+
+        Globals.getInstance().api.getCurrentUser(authorization, new Callback<UserList>() {
+            @Override
+            public void success(UserList userList, Response response) {
+                String imageUrl = AppUtils.pathJoin(prefs.getString(UserPrefs.Key.BLOG_URL),
+                        userList.users.get(0).image);
+                Picasso.with(PostListActivity.this)
+                        .load(imageUrl)
+                        .transform(new BorderedCircleTransformation())
+                        .fit()
+                        .into(mUserImageView);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(TAG, Log.getStackTraceString(error));
+            }
+        });
+
+        Globals.getInstance().api.getSettings(authorization, new Callback<SettingsList>() {
+            @Override
+            public void success(SettingsList settingsList, Response response) {
+                String blogTitle = getString(R.string.app_name);
+                for (Setting setting : settingsList.settings) {
+                    if (setting.key.equals("title")) {
+                        blogTitle = setting.value;
+                    }
+                }
+                mBlogTitleView.setText(blogTitle);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(TAG, Log.getStackTraceString(error));
+            }
+        });
+
+        Globals.getInstance().api.getPosts(authorization, new Callback<PostList>() {
             @Override
             public void success(PostList postList, Response response) {
                 mPosts.clear();
