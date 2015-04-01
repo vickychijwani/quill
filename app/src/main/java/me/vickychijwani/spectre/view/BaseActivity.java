@@ -8,18 +8,29 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.MenuItem;
 
+import com.squareup.otto.Bus;
+
 import java.util.List;
 
-import me.vickychijwani.spectre.model.AuthToken;
+import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.view.fragments.BaseFragment;
 
 public abstract class BaseActivity extends ActionBarActivity {
 
-    // TODO get rid of this shit
-    protected static AuthToken sAuthToken = null;
+    public Bus getBus() {
+        return BusProvider.getBus();
+    }
 
-    public static AuthToken getAuthToken() {
-        return sAuthToken;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getBus().register(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getBus().unregister(this);
     }
 
     @Override

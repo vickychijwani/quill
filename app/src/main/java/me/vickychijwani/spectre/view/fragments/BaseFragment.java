@@ -3,7 +3,27 @@ package me.vickychijwani.spectre.view.fragments;
 import android.support.v4.app.Fragment;
 import android.view.View;
 
+import com.squareup.otto.Bus;
+
+import me.vickychijwani.spectre.event.BusProvider;
+
 public class BaseFragment extends Fragment {
+
+    protected Bus getBus() {
+        return BusProvider.getBus();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getBus().register(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        getBus().unregister(this);
+    }
 
     /**
      * Hide the root {@link android.view.View} of this Fragment.

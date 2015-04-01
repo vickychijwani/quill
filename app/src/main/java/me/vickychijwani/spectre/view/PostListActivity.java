@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
 import org.parceler.Parcels;
@@ -22,20 +22,19 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import me.vickychijwani.spectre.Globals;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
+import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
+import me.vickychijwani.spectre.event.LoadPostsEvent;
+import me.vickychijwani.spectre.event.LoadUserEvent;
+import me.vickychijwani.spectre.event.PostsLoadedEvent;
+import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.Post;
-import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.model.Setting;
-import me.vickychijwani.spectre.model.SettingsList;
-import me.vickychijwani.spectre.model.UserList;
 import me.vickychijwani.spectre.network.BorderedCircleTransformation;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.DateTimeUtils;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 public class PostListActivity extends BaseActivity {
 
@@ -80,63 +79,40 @@ public class PostListActivity extends BaseActivity {
         });
         mPostList.setAdapter(mPostAdapter);
 
-        // fire network requests
-        String authorization = "Bearer " + sAuthToken.access_token;
-        Globals.getInstance().api.getCurrentUser(authorization, mUsersCB);
-        Globals.getInstance().api.getSettings(authorization, mSettingsCB);
-        Globals.getInstance().api.getPosts(authorization, mPostsCB);
+        getBus().post(new LoadUserEvent());
+        getBus().post(new LoadBlogSettingsEvent());
+        getBus().post(new LoadPostsEvent());
     }
 
-    private final Callback<UserList> mUsersCB = new Callback<UserList>() {
-        @Override
-        public void success(UserList userList, Response response) {
-            UserPrefs prefs = UserPrefs.getInstance(PostListActivity.this);
-            String imageUrl = AppUtils.pathJoin(prefs.getString(UserPrefs.Key.BLOG_URL),
-                    userList.users.get(0).image);
-            Picasso.with(PostListActivity.this)
-                    .load(imageUrl)
-                    .transform(new BorderedCircleTransformation())
-                    .fit()
-                    .into(mUserImageView);
-        }
+    @Subscribe
+    public void onUserLoadedEvent(UserLoadedEvent event) {
+        UserPrefs prefs = UserPrefs.getInstance(this);
+        String imageUrl = AppUtils.pathJoin(prefs.getString(UserPrefs.Key.BLOG_URL),
+                event.user.image);
+        Picasso.with(this)
+                .load(imageUrl)
+                .transform(new BorderedCircleTransformation())
+                .fit()
+                .into(mUserImageView);
+    }
 
-        @Override
-        public void failure(RetrofitError error) {
-            Log.e(TAG, Log.getStackTraceString(error));
-        }
-    };
-
-    private final Callback<SettingsList> mSettingsCB = new Callback<SettingsList>() {
-        @Override
-        public void success(SettingsList settingsList, Response response) {
-            String blogTitle = getString(R.string.app_name);
-            for (Setting setting : settingsList.settings) {
-                if (setting.key.equals("title")) {
-                    blogTitle = setting.value;
-                }
+    @Subscribe
+    public void onBlogSettingsLoadedEvent(BlogSettingsLoadedEvent event) {
+        String blogTitle = getString(R.string.app_name);
+        for (Setting setting : event.settings) {
+            if (setting.key.equals("title")) {
+                blogTitle = setting.value;
             }
-            mBlogTitleView.setText(blogTitle);
         }
+        mBlogTitleView.setText(blogTitle);
+    }
 
-        @Override
-        public void failure(RetrofitError error) {
-            Log.e(TAG, Log.getStackTraceString(error));
-        }
-    };
-
-    private final Callback<PostList> mPostsCB = new Callback<PostList>() {
-        @Override
-        public void success(PostList postList, Response response) {
-            mPosts.clear();
-            mPosts.addAll(postList.posts);
-            mPostAdapter.notifyDataSetChanged();
-        }
-
-        @Override
-        public void failure(RetrofitError error) {
-            Log.e(TAG, Log.getStackTraceString(error));
-        }
-    };
+    @Subscribe
+    public void onPostsLoadedEvent(PostsLoadedEvent event) {
+        mPosts.clear();
+        mPosts.addAll(event.posts);
+        mPostAdapter.notifyDataSetChanged();
+    }
 
 
     static class PostAdapter extends BaseAdapter {

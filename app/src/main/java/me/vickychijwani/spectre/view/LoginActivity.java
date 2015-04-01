@@ -17,28 +17,21 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.squareup.otto.Subscribe;
 
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import me.vickychijwani.spectre.Globals;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.event.LoginDoneEvent;
+import me.vickychijwani.spectre.event.LoginErrorEvent;
+import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.model.ApiError;
 import me.vickychijwani.spectre.model.ApiErrorList;
-import me.vickychijwani.spectre.model.AuthReqBody;
-import me.vickychijwani.spectre.model.AuthToken;
-import me.vickychijwani.spectre.network.GhostApiService;
 import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.util.AppUtils;
-import retrofit.Callback;
-import retrofit.RestAdapter;
 import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.converter.GsonConverter;
 
 
 /**
@@ -164,66 +157,49 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     }
 
     public void sendLoginRequest() {
-        final String blogUrl = mBlogUrlView.getText().toString();
+        String blogUrl = mBlogUrlView.getText().toString();
+        String username = mEmailView.getText().toString();
+        String password = mPasswordView.getText().toString();
+        getBus().post(new LoginStartEvent(blogUrl, username, password));
+    }
 
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                .create();
+    @Subscribe
+    public void onLoginDoneEvent(LoginDoneEvent event) {
+        UserPrefs prefs = UserPrefs.getInstance(this);
+        prefs.setString(UserPrefs.Key.BLOG_URL, event.blogUrl);
+        prefs.setString(UserPrefs.Key.USERNAME, event.username);
+        prefs.setString(UserPrefs.Key.PASSWORD, event.password);
+        finish();
 
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(AppUtils.pathJoin(blogUrl, "ghost/api/v0.1"))
-                .setConverter(new GsonConverter(gson))
-                .setLogLevel(RestAdapter.LogLevel.HEADERS)
-                .build();
+        Intent intent = new Intent(this, PostListActivity.class);
+        startActivity(intent);
+    }
 
-        Globals.getInstance().api = restAdapter.create(GhostApiService.class);
-
-        final AuthReqBody credentials = new AuthReqBody();
-        credentials.username = mEmailView.getText().toString();
-        credentials.password = mPasswordView.getText().toString();
-
-        Globals.getInstance().api.getAuthToken(credentials, new Callback<AuthToken>() {
-            @Override
-            public void success(AuthToken authToken, Response response) {
-                sAuthToken = authToken;
-                Log.d(TAG, "Got new access token = " + sAuthToken.access_token);
-
-                UserPrefs prefs = UserPrefs.getInstance(LoginActivity.this);
-                prefs.setString(UserPrefs.Key.BLOG_URL, blogUrl);
-                prefs.setString(UserPrefs.Key.USERNAME, credentials.username);
-                prefs.setString(UserPrefs.Key.PASSWORD, credentials.password);
-                finish();
-
-                Intent intent = new Intent(LoginActivity.this, PostListActivity.class);
-                startActivity(intent);
+    @Subscribe
+    public void onLoginErrorEvent(LoginErrorEvent event) {
+        RetrofitError error = event.error;
+        Log.e(TAG, Log.getStackTraceString(error));
+        showProgress(false);
+        try {
+            ApiErrorList errorList = (ApiErrorList) error.getBodyAs(ApiErrorList.class);
+            ApiError apiError = errorList.errors.get(0);
+            EditText errorView = mPasswordView;
+            if (apiError.type.equals("NotFoundError")) {
+                errorView = mEmailView;
+            } else if (apiError.type.equals("UnauthorizedError")) {
+                errorView = mPasswordView;
             }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.e(TAG, Log.getStackTraceString(error));
-                showProgress(false);
-                try {
-                    ApiErrorList errorList = (ApiErrorList) error.getBodyAs(ApiErrorList.class);
-                    ApiError apiError = errorList.errors.get(0);
-                    EditText errorView = mPasswordView;
-                    if (apiError.type.equals("NotFoundError")) {
-                        errorView = mEmailView;
-                    } else if (apiError.type.equals("UnauthorizedError")) {
-                        errorView = mPasswordView;
-                    }
-                    errorView.setError(Html.fromHtml(apiError.message));
-                    errorView.requestFocus();
-                } catch (Exception ignored) {
-                    if (error.getKind() == RetrofitError.Kind.NETWORK
-                            && (error.getCause() instanceof UnknownHostException ||
-                            error.getCause() instanceof MalformedURLException)) {
-                        String blogUrl = mBlogUrlView.getText().toString();
-                        mBlogUrlView.setError(String.format(getString(R.string.no_such_blog), blogUrl));
-                        mBlogUrlView.requestFocus();
-                    }
-                }
+            errorView.setError(Html.fromHtml(apiError.message));
+            errorView.requestFocus();
+        } catch (Exception ignored) {
+            if (error.getKind() == RetrofitError.Kind.NETWORK
+                    && (error.getCause() instanceof UnknownHostException ||
+                    error.getCause() instanceof MalformedURLException)) {
+                String blogUrl = mBlogUrlView.getText().toString();
+                mBlogUrlView.setError(String.format(getString(R.string.no_such_blog), blogUrl));
+                mBlogUrlView.requestFocus();
             }
-        });
+        }
     }
 
     private boolean isBlogUrlValid(String blogUrl) {

@@ -5,7 +5,6 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -23,19 +22,16 @@ import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.melnykov.fab.FloatingActionButton;
+import com.squareup.otto.Subscribe;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import me.vickychijwani.spectre.Globals;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.event.PostSavedEvent;
+import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.model.Post;
-import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.util.AppUtils;
-import me.vickychijwani.spectre.view.BaseActivity;
 import me.vickychijwani.spectre.view.PostViewActivity;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 public class PostEditFragment extends BaseFragment implements
         ObservableScrollViewCallbacks {
@@ -259,22 +255,12 @@ public class PostEditFragment extends BaseFragment implements
     private void onSaveClicked() {
         mPost.markdown = mPostEditView.getText().toString();
         mPost.html = null;   // omit stale HTML from request body
-        Globals.getInstance().api.updatePost(
-                "Bearer " + BaseActivity.getAuthToken().access_token,
-                mPost.id,
-                PostList.from(mPost),
-                new Callback<PostList>() {
-                    @Override
-                    public void success(PostList postList, Response response) {
-                        Toast.makeText(mActivity, "Post saved!", Toast.LENGTH_SHORT).show();
-                    }
+        getBus().post(new SavePostEvent(mPost));
+    }
 
-                    @Override
-                    public void failure(RetrofitError error) {
-                        Log.e(TAG, Log.getStackTraceString(error));
-                    }
-                }
-        );
+    @Subscribe
+    public void onPostSavedEvent(PostSavedEvent event) {
+        Toast.makeText(mActivity, "Post saved!", Toast.LENGTH_SHORT).show();
     }
 
 

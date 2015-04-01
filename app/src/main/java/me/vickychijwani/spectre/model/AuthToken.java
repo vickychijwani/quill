@@ -7,4 +7,8 @@ public class AuthToken {
     public String refresh_token;
     public int expires_in;
 
+    public String getAuthHeader() {
+        return token_type + " " + access_token;
+    }
+
 }
