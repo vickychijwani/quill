@@ -16,7 +16,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Subscribe;
 
 import java.net.MalformedURLException;
@@ -63,7 +62,6 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Crashlytics.start(this);
         setContentView(R.layout.activity_login);
         ButterKnife.inject(this);
         setSupportActionBar(mToolbar);

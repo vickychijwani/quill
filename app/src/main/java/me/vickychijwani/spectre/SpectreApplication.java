@@ -3,6 +3,7 @@ package me.vickychijwani.spectre;
 import android.app.Application;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Subscribe;
 
 import me.vickychijwani.spectre.event.ApiErrorEvent;
@@ -16,7 +17,9 @@ public class SpectreApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Crashlytics.start(this);
         BusProvider.getBus().register(this);
+
         NetworkService networkService = new NetworkService();
         networkService.start();
     }
