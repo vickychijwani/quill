@@ -1,5 +1,6 @@
 package me.vickychijwani.spectre.view;
 
+import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -8,6 +9,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.MenuItem;
 
+import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
 
 import java.util.List;
@@ -17,20 +19,60 @@ import me.vickychijwani.spectre.view.fragments.BaseFragment;
 
 public abstract class BaseActivity extends ActionBarActivity {
 
+    public static final String TAG = "BaseActivity";
+
     public Bus getBus() {
         return BusProvider.getBus();
     }
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onCreate()");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onStart()");
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onResume()");
         getBus().register(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onPause()");
         getBus().unregister(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onStop()");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDestroy()");
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onLowMemory()");
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onTrimMemory()");
     }
 
     @Override
@@ -46,6 +88,7 @@ public abstract class BaseActivity extends ActionBarActivity {
 
     @Override
     public void onBackPressed() {
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onBackPressed()");
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         if (fragments != null) {
             for (Fragment f : fragments) {
