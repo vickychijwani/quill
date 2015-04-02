@@ -15,9 +15,11 @@ import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 
@@ -114,10 +116,6 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             mBlogUrlView.setError(getString(R.string.error_field_required));
             focusView = mBlogUrlView;
             cancel = true;
-        } else if (! isBlogUrlValid(blogUrl)) {
-            mBlogUrlView.setError(getString(R.string.error_invalid_url));
-            focusView = mBlogUrlView;
-            cancel = true;
         }
 
         // Check for a valid password, if the user entered one.
@@ -190,18 +188,24 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             errorView.setError(Html.fromHtml(apiError.message));
             errorView.requestFocus();
         } catch (Exception ignored) {
-            if (error.getKind() == RetrofitError.Kind.NETWORK
-                    && (error.getCause() instanceof UnknownHostException ||
-                    error.getCause() instanceof MalformedURLException)) {
-                String blogUrl = mBlogUrlView.getText().toString();
+            boolean userNetworkError = error.getKind() == RetrofitError.Kind.NETWORK
+                    && (error.getCause() instanceof UnknownHostException
+                    || error.getCause() instanceof MalformedURLException);
+            boolean connectionError = error.getKind() == RetrofitError.Kind.NETWORK
+                    && error.getCause() instanceof ConnectException;
+            boolean conversionError = error.getKind() == RetrofitError.Kind.CONVERSION;
+            String blogUrl = mBlogUrlView.getText().toString();
+            if (userNetworkError || conversionError) {
                 mBlogUrlView.setError(String.format(getString(R.string.no_such_blog), blogUrl));
                 mBlogUrlView.requestFocus();
+            } else if (connectionError) {
+                Toast.makeText(this, String.format(getString(R.string.login_connection_error), blogUrl),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, getString(R.string.login_unexpected_error),
+                        Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    private boolean isBlogUrlValid(String blogUrl) {
-        return Patterns.WEB_URL.matcher(blogUrl).matches();
     }
 
     private boolean isEmailValid(String email) {
