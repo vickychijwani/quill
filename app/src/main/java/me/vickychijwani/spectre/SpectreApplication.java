@@ -18,6 +18,7 @@ public class SpectreApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Crashlytics.start(this);
+        Crashlytics.log(Log.DEBUG, TAG, "APP LAUNCHED");
         BusProvider.getBus().register(this);
 
         NetworkService networkService = new NetworkService();

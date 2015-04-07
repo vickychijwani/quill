@@ -2,6 +2,7 @@ package me.vickychijwani.spectre.network;
 
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.otto.Bus;
@@ -43,6 +44,7 @@ public class NetworkService {
     private RequestInterceptor mAuthInterceptor;
 
     public NetworkService() {
+        Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                 .create();
