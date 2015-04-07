@@ -1,5 +1,6 @@
-# spectre
-Spectre: the beautiful Android app for your Ghost blog.
+# Quill
+
+Quill: the beautiful Android app for your Ghost blog.
 
 **WIP screenshots:**
 
