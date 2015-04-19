@@ -6,12 +6,14 @@ import org.parceler.Parcel;
 
 import java.util.Date;
 
+import io.realm.PostRealmProxy;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 
 @RealmClass
-@Parcel(value = Parcel.Serialization.BEAN, analyze = { Post.class })
+@Parcel(value = Parcel.Serialization.BEAN, analyze = { Post.class },
+        implementations = { PostRealmProxy.class })
 public class Post extends RealmObject {
 
     @PrimaryKey

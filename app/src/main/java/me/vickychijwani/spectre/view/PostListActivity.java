@@ -91,7 +91,7 @@ public class PostListActivity extends BaseActivity {
                 int pos = mPostList.getPositionForView(v);
                 Post post = (Post) mPostAdapter.getItem(pos);
                 Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-                intent.putExtra(BundleKeys.POST, Parcels.wrap(Post.class, post));
+                intent.putExtra(BundleKeys.POST, Parcels.wrap(post));
                 startActivity(intent);
             }
         });
