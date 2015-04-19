@@ -1,10 +1,19 @@
 package me.vickychijwani.spectre.model;
 
+import android.support.annotation.NonNull;
+
 public class AuthReqBody {
 
-    public final String grant_type = "password";
-    public String username;
-    public String password;
-    public final String client_id = "ghost-admin";
+    public final String grantType;
+    public final String username;
+    public final String password;
+    public final String clientId;
+
+    public AuthReqBody(@NonNull String username, @NonNull String password) {
+        this.grantType = "password";
+        this.username = username;
+        this.password = password;
+        this.clientId = "ghost-admin";
+    }
 
 }

@@ -1,27 +1,77 @@
 package me.vickychijwani.spectre.model;
 
-import android.support.annotation.NonNull;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 
-import java.util.Date;
+@RealmClass
+public class User extends RealmObject {
 
-import me.vickychijwani.spectre.util.AppUtils;
+    @PrimaryKey
+    private int id;
+    private String uuid;
+    private String name;
+    private String slug;
 
-public class User {
+    private String email;
+    private String image;
+    private String bio;
 
-    public int id;
-    public String uuid;
-    public String name;
-    public String slug;
+    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
+    public int getId() {
+        return id;
+    }
 
-    public String email;
-    public String image;
-    public String bio;
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public Date created_at;
-    public Date updated_at;
+    public String getUuid() {
+        return uuid;
+    }
 
-    public String getAbsoluteUrl(@NonNull String baseUrl) {
-        return AppUtils.pathJoin(baseUrl, slug);
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
 }

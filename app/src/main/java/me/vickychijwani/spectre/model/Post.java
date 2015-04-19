@@ -6,24 +6,92 @@ import org.parceler.Parcel;
 
 import java.util.Date;
 
-import me.vickychijwani.spectre.util.AppUtils;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 
-@Parcel
-public class Post {
+@RealmClass
+@Parcel(value = Parcel.Serialization.BEAN, analyze = { Post.class })
+public class Post extends RealmObject {
 
-    public int id;
-    public String title;
-    public String slug;
+    @PrimaryKey
+    private int id;
+    private String title;
+    private String slug;
 
-    public String markdown;
-    public String html;
+    private String markdown;
+    private String html;
 
-    public Date created_at;
-    public Date updated_at;
-    public Date published_at;
+    private Date createdAt;
+    private Date updatedAt;
+    private Date publishedAt;
 
-    public String getAbsoluteUrl(@NonNull String baseUrl) {
-        return AppUtils.pathJoin(baseUrl, slug);
+    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public String getMarkdown() {
+        return markdown;
+    }
+
+    public void setMarkdown(String markdown) {
+        this.markdown = markdown;
+    }
+
+    public String getHtml() {
+        return html;
+    }
+
+    public void setHtml(String html) {
+        this.html = html;
+    }
+
+    @NonNull
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @NonNull
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @NonNull
+    public Date getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(Date publishedAt) {
+        this.publishedAt = publishedAt;
     }
 
 }

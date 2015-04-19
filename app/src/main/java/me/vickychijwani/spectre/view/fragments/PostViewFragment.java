@@ -79,11 +79,11 @@ public class PostViewFragment extends BaseFragment {
     @Override
     public void onShow() {
         if (getActivity() != null) {
-            getActivity().setTitle(mPost.title);
+            getActivity().setTitle(mPost.getTitle());
         }
-        int markdownHashCode = mPost.markdown.hashCode();
+        int markdownHashCode = mPost.getMarkdown().hashCode();
         if (markdownHashCode != mMarkdownHashCode) {
-            mPostHtmlView.setText(mBypass.markdownToSpannable(mPost.markdown, mImageGetter));
+            mPostHtmlView.setText(mBypass.markdownToSpannable(mPost.getMarkdown(), mImageGetter));
             mPostHtmlView.setMovementMethod(LinkMovementMethod.getInstance());
             mMarkdownHashCode = markdownHashCode;
         }

@@ -29,6 +29,7 @@ public abstract class BaseActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onCreate()");
+        getBus().register(this);
     }
 
     @Override
@@ -41,14 +42,12 @@ public abstract class BaseActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onResume()");
-        getBus().register(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onPause()");
-        getBus().unregister(this);
     }
 
     @Override
@@ -61,6 +60,7 @@ public abstract class BaseActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDestroy()");
+        getBus().unregister(this);
     }
 
     @Override

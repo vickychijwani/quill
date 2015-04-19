@@ -6,7 +6,7 @@ abstract class BaseKey {
     private Class mType;
     private Object mDefaultValue;
 
-    protected BaseKey(String str, Class type, Object defaultValue) {
+    protected <T> BaseKey(String str, Class<T> type, T defaultValue) {
         mStr = str;
         mType = type;
         mDefaultValue = defaultValue;

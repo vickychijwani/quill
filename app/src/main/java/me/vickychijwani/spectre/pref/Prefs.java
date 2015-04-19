@@ -51,6 +51,16 @@ abstract class Prefs<K extends BaseKey> {
         mPrefs.edit().putInt(key.toString(), value).apply();
     }
 
+    public final long getLong(K key) {
+        checkKey(key, Long.class);
+        return mPrefs.getLong(key.toString(), (Long) key.getDefaultValue());
+    }
+
+    public final void setLong(K key, long value) {
+        checkKey(key, Long.class);
+        mPrefs.edit().putLong(key.toString(), value).apply();
+    }
+
     public final String getString(K key) {
         checkKey(key, String.class);
         return mPrefs.getString(key.toString(), (String) key.getDefaultValue());

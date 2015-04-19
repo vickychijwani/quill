@@ -96,12 +96,12 @@ public class PostEditFragment extends BaseFragment implements
         mPost = mActivity.getPost();
 
         mActivity.setTitle(null);
-        mPostTitleEditView.setText(mPost.title);
+        mPostTitleEditView.setText(mPost.getTitle());
 
         mActionModeCloseClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mPostTitleEditView.setText(mPost.title);
+                mPostTitleEditView.setText(mPost.getTitle());
                 stopActionMode(true);
             }
         };
@@ -127,7 +127,7 @@ public class PostEditFragment extends BaseFragment implements
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    mPost.title = mPostTitleEditView.getText().toString();
+                    mPost.setTitle(mPostTitleEditView.getText().toString());
                     stopActionMode(false);
                     return true;
                 }
@@ -159,7 +159,7 @@ public class PostEditFragment extends BaseFragment implements
     @Override
     public void onResume() {
         super.onResume();
-        mPostEditView.setText(mPost.markdown);
+        mPostEditView.setText(mPost.getMarkdown());
     }
 
     @Override
@@ -171,7 +171,7 @@ public class PostEditFragment extends BaseFragment implements
 
     @Override
     public void onHide() {
-        mPost.markdown = mPostEditView.getText().toString();
+        mPost.setMarkdown(mPostEditView.getText().toString());
     }
 
     @Override
@@ -200,9 +200,9 @@ public class PostEditFragment extends BaseFragment implements
 
     private void stopActionMode(boolean discardChanges) {
         if (discardChanges) {
-            mPostTitleEditView.setText(mPost.title);
+            mPostTitleEditView.setText(mPost.getTitle());
         } else {
-            mPost.title = mPostTitleEditView.getText().toString();
+            mPost.setTitle(mPostTitleEditView.getText().toString());
         }
         mActionModeState = ActionModeState.STOPPING;
         mActivity.setTitle(null);
@@ -253,8 +253,8 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     private void onSaveClicked() {
-        mPost.markdown = mPostEditView.getText().toString();
-        mPost.html = null;   // omit stale HTML from request body
+        mPost.setMarkdown(mPostEditView.getText().toString());
+        mPost.setHtml(null);   // omit stale HTML from request body
         getBus().post(new SavePostEvent(mPost));
     }
 
@@ -289,7 +289,7 @@ public class PostEditFragment extends BaseFragment implements
             return;
         }
         mPostHeader.animate().alpha(0.0f).setDuration(200);
-        getActivity().setTitle(mPost.title);
+        getActivity().setTitle(mPost.getTitle());
         mPostHeaderCollapsed = true;
     }
 
