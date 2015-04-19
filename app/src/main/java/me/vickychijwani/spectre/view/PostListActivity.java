@@ -29,6 +29,7 @@ import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
+import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
@@ -125,6 +126,12 @@ public class PostListActivity extends BaseActivity {
         switch (item.getItemId()) {
             case R.id.action_refresh:
                 getBus().post(new RefreshDataEvent());
+                return true;
+            case R.id.action_logout:
+                getBus().post(new LogoutEvent());
+                finish();
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

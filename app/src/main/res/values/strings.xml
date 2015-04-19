@@ -2,14 +2,11 @@
 
     <string name="app_name">Quill</string>
 
-    <!-- generic -->
-    <string name="done">Done</string>
-    <string name="save">Save</string>
-
     <!-- login -->
     <string name="no_such_blog">There is no Ghost blog at %s/ghost.</string>
     <string name="login_unexpected_error">Unexpected error during sign in. Please try again.</string>
     <string name="login_connection_error">Could not connect to %s/ghost. Please try again.</string>
+    <string name="logout">Logout</string>
 
     <!-- posts -->
     <string name="published">Published on %s</string>
@@ -19,5 +16,10 @@
 
     <!-- misc -->
     <string name="user_image">User image</string>
+
+    <!-- generic -->
+    <string name="done">Done</string>
+    <string name="save">Save</string>
+    <string name="refresh">Refresh</string>
 
 </resources>

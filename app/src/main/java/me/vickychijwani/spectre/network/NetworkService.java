@@ -31,6 +31,7 @@ import me.vickychijwani.spectre.event.LoadUserEvent;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
+import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
@@ -81,7 +82,7 @@ public class NetworkService {
         mAuthInterceptor = new RequestInterceptor() {
             @Override
             public void intercept(RequestFacade request) {
-                if (mAuthToken != null) {
+                if (mAuthToken != null && mAuthToken.isValid()) {
                     request.addHeader("Authorization", mAuthToken.getTokenType() + " " +
                             mAuthToken.getAccessToken());
                 }
@@ -244,6 +245,19 @@ public class NetworkService {
         });
     }
 
+    @Subscribe
+    public void onLogoutEvent(LogoutEvent event) {
+        // clear all persisted blog data to avoid primary key conflicts
+        mRealm.beginTransaction();
+        mRealm.allObjects(AuthToken.class).clear();
+        mRealm.allObjects(User.class).clear();
+        mRealm.allObjects(Setting.class).clear();
+        mRealm.allObjects(Post.class).clear();
+        mRealm.commitTransaction();
+        AppState.getInstance(SpectreApplication.getInstance())
+                .setBoolean(AppState.Key.LOGGED_IN, false);
+    }
+
 
     // private methods
     private boolean validateAccessToken(@NonNull Object event) {
@@ -313,11 +327,10 @@ public class NetworkService {
 
     @DebugLog
     private void onNewAuthToken(AuthToken authToken) {
+        Log.d(TAG, "Got new access token = " + authToken.getAccessToken());
         mbAuthRequestOnGoing = false;
-        mAuthToken = authToken;
-        mAuthToken.setCreatedAt(DateTimeUtils.getEpochSeconds());
-        Log.d(TAG, "Got new access token = " + mAuthToken.getAccessToken());
-        createOrUpdateModel(mAuthToken);
+        authToken.setCreatedAt(DateTimeUtils.getEpochSeconds());
+        mAuthToken = createOrUpdateModel(authToken);
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, true);
         flushApiEventQueue();
