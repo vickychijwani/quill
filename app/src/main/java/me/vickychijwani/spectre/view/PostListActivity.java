@@ -18,6 +18,8 @@ import android.widget.TextView;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
+import org.parceler.Parcels;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +36,6 @@ import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.Post;
-import me.vickychijwani.spectre.model.Post$$Parcelable;
 import me.vickychijwani.spectre.model.Setting;
 import me.vickychijwani.spectre.network.BorderedCircleTransformation;
 import me.vickychijwani.spectre.pref.AppState;
@@ -90,7 +91,7 @@ public class PostListActivity extends BaseActivity {
                 int pos = mPostList.getPositionForView(v);
                 Post post = (Post) mPostAdapter.getItem(pos);
                 Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-                intent.putExtra(BundleKeys.POST, new Post$$Parcelable(post));
+                intent.putExtra(BundleKeys.POST, Parcels.wrap(Post.class, post));
                 startActivity(intent);
             }
         });
