@@ -41,16 +41,22 @@
 
     </android.support.v7.widget.Toolbar>
 
-    <ListView
-        android:id="@+id/post_list"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:scrollbarStyle="outsideOverlay"
-        android:divider="@color/divider"
-        android:dividerHeight="0.5dp"
-        tools:listitem="@layout/post_list_item">
+        android:layout_height="match_parent">
 
-    </ListView>
+        <ListView
+            android:id="@+id/post_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:scrollbarStyle="outsideOverlay"
+            android:divider="@color/divider"
+            android:dividerHeight="0.5dp"
+            tools:listitem="@layout/post_list_item"
+            />
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </LinearLayout>

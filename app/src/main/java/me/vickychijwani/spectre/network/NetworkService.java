@@ -13,6 +13,8 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.List;
 
 import hugo.weaving.DebugLog;
 import io.realm.Realm;
@@ -22,6 +24,7 @@ import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
+import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
@@ -30,6 +33,7 @@ import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
+import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.AuthReqBody;
@@ -64,6 +68,7 @@ public class NetworkService {
 
     private boolean mbAuthRequestOnGoing = false;
     private ArrayDeque<Object> mApiEventQueue = new ArrayDeque<>();
+    private ArrayDeque<Object> mRefreshEventsQueue = new ArrayDeque<>();
 
     public NetworkService() {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
@@ -123,11 +128,29 @@ public class NetworkService {
     }
 
     @Subscribe
-    public void onLoadUserEvent(LoadUserEvent event) {
-        RealmResults<User> users = mRealm.allObjects(User.class);
-        if (users.size() > 0) {
-            getBus().post(new UserLoadedEvent(users.first()));
-            return;
+    public void onRefreshDataEvent(RefreshDataEvent event) {
+        // do nothing if a refresh is already in progress
+        if (! mRefreshEventsQueue.isEmpty()) return;
+
+        Bus bus = getBus();
+        mRefreshEventsQueue.addAll(Arrays.asList(
+                new LoadUserEvent(true),
+                new LoadBlogSettingsEvent(true),
+                new LoadPostsEvent(true)
+        ));
+        for (Object e : mRefreshEventsQueue) {
+            bus.post(e);
+        }
+    }
+
+    @Subscribe
+    public void onLoadUserEvent(final LoadUserEvent event) {
+        if (! event.forceNetworkCall) {
+            RealmResults<User> users = mRealm.allObjects(User.class);
+            if (users.size() > 0) {
+                getBus().post(new UserLoadedEvent(users.first()));
+                return;
+            }
         }
 
         if (! validateAccessToken(event)) return;
@@ -136,21 +159,25 @@ public class NetworkService {
             public void success(UserList userList, Response response) {
                 createOrUpdateModel(userList.users);
                 getBus().post(new UserLoadedEvent(userList.users.get(0)));
+                refreshDone(event);
             }
 
             @Override
             public void failure(RetrofitError error) {
                 getBus().post(new ApiErrorEvent(error));
+                refreshDone(event);
             }
         });
     }
 
     @Subscribe
-    public void onLoadBlogSettingsEvent(LoadBlogSettingsEvent event) {
-        RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
-        if (settings.size() > 0) {
-            getBus().post(new BlogSettingsLoadedEvent(settings));
-            return;
+    public void onLoadBlogSettingsEvent(final LoadBlogSettingsEvent event) {
+        if (! event.forceNetworkCall) {
+            RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
+            if (settings.size() > 0) {
+                getBus().post(new BlogSettingsLoadedEvent(settings));
+                return;
+            }
         }
 
         if (! validateAccessToken(event)) return;
@@ -159,21 +186,26 @@ public class NetworkService {
             public void success(SettingsList settingsList, Response response) {
                 createOrUpdateModel(settingsList.settings);
                 getBus().post(new BlogSettingsLoadedEvent(settingsList.settings));
+                refreshDone(event);
             }
 
             @Override
             public void failure(RetrofitError error) {
                 getBus().post(new ApiErrorEvent(error));
+                refreshDone(event);
             }
         });
     }
 
     @Subscribe
-    public void onLoadPostsEvent(LoadPostsEvent event) {
-        RealmResults<Post> posts = mRealm.allObjects(Post.class);
-        if (posts.size() > 0) {
-            getBus().post(new PostsLoadedEvent(posts));
-            return;
+    public void onLoadPostsEvent(final LoadPostsEvent event) {
+        if (! event.forceNetworkCall) {
+            RealmResults<Post> posts = mRealm.allObjects(Post.class);
+            if (posts.size() > 0) {
+                posts.sort("updatedAt", false);
+                getBus().post(new PostsLoadedEvent(posts));
+                return;
+            }
         }
 
         if (! validateAccessToken(event)) return;
@@ -181,12 +213,18 @@ public class NetworkService {
             @Override
             public void success(PostList postList, Response response) {
                 createOrUpdateModel(postList.posts);
-                getBus().post(new PostsLoadedEvent(postList.posts));
+                RealmResults<Post> posts = mRealm.allObjects(Post.class);
+                if (posts.size() > 0) {
+                    posts.sort("updatedAt", false);
+                    getBus().post(new PostsLoadedEvent(posts));
+                }
+                refreshDone(event);
             }
 
             @Override
             public void failure(RetrofitError error) {
                 getBus().post(new ApiErrorEvent(error));
+                refreshDone(event);
             }
         });
     }
@@ -257,6 +295,13 @@ public class NetworkService {
         }
     }
 
+    private void refreshDone(Object sourceEvent) {
+        mRefreshEventsQueue.removeFirstOccurrence(sourceEvent);
+        if (mRefreshEventsQueue.isEmpty()) {
+            getBus().post(new DataRefreshedEvent());
+        }
+    }
+
     @DebugLog
     private void postLoginStartEvent() {
         UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
@@ -301,16 +346,18 @@ public class NetworkService {
         return restAdapter.create(GhostApiService.class);
     }
 
-    private void createOrUpdateModel(RealmObject realmObject) {
+    private <T extends RealmObject> T createOrUpdateModel(T object) {
         mRealm.beginTransaction();
-        mRealm.copyToRealmOrUpdate(realmObject);
+        T realmObject = mRealm.copyToRealmOrUpdate(object);
         mRealm.commitTransaction();
+        return realmObject;
     }
 
-    private void createOrUpdateModel(Iterable<? extends RealmObject> realmObjects) {
+    private <T extends RealmObject> List<T> createOrUpdateModel(Iterable<T> objects) {
         mRealm.beginTransaction();
-        mRealm.copyToRealmOrUpdate(realmObjects);
+        List<T> realmObjects = mRealm.copyToRealmOrUpdate(objects);
         mRealm.commitTransaction();
+        return realmObjects;
     }
 
     private Bus getBus() {

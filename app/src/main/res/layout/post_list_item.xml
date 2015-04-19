@@ -20,6 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/post_title"
         android:textAppearance="@style/TextAppearance.Small.Dim"
+        android:textColor="@color/published"
         tools:text="Published 2015-01-04 13:45"/>
 
 </RelativeLayout>

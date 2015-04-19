@@ -16,4 +16,8 @@
     <color name="divider">#B6B6B6</color>
     <color name="image_placeholder">#CCCCCC</color>
 
+    <!-- one-off colors -->
+    <color name="draft">#F33</color>
+    <color name="published">@color/text_secondary</color>
+
 </resources>

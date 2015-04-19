@@ -3,8 +3,11 @@ package me.vickychijwani.spectre.view;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -22,10 +25,12 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
+import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
+import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Post$$Parcelable;
@@ -51,6 +56,9 @@ public class PostListActivity extends BaseActivity {
 
     @InjectView(R.id.user_blog_title)
     TextView mBlogTitleView;
+
+    @InjectView(R.id.swipe_refresh_layout)
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     @InjectView(R.id.post_list)
     ListView mPostList;
@@ -87,9 +95,45 @@ public class PostListActivity extends BaseActivity {
         });
         mPostList.setAdapter(mPostAdapter);
 
-        getBus().post(new LoadUserEvent());
-        getBus().post(new LoadBlogSettingsEvent());
-        getBus().post(new LoadPostsEvent());
+        getBus().post(new LoadUserEvent(false));
+        getBus().post(new LoadBlogSettingsEvent(false));
+        getBus().post(new LoadPostsEvent(false));
+
+        mSwipeRefreshLayout.setColorSchemeResources(
+                R.color.accent,
+                R.color.primary_dark,
+                R.color.accent_light,
+                R.color.primary
+        );
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getBus().post(new RefreshDataEvent());
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.post_list, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_refresh:
+                getBus().post(new RefreshDataEvent());
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Subscribe
+    public void onDataRefreshedEvent(DataRefreshedEvent event) {
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Subscribe
@@ -173,12 +217,14 @@ public class PostListActivity extends BaseActivity {
 
             holder.title.setText(item.getTitle());
             String publishedStatus;
-            if (DateTimeUtils.isValidDate(item.getPublishedAt())) {
+            if (! AppUtils.isDraft(item)) {
                 publishedStatus = String.format(
                         mContext.getString(R.string.published),
                         DateTimeUtils.dateToIsoDateString(item.getPublishedAt()));
+                holder.published.setTextColor(mContext.getResources().getColor(R.color.published));
             } else {
                 publishedStatus = mContext.getString(R.string.draft);
+                holder.published.setTextColor(mContext.getResources().getColor(R.color.draft));
             }
             holder.published.setText(publishedStatus);
 
