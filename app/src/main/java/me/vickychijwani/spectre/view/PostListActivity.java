@@ -3,6 +3,8 @@ package me.vickychijwani.spectre.view;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -25,6 +27,7 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import hugo.weaving.DebugLog;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
@@ -49,6 +52,10 @@ public class PostListActivity extends BaseActivity {
 
     private List<Post> mPosts;
     private PostAdapter mPostAdapter;
+
+    private Handler mHandler;
+    private Runnable mRefreshDataRunnable;
+    private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;  // milliseconds
 
     @InjectView(R.id.toolbar)
     Toolbar mToolbar;
@@ -113,6 +120,26 @@ public class PostListActivity extends BaseActivity {
                 getBus().post(new RefreshDataEvent());
             }
         });
+
+        mHandler = new Handler(Looper.getMainLooper());
+        mRefreshDataRunnable = new Runnable() {
+            @Override
+            public void run() {
+                refreshData();
+            }
+        };
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshData();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        cancelDataRefresh();
     }
 
     @Override
@@ -126,7 +153,7 @@ public class PostListActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_refresh:
-                getBus().post(new RefreshDataEvent());
+                refreshData();
                 return true;
             case R.id.action_logout:
                 getBus().post(new LogoutEvent());
@@ -142,6 +169,7 @@ public class PostListActivity extends BaseActivity {
     @Subscribe
     public void onDataRefreshedEvent(DataRefreshedEvent event) {
         mSwipeRefreshLayout.setRefreshing(false);
+        scheduleDataRefresh();
     }
 
     @Subscribe
@@ -172,6 +200,21 @@ public class PostListActivity extends BaseActivity {
         mPosts.clear();
         mPosts.addAll(event.posts);
         mPostAdapter.notifyDataSetChanged();
+    }
+
+    private void scheduleDataRefresh() {
+        // cancel already-scheduled refresh event
+        cancelDataRefresh();
+        mHandler.postDelayed(mRefreshDataRunnable, REFRESH_FREQUENCY);
+    }
+
+    private void cancelDataRefresh() {
+        mHandler.removeCallbacks(mRefreshDataRunnable);
+    }
+
+    @DebugLog
+    private void refreshData() {
+        getBus().post(new RefreshDataEvent());
     }
 
 

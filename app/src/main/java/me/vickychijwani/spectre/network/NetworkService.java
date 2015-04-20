@@ -82,7 +82,7 @@ public class NetworkService {
         mAuthInterceptor = new RequestInterceptor() {
             @Override
             public void intercept(RequestFacade request) {
-                if (mAuthToken != null && mAuthToken.isValid()) {
+                if (mAuthToken != null && mAuthToken.isValid() && ! hasAccessTokenExpired()) {
                     request.addHeader("Authorization", mAuthToken.getTokenType() + " " +
                             mAuthToken.getAccessToken());
                 }
@@ -131,7 +131,10 @@ public class NetworkService {
     @Subscribe
     public void onRefreshDataEvent(RefreshDataEvent event) {
         // do nothing if a refresh is already in progress
-        if (! mRefreshEventsQueue.isEmpty()) return;
+        if (! mRefreshEventsQueue.isEmpty()) {
+            refreshDone(null);
+            return;
+        }
 
         Bus bus = getBus();
         mRefreshEventsQueue.addAll(Arrays.asList(
@@ -292,7 +295,7 @@ public class NetworkService {
                 mbAuthRequestOnGoing = false;
                 // if the response is 401 Unauthorized, we can recover from it by logging in anew
                 // but this should never happen because we first check if the refresh token is valid
-                if (error.getResponse().getStatus() == 401) {
+                if (error.getResponse() != null && error.getResponse().getStatus() == 401) {
                     postLoginStartEvent();
                     Log.e(TAG, "Expired refresh token used! You're wasting bandwidth / battery!");
                 } else {
@@ -309,7 +312,7 @@ public class NetworkService {
         }
     }
 
-    private void refreshDone(Object sourceEvent) {
+    private void refreshDone(@Nullable Object sourceEvent) {
         mRefreshEventsQueue.removeFirstOccurrence(sourceEvent);
         if (mRefreshEventsQueue.isEmpty()) {
             getBus().post(new DataRefreshedEvent());
