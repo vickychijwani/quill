@@ -282,11 +282,14 @@ public class NetworkService {
             return;
         }
 
-        RefreshReqBody credentials = new RefreshReqBody(mAuthToken.getRefreshToken());
+        final RefreshReqBody credentials = new RefreshReqBody(mAuthToken.getRefreshToken());
         mbAuthRequestOnGoing = true;
         mApi.refreshAuthToken(credentials, new Callback<AuthToken>() {
             @Override
             public void success(AuthToken authToken, Response response) {
+                // since this is a *refreshed* auth token, there is no refresh token in it, so add
+                // it manually
+                authToken.setRefreshToken(credentials.refreshToken);
                 onNewAuthToken(authToken);
             }
 
