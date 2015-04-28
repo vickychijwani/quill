@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,9 +28,11 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import hugo.weaving.DebugLog;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
+import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
@@ -98,11 +101,19 @@ public class PostListActivity extends BaseActivity {
                 int pos = mPostList.getPositionForView(v);
                 Post post = (Post) mPostAdapter.getItem(pos);
                 Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-                intent.putExtra(BundleKeys.POST, Parcels.wrap(post));
+                intent.putExtra(BundleKeys.POST, Parcels.wrap(Post.class, post));
                 startActivity(intent);
             }
         });
         mPostList.setAdapter(mPostAdapter);
+
+        mHandler = new Handler(Looper.getMainLooper());
+        mRefreshDataRunnable = new Runnable() {
+            @Override
+            public void run() {
+                refreshData();
+            }
+        };
 
         getBus().post(new LoadUserEvent(false));
         getBus().post(new LoadBlogSettingsEvent(false));
@@ -120,14 +131,6 @@ public class PostListActivity extends BaseActivity {
                 getBus().post(new RefreshDataEvent());
             }
         });
-
-        mHandler = new Handler(Looper.getMainLooper());
-        mRefreshDataRunnable = new Runnable() {
-            @Override
-            public void run() {
-                refreshData();
-            }
-        };
     }
 
     @Override
@@ -202,6 +205,17 @@ public class PostListActivity extends BaseActivity {
         mPostAdapter.notifyDataSetChanged();
     }
 
+    @OnClick(R.id.new_post_btn)
+    public void onNewPostBtnClicked() {
+        Post post = new Post();
+        getBus().post(new CreatePostEvent(post));
+        Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
+        intent.putExtra(BundleKeys.POST, Parcels.wrap(Post.class, post));
+        startActivity(intent);
+    }
+
+
+    // private methods
     private void scheduleDataRefresh() {
         // cancel already-scheduled refresh event
         cancelDataRefresh();
@@ -268,14 +282,21 @@ public class PostListActivity extends BaseActivity {
 
             holder.title.setText(item.getTitle());
             String publishedStatus;
-            if (! AppUtils.isDraft(item)) {
+            if (item.getStatus().equals(Post.PUBLISHED)) {
                 publishedStatus = String.format(
                         mContext.getString(R.string.published),
                         DateTimeUtils.dateToIsoDateString(item.getPublishedAt()));
                 holder.published.setTextColor(mContext.getResources().getColor(R.color.published));
-            } else {
+            } else if (item.getStatus().equals(Post.DRAFT)) {
                 publishedStatus = mContext.getString(R.string.draft);
                 holder.published.setTextColor(mContext.getResources().getColor(R.color.draft));
+            } else if (item.getStatus().equals(Post.LOCAL_NEW)) {
+                publishedStatus = mContext.getString(R.string.local_new);
+                holder.published.setTextColor(mContext.getResources().getColor(R.color.local_new));
+            } else {
+                Log.e(TAG, "Invalid post status "
+                        + ((item.getStatus() == null) ? "null" : item.getStatus()) + "!");
+                publishedStatus = "";
             }
             holder.published.setText(publishedStatus);
 

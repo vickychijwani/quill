@@ -39,7 +39,7 @@ public class SpectreApplication extends Application {
 
     @Subscribe
     public void onDeadEvent(DeadEvent event) {
-        Log.e(TAG, "Dead event ignored: " + event.source.getClass().getName());
+        Log.w(TAG, "Dead event ignored: " + event.event.getClass().getName());
     }
 
 }

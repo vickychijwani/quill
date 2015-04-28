@@ -17,7 +17,8 @@
     <color name="image_placeholder">#CCCCCC</color>
 
     <!-- one-off colors -->
-    <color name="draft">#F33</color>
+    <color name="local_new">#F33</color>
+    <color name="draft">#0A0</color>
     <color name="published">@color/text_secondary</color>
 
 </resources>

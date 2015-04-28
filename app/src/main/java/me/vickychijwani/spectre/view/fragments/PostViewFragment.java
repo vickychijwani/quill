@@ -2,6 +2,7 @@ package me.vickychijwani.spectre.view.fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
@@ -99,6 +100,11 @@ public class PostViewFragment extends BaseFragment {
             throw new ClassCastException(activity.toString()
                     + "must implement OnEditClickListener");
         }
+    }
+
+    public void setPost(@NonNull Post post) {
+        mPost = post;
+        onShow();
     }
 
 }

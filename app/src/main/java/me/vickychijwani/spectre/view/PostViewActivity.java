@@ -6,11 +6,14 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.squareup.otto.Subscribe;
+
 import org.parceler.Parcels;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
@@ -61,6 +64,13 @@ public class PostViewActivity extends BaseActivity implements
         if (savedInstanceState.getBoolean(KEY_IS_PREVIEW_VISIBLE, false)) {
             onPreviewClicked();
         }
+    }
+
+    @Subscribe
+    public void onPostCreatedEvent(PostCreatedEvent event) {
+        mPost = event.newPost;
+        mPostViewFragment.setPost(mPost);
+        mPostEditFragment.setPost(mPost);
     }
 
     @Override

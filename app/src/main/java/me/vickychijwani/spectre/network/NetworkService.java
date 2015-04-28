@@ -24,6 +24,7 @@ import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
+import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
@@ -32,15 +33,18 @@ import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
+import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
+import me.vickychijwani.spectre.event.SyncPostsEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.AuthReqBody;
 import me.vickychijwani.spectre.model.AuthToken;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.PostList;
+import me.vickychijwani.spectre.model.PostStubList;
 import me.vickychijwani.spectre.model.RefreshReqBody;
 import me.vickychijwani.spectre.model.Setting;
 import me.vickychijwani.spectre.model.SettingsList;
@@ -70,6 +74,7 @@ public class NetworkService {
     private boolean mbAuthRequestOnGoing = false;
     private ArrayDeque<Object> mApiEventQueue = new ArrayDeque<>();
     private ArrayDeque<Object> mRefreshEventsQueue = new ArrayDeque<>();
+    private ArrayDeque<Object> mPostUploadQueue = new ArrayDeque<>();
 
     public NetworkService() {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
@@ -140,7 +145,7 @@ public class NetworkService {
         mRefreshEventsQueue.addAll(Arrays.asList(
                 new LoadUserEvent(true),
                 new LoadBlogSettingsEvent(true),
-                new LoadPostsEvent(true)
+                new SyncPostsEvent(true)
         ));
         for (Object e : mRefreshEventsQueue) {
             bus.post(e);
@@ -153,8 +158,10 @@ public class NetworkService {
             RealmResults<User> users = mRealm.allObjects(User.class);
             if (users.size() > 0) {
                 getBus().post(new UserLoadedEvent(users.first()));
+                refreshDone(event);
                 return;
             }
+            // else no users found in db, force a network call!
         }
 
         if (! validateAccessToken(event)) return;
@@ -180,8 +187,10 @@ public class NetworkService {
             RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
             if (settings.size() > 0) {
                 getBus().post(new BlogSettingsLoadedEvent(settings));
+                refreshDone(event);
                 return;
             }
+            // no settings found in db, force a network call!
         }
 
         if (! validateAccessToken(event)) return;
@@ -204,10 +213,13 @@ public class NetworkService {
     @Subscribe
     public void onLoadPostsEvent(final LoadPostsEvent event) {
         if (! event.forceNetworkCall) {
-            RealmResults<Post> posts = mRealm.allObjects(Post.class);
+            RealmResults<Post> posts = getPostsSorted();
+            // if there are no posts, there could be 2 cases:
+            // 1. there are actually no posts
+            // 2. we just haven't fetched any posts from the server yet (Realm returns an empty list in this case too)
             if (posts.size() > 0) {
-                posts.sort("updatedAt", false);
                 getBus().post(new PostsLoadedEvent(posts));
+                refreshDone(event);
                 return;
             }
         }
@@ -217,11 +229,7 @@ public class NetworkService {
             @Override
             public void success(PostList postList, Response response) {
                 createOrUpdateModel(postList.posts);
-                RealmResults<Post> posts = mRealm.allObjects(Post.class);
-                if (posts.size() > 0) {
-                    posts.sort("updatedAt", false);
-                    getBus().post(new PostsLoadedEvent(posts));
-                }
+                getBus().post(new PostsLoadedEvent(getPostsSorted()));
                 refreshDone(event);
             }
 
@@ -231,6 +239,79 @@ public class NetworkService {
                 refreshDone(event);
             }
         });
+    }
+
+    @Subscribe
+    public void onCreatePostEvent(final CreatePostEvent event) {
+        event.post.setUuid(Post.getTempUniqueId(mRealm));   // save the local post to db
+        createOrUpdateModel(event.post);
+        getBus().post(new SyncPostsEvent(false));
+    }
+
+    @Subscribe
+    public void onSyncPostsEvent(final SyncPostsEvent event) {
+        final RealmResults<Post> localPosts = mRealm.where(Post.class)
+                .equalTo("status", Post.LOCAL_NEW)
+                .findAllSorted("uuid", false);
+
+        // nothing to upload
+        if (localPosts.isEmpty() && event.refreshPosts) {
+            LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
+            mRefreshEventsQueue.add(loadPostsEvent);
+            getBus().post(loadPostsEvent);
+            refreshDone(event);
+            return;
+        }
+
+        final Runnable syncFinishedCB = new Runnable() {
+            @Override
+            public void run() {
+                // delete only those posts that were successfully uploaded
+                mRealm.beginTransaction();
+                localPosts.where().equalTo("isUploaded", true).findAll().clear();
+                mRealm.commitTransaction();
+                // if refreshPosts is true, first load from the db, AND only then from the network,
+                // to avoid a crash because local posts have been deleted above but are still being
+                // displayed, so we need to refresh the UI first
+                getBus().post(new PostsLoadedEvent(getPostsSorted()));
+                if (event.refreshPosts) {
+                    LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
+                    mRefreshEventsQueue.add(loadPostsEvent);
+                    getBus().post(loadPostsEvent);
+                }
+                refreshDone(event);
+            }
+        };
+
+        mPostUploadQueue.addAll(localPosts);
+
+        // the loop variable is *local* to the loop block, so can it be captured in a closure easily
+        // this is unlike JavaScript, in which the same loop variable is mutated
+        for (final Post localPost : localPosts) {
+            if (! validateAccessToken(event)) return;
+            mApi.createPost(PostStubList.from(localPost), new Callback<PostList>() {
+                @Override
+                public void success(PostList postList, Response response) {
+                    createOrUpdateModel(postList.posts, new Runnable() {
+                        @Override
+                        public void run() {
+                            localPost.setUploaded(true);  // mark as uploaded, so the local copy can be deleted
+                        }
+                    });
+                    mPostUploadQueue.removeFirstOccurrence(localPost);
+                    getBus().post(new PostCreatedEvent(postList.posts.get(0)));
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    mPostUploadQueue.removeFirstOccurrence(localPost);
+                    getBus().post(new ApiErrorEvent(error));
+                    getBus().post(new PostsLoadedEvent(getPostsSorted()));
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
+                }
+            });
+        }
     }
 
     @Subscribe
@@ -365,16 +446,37 @@ public class NetworkService {
         return restAdapter.create(GhostApiService.class);
     }
 
+    private RealmResults<Post> getPostsSorted() {
+        RealmResults<Post> posts = mRealm.allObjects(Post.class);
+        posts.sort("updatedAt", false);
+        return posts;
+    }
+
     private <T extends RealmObject> T createOrUpdateModel(T object) {
+        return createOrUpdateModel(object, null);
+    }
+
+    private <T extends RealmObject> T createOrUpdateModel(T object, @Nullable Runnable transaction) {
         mRealm.beginTransaction();
         T realmObject = mRealm.copyToRealmOrUpdate(object);
+        if (transaction != null) {
+            transaction.run();
+        }
         mRealm.commitTransaction();
         return realmObject;
     }
 
     private <T extends RealmObject> List<T> createOrUpdateModel(Iterable<T> objects) {
+        return createOrUpdateModel(objects, null);
+    }
+
+    private <T extends RealmObject> List<T> createOrUpdateModel(Iterable<T> objects,
+                                                                @Nullable Runnable transaction) {
         mRealm.beginTransaction();
         List<T> realmObjects = mRealm.copyToRealmOrUpdate(objects);
+        if (transaction != null) {
+            transaction.run();
+        }
         mRealm.commitTransaction();
         return realmObjects;
     }
