@@ -5,7 +5,7 @@ import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 
@@ -17,7 +17,7 @@ import java.util.List;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.view.fragments.BaseFragment;
 
-public abstract class BaseActivity extends ActionBarActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
     public static final String TAG = "BaseActivity";
 

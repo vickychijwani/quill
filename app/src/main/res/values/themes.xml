@@ -8,7 +8,7 @@
         <item name="colorAccent">@color/accent</item>
 
         <!-- toolbar -->
-        <item name="android:windowNoTitle">true</item>
+        <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="actionBarSize">@dimen/toolbar_height</item>

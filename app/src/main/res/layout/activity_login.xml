@@ -51,7 +51,7 @@
                 android:inputType="textUri"
                 android:maxLines="1"
                 android:singleLine="true"
-                app:floatingLabel="highlight"
+                app:met_floatingLabel="highlight"
                 />
 
             <com.rengwuxian.materialedittext.MaterialEditText
@@ -64,7 +64,7 @@
                 android:inputType="textEmailAddress"
                 android:maxLines="1"
                 android:singleLine="true"
-                app:floatingLabel="highlight"
+                app:met_floatingLabel="highlight"
                 />
 
             <com.rengwuxian.materialedittext.MaterialEditText
@@ -78,7 +78,7 @@
                 android:inputType="textPassword"
                 android:maxLines="1"
                 android:singleLine="true"
-                app:floatingLabel="highlight"
+                app:met_floatingLabel="highlight"
                 />
 
             <Button
