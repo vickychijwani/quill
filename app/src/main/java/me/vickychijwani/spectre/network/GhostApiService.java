@@ -28,7 +28,7 @@ interface GhostApiService {
     void getCurrentUser(Callback<UserList> cb);
 
     // posts
-    @GET("/posts/?status=all&staticPages=all&page=1&include=tags")
+    @GET("/posts/?status=all&staticPages=all&limit=all&include=tags")
     void getPosts(Callback<PostList> cb);
 
     @POST("/posts/?include=tags")

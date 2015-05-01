@@ -13,6 +13,7 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -228,6 +229,23 @@ public class NetworkService {
         mApi.getPosts(new Callback<PostList>() {
             @Override
             public void success(PostList postList, Response response) {
+                // delete posts that are no longer present on the server
+                // this assumes that postList.posts is a list of ALL posts on the server
+                RealmResults<Post> cachedPosts = mRealm
+                        .where(Post.class)
+                        .equalTo("status", Post.DRAFT)
+                        .or().equalTo("status", Post.PUBLISHED)
+                        .findAll();
+                List<Post> postsToDelete = new ArrayList<>();
+                // FIXME time complexity is quadratic in the number of posts!
+                for (Post cachedPost : cachedPosts) {
+                    if (! postList.contains(cachedPost.getUuid())) {
+                        postsToDelete.add(cachedPost);
+                    }
+                }
+                deleteModels(postsToDelete);
+
+                // now create / update received posts
                 createOrUpdateModel(postList.posts);
                 getBus().post(new PostsLoadedEvent(getPostsSorted()));
                 refreshDone(event);
@@ -479,6 +497,14 @@ public class NetworkService {
         }
         mRealm.commitTransaction();
         return realmObjects;
+    }
+
+    private <T extends RealmObject> void deleteModels(List<T> realmObjects) {
+        mRealm.beginTransaction();
+        for (T realmObject : realmObjects) {
+            realmObject.removeFromRealm();
+        }
+        mRealm.commitTransaction();
     }
 
     private Bus getBus() {
