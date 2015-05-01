@@ -7,8 +7,6 @@ import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
-import me.vickychijwani.spectre.model.Post;
-
 public class AppUtils {
 
     public static String pathJoin(String basePath, String relativePath) {
@@ -22,10 +20,6 @@ public class AppUtils {
             InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
-    }
-
-    public static boolean isDraft(@NonNull Post post) {
-        return ! DateTimeUtils.isValidDate(post.getPublishedAt());
     }
 
 }
