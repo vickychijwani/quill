@@ -122,9 +122,13 @@ public abstract class BaseActivity extends AppCompatActivity {
     public <T extends Fragment> T addFragment(Class<T> type, @IdRes int container, String tag) {
         T fragment = (T) getSupportFragmentManager().findFragmentByTag(tag);
         if (fragment == null) {
+            //noinspection TryWithIdenticalCatches
             try {
                 fragment = type.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
+            } catch (InstantiationException e) {
+                Log.wtf("WTF", "Given Fragment class does not have a zero-argument static factory" +
+                        "method named newInstance(), as required by this method");
+            } catch (IllegalAccessException e) {
                 Log.wtf("WTF", "Given Fragment class does not have a zero-argument static factory" +
                         "method named newInstance(), as required by this method");
             }
