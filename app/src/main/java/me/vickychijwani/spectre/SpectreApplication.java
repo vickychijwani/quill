@@ -36,7 +36,8 @@ public class SpectreApplication extends Application {
 
     @Subscribe
     public void onApiErrorEvent(ApiErrorEvent event) {
-        if (event.error.getResponse().getStatus() != HttpURLConnection.HTTP_NOT_MODIFIED) {
+        if (event.error.getResponse() != null &&
+                event.error.getResponse().getStatus() != HttpURLConnection.HTTP_NOT_MODIFIED) {
             Log.e(TAG, Log.getStackTraceString(event.error));
         }
     }
