@@ -4,8 +4,8 @@
     <dimen name="padding_inline">4dp</dimen>
     <dimen name="padding_default">8dp</dimen>
     <dimen name="padding_large">16dp</dimen>
-    <dimen name="padding_fab_normal">72dp</dimen>  <!-- fab_size_normal + padding_large -->
-    <dimen name="padding_fab_mini">56dp</dimen>    <!-- fab_size_mini + padding_large -->
+    <dimen name="padding_fab_normal">88dp</dimen>  <!-- fab_size_normal + 2 * padding_large -->
+    <dimen name="padding_fab_mini">72dp</dimen>    <!-- fab_size_mini + 2 * padding_large -->
 
     <!-- text sizes -->
     <dimen name="text_size_xsmall">12sp</dimen>
