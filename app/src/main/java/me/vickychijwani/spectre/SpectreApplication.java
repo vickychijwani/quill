@@ -7,6 +7,8 @@ import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.DeadEvent;
 import com.squareup.otto.Subscribe;
 
+import java.net.HttpURLConnection;
+
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.network.NetworkService;
@@ -34,7 +36,9 @@ public class SpectreApplication extends Application {
 
     @Subscribe
     public void onApiErrorEvent(ApiErrorEvent event) {
-        Log.e(TAG, Log.getStackTraceString(event.error));
+        if (event.error.getResponse().getStatus() != HttpURLConnection.HTTP_NOT_MODIFIED) {
+            Log.e(TAG, Log.getStackTraceString(event.error));
+        }
     }
 
     @Subscribe

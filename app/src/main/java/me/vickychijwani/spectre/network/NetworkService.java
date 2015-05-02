@@ -12,6 +12,7 @@ import com.google.gson.GsonBuilder;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +44,7 @@ import me.vickychijwani.spectre.event.SyncPostsEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.AuthReqBody;
 import me.vickychijwani.spectre.model.AuthToken;
+import me.vickychijwani.spectre.model.ETag;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.model.PostStubList;
@@ -59,6 +61,7 @@ import retrofit.Callback;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
+import retrofit.client.Header;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 
@@ -226,9 +229,23 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getPosts(new Callback<PostList>() {
+        RealmResults<ETag> etags = mRealm.allObjects(ETag.class);
+        String etagStr = "";
+        if (etags.size() > 0) {
+            etagStr = etags.first().getTag();
+            if (etagStr == null) etagStr = "";
+        }
+        mApi.getPosts(etagStr, new Callback<PostList>() {
             @Override
             public void success(PostList postList, Response response) {
+                // update the stored etag
+                for (Header header : response.getHeaders()) {
+                    if ("ETag".equals(header.getName())) {
+                        ETag etag = new ETag(header.getValue());
+                        createOrUpdateModel(etag);
+                    }
+                }
+
                 // delete posts that are no longer present on the server
                 // this assumes that postList.posts is a list of ALL posts on the server
                 RealmResults<Post> cachedPosts = mRealm
@@ -397,7 +414,8 @@ public class NetworkService {
                 mbAuthRequestOnGoing = false;
                 // if the response is 401 Unauthorized, we can recover from it by logging in anew
                 // but this should never happen because we first check if the refresh token is valid
-                if (error.getResponse() != null && error.getResponse().getStatus() == 401) {
+                if (error.getResponse() != null &&
+                        error.getResponse().getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                     postLoginStartEvent();
                     Log.e(TAG, "Expired refresh token used! You're wasting bandwidth / battery!");
                 } else {

@@ -10,6 +10,7 @@ import me.vickychijwani.spectre.model.UserList;
 import retrofit.Callback;
 import retrofit.http.Body;
 import retrofit.http.GET;
+import retrofit.http.Header;
 import retrofit.http.POST;
 import retrofit.http.PUT;
 import retrofit.http.Path;
@@ -29,7 +30,7 @@ interface GhostApiService {
 
     // posts
     @GET("/posts/?status=all&staticPages=all&limit=all&include=tags")
-    void getPosts(Callback<PostList> cb);
+    void getPosts(@Header("If-None-Match") String etag, Callback<PostList> cb);
 
     @POST("/posts/?include=tags")
     void createPost(@Body PostStubList posts, Callback<PostList> cb);
