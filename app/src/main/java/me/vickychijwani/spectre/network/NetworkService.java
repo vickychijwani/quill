@@ -262,6 +262,13 @@ public class NetworkService {
                 }
                 deleteModels(postsToDelete);
 
+                // make sure drafts have a publishedAt of FAR_FUTURE so they're sorted to the top
+                for (Post receivedPost : postList.posts) {
+                    if (receivedPost.getPublishedAt() == null) {
+                        receivedPost.setPublishedAt(DateTimeUtils.FAR_FUTURE);
+                    }
+                }
+
                 // now create / update received posts
                 createOrUpdateModel(postList.posts);
                 getBus().post(new PostsLoadedEvent(getPostsSorted()));
@@ -485,7 +492,7 @@ public class NetworkService {
 
     private RealmResults<Post> getPostsSorted() {
         RealmResults<Post> posts = mRealm.allObjects(Post.class);
-        posts.sort("updatedAt", false);
+        posts.sort(new String[]{ "publishedAt", "updatedAt" }, new boolean[]{ false, false });
         return posts;
     }
 
