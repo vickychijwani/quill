@@ -372,6 +372,7 @@ public class NetworkService {
         mRealm.allObjects(User.class).clear();
         mRealm.allObjects(Setting.class).clear();
         mRealm.allObjects(Post.class).clear();
+        mRealm.allObjects(ETag.class).clear();
         mRealm.commitTransaction();
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, false);
