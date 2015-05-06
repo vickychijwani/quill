@@ -24,6 +24,7 @@ import android.graphics.Paint;
 
 import com.squareup.picasso.Transformation;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class BorderedCircleTransformation implements Transformation {
     private final int BORDER_COLOR = Color.WHITE;
     private final int BORDER_RADIUS = 5;

@@ -73,10 +73,11 @@ public class PostEditFragment extends BaseFragment implements
 
 
     public interface OnPreviewClickListener {
-        public void onPreviewClicked();
+        void onPreviewClicked();
     }
 
 
+    @SuppressWarnings("unused")
     public static PostEditFragment newInstance() {
         return new PostEditFragment();
     }

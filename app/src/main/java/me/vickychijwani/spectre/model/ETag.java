@@ -18,6 +18,7 @@ public class ETag extends RealmObject {
         this.tag = tag;
     }
 
+    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
     public String getType() {
         return type;
     }

@@ -29,7 +29,6 @@ import java.util.List;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import hugo.weaving.DebugLog;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
@@ -226,7 +225,6 @@ public class PostListActivity extends BaseActivity {
         mHandler.removeCallbacks(mRefreshDataRunnable);
     }
 
-    @DebugLog
     private void refreshData() {
         getBus().post(new RefreshDataEvent());
     }
@@ -281,24 +279,28 @@ public class PostListActivity extends BaseActivity {
             }
 
             holder.title.setText(item.getTitle());
-            String publishedStatus;
-            if (item.getStatus().equals(Post.PUBLISHED)) {
-                publishedStatus = String.format(
-                        mContext.getString(R.string.published),
-                        DateTimeUtils.dateToIsoDateString(item.getPublishedAt()));
-                holder.published.setTextColor(mContext.getResources().getColor(R.color.published));
-            } else if (item.getStatus().equals(Post.DRAFT)) {
-                publishedStatus = mContext.getString(R.string.draft);
-                holder.published.setTextColor(mContext.getResources().getColor(R.color.draft));
-            } else if (item.getStatus().equals(Post.LOCAL_NEW)) {
-                publishedStatus = mContext.getString(R.string.local_new);
-                holder.published.setTextColor(mContext.getResources().getColor(R.color.local_new));
-            } else {
-                Log.e(TAG, "Invalid post status "
-                        + ((item.getStatus() == null) ? "null" : item.getStatus()) + "!");
-                publishedStatus = "";
+            String statusStr = "";
+            int statusColor = R.color.published;
+            switch (item.getStatus()) {
+                case Post.PUBLISHED:
+                    statusStr = String.format(
+                            mContext.getString(R.string.published),
+                            DateTimeUtils.dateToIsoDateString(item.getPublishedAt()));
+                    statusColor = R.color.published;
+                    break;
+                case Post.DRAFT:
+                    statusStr = mContext.getString(R.string.draft);
+                    statusColor = R.color.draft;
+                    break;
+                case Post.LOCAL_NEW:
+                    statusStr = mContext.getString(R.string.local_new);
+                    statusColor = R.color.local_new;
+                    break;
+                default:
+                    Log.wtf(TAG, "Invalid post status = " + item.getStatus() + "!");
             }
-            holder.published.setText(publishedStatus);
+            holder.published.setText(statusStr);
+            holder.published.setTextColor(mContext.getResources().getColor(statusColor));
 
             return convertView;
         }

@@ -31,16 +31,16 @@ public class PostViewFragment extends BaseFragment {
 
     private OnEditClickListener mEditClickListener;
     private Post mPost;
-    private String mBlogUrl;
     private int mMarkdownHashCode;
     private Bypass mBypass;
     private PicassoImageGetter mImageGetter;
 
     public interface OnEditClickListener {
-        public void onEditClicked();
+        void onEditClicked();
     }
 
 
+    @SuppressWarnings("unused")
     public static PostViewFragment newInstance() {
         return new PostViewFragment();
     }
@@ -55,7 +55,7 @@ public class PostViewFragment extends BaseFragment {
         mPost = ((PostViewActivity) getActivity()).getPost();
 
         UserPrefs prefs = UserPrefs.getInstance(getActivity());
-        mBlogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
+        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
 
         // set up edit button
         mEditBtn.setOnClickListener(new View.OnClickListener() {
@@ -66,7 +66,7 @@ public class PostViewFragment extends BaseFragment {
         });
 
         mBypass = new Bypass(getActivity());
-        mImageGetter = new PicassoImageGetter(mBlogUrl, mPostHtmlView, getResources(),
+        mImageGetter = new PicassoImageGetter(blogUrl, mPostHtmlView, getResources(),
                 Picasso.with(getActivity()));
 
         return view;

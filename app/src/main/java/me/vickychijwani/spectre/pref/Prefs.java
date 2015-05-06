@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
  *
  * @param <K> an {@link BaseKey} type representing the set of valid keys for this preference file
  */
+@SuppressWarnings("unused")
 abstract class Prefs<K extends BaseKey> {
 
     private SharedPreferences mPrefs;

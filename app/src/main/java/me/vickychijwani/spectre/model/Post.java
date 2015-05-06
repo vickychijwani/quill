@@ -1,9 +1,12 @@
 package me.vickychijwani.spectre.model;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.StringDef;
 
 import org.parceler.Parcel;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Date;
 
 import io.realm.Realm;
@@ -16,6 +19,9 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 @Parcel(value = Parcel.Serialization.BEAN, analyze = { Post.class })
 public class Post extends RealmObject {
 
+    @Retention(RetentionPolicy.SOURCE)
+    @StringDef({ LOCAL_NEW, DRAFT, PUBLISHED })
+    public @interface Status {}
     public static final String LOCAL_NEW = "local_new";
     public static final String DRAFT = "draft";
     public static final String PUBLISHED = "published";
@@ -25,7 +31,7 @@ public class Post extends RealmObject {
     private int id;
     private String title = "(Untitled)";
     private String slug = null;
-    private String status = LOCAL_NEW;   // can be local_new, draft, or published
+    private @Status String status = LOCAL_NEW;   // can be local_new, draft, or published
 
     private String markdown = "";
     private String html = "";
@@ -79,11 +85,11 @@ public class Post extends RealmObject {
         this.slug = slug;
     }
 
-    public String getStatus() {
+    public @Status String getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(@Status String status) {
         this.status = status;
     }
 
