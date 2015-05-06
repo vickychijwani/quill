@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.TypedValue;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
@@ -100,50 +98,36 @@ public class PostEditFragment extends BaseFragment implements
         mActivity.setTitle(null);
         mPostTitleEditView.setText(mPost.getTitle());
 
-        mActionModeCloseClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPostTitleEditView.setText(mPost.getTitle());
-                stopActionMode(true);
-            }
+        mActionModeCloseClickListener = v -> {
+            mPostTitleEditView.setText(mPost.getTitle());
+            stopActionMode(true);
         };
 
         mEditTextDefaultBackground = mPostTitleEditView.getBackground();
         mTransparentColor = mActivity.getResources().getColor(android.R.color.transparent);
         mPostTitleEditView.setBackgroundColor(mTransparentColor);
-        mPostTitleEditView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (mActionModeState == ActionModeState.STOPPED) {
-                    startActionMode();
-                } else if (mActionModeState == ActionModeState.STARTED) {
-                    stopActionMode(true);
-                }
+        mPostTitleEditView.setOnFocusChangeListener((v, hasFocus) -> {
+            if (mActionModeState == ActionModeState.STOPPED) {
+                startActionMode();
+            } else if (mActionModeState == ActionModeState.STARTED) {
+                stopActionMode(true);
             }
         });
 
         // hack for word wrap with "Done" IME action! see http://stackoverflow.com/a/13563946/504611
         mPostTitleEditView.setHorizontallyScrolling(false);
         mPostTitleEditView.setMaxLines(Integer.MAX_VALUE);
-        mPostTitleEditView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    mPost.setTitle(mPostTitleEditView.getText().toString());
-                    stopActionMode(false);
-                    return true;
-                }
-                return false;
+        mPostTitleEditView.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                mPost.setTitle(mPostTitleEditView.getText().toString());
+                stopActionMode(false);
+                return true;
             }
+            return false;
         });
 
         // set up preview button
-        mPreviewBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPreviewClickListener.onPreviewClicked();
-            }
-        });
+        mPreviewBtn.setOnClickListener(v -> mPreviewClickListener.onPreviewClicked());
 
         mActionBarSize = getActionBarSize();
         mScrollView.setScrollViewCallbacks(this);

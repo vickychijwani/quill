@@ -56,7 +56,6 @@ public class PostListActivity extends BaseActivity {
     private PostAdapter mPostAdapter;
 
     private Handler mHandler;
-    private Runnable mRefreshDataRunnable;
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;  // milliseconds
 
     @InjectView(R.id.toolbar)
@@ -94,25 +93,16 @@ public class PostListActivity extends BaseActivity {
 
         // initialize post list UI
         mPosts = new ArrayList<>();
-        mPostAdapter = new PostAdapter(this, mPosts, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int pos = mPostList.getPositionForView(v);
-                Post post = (Post) mPostAdapter.getItem(pos);
-                Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-                intent.putExtra(BundleKeys.POST, Parcels.wrap(Post.class, post));
-                startActivity(intent);
-            }
+        mPostAdapter = new PostAdapter(this, mPosts, v -> {
+            int pos = mPostList.getPositionForView(v);
+            Post post = (Post) mPostAdapter.getItem(pos);
+            Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
+            intent.putExtra(BundleKeys.POST, Parcels.wrap(Post.class, post));
+            startActivity(intent);
         });
         mPostList.setAdapter(mPostAdapter);
 
         mHandler = new Handler(Looper.getMainLooper());
-        mRefreshDataRunnable = new Runnable() {
-            @Override
-            public void run() {
-                refreshData();
-            }
-        };
 
         getBus().post(new LoadUserEvent(false));
         getBus().post(new LoadBlogSettingsEvent(false));
@@ -124,12 +114,7 @@ public class PostListActivity extends BaseActivity {
                 R.color.accent_light,
                 R.color.primary
         );
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                getBus().post(new RefreshDataEvent());
-            }
-        });
+        mSwipeRefreshLayout.setOnRefreshListener(this::refreshData);
     }
 
     @Override
@@ -218,11 +203,11 @@ public class PostListActivity extends BaseActivity {
     private void scheduleDataRefresh() {
         // cancel already-scheduled refresh event
         cancelDataRefresh();
-        mHandler.postDelayed(mRefreshDataRunnable, REFRESH_FREQUENCY);
+        mHandler.postDelayed(this::refreshData, REFRESH_FREQUENCY);
     }
 
     private void cancelDataRefresh() {
-        mHandler.removeCallbacks(mRefreshDataRunnable);
+        mHandler.removeCallbacks(this::refreshData);
     }
 
     private void refreshData() {

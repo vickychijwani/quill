@@ -14,7 +14,6 @@ import com.squareup.otto.Subscribe;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,9 +60,9 @@ import retrofit.Callback;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
-import retrofit.client.Header;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
+import rx.Observable;
 
 public class NetworkService {
 
@@ -88,13 +87,10 @@ public class NetworkService {
                 .setExclusionStrategies(new RealmExclusionStrategy())
                 .create();
         mGsonConverter = new GsonConverter(gson);
-        mAuthInterceptor = new RequestInterceptor() {
-            @Override
-            public void intercept(RequestFacade request) {
-                if (mAuthToken != null && mAuthToken.isValid() && ! hasAccessTokenExpired()) {
-                    request.addHeader("Authorization", mAuthToken.getTokenType() + " " +
-                            mAuthToken.getAccessToken());
-                }
+        mAuthInterceptor = (request) -> {
+            if (mAuthToken != null && mAuthToken.isValid() && ! hasAccessTokenExpired()) {
+                request.addHeader("Authorization", mAuthToken.getTokenType() + " " +
+                        mAuthToken.getAccessToken());
             }
         };
     }
@@ -151,9 +147,8 @@ public class NetworkService {
                 new LoadBlogSettingsEvent(true),
                 new SyncPostsEvent(true)
         ));
-        for (Object e : mRefreshEventsQueue) {
-            bus.post(e);
-        }
+        Observable.from(mRefreshEventsQueue)
+                .forEach(bus::post);
     }
 
     @Subscribe
@@ -239,12 +234,9 @@ public class NetworkService {
             @Override
             public void success(PostList postList, Response response) {
                 // update the stored etag
-                for (Header header : response.getHeaders()) {
-                    if ("ETag".equals(header.getName())) {
-                        ETag etag = new ETag(header.getValue());
-                        createOrUpdateModel(etag);
-                    }
-                }
+                Observable.from(response.getHeaders())
+                        .takeFirst(h -> h.getName().equals("Etag"))
+                        .forEach(h -> createOrUpdateModel(new ETag(h.getValue())));
 
                 // delete posts that are no longer present on the server
                 // this assumes that postList.posts is a list of ALL posts on the server
@@ -253,21 +245,16 @@ public class NetworkService {
                         .equalTo("status", Post.DRAFT)
                         .or().equalTo("status", Post.PUBLISHED)
                         .findAll();
-                List<Post> postsToDelete = new ArrayList<>();
                 // FIXME time complexity is quadratic in the number of posts!
-                for (Post cachedPost : cachedPosts) {
-                    if (! postList.contains(cachedPost.getUuid())) {
-                        postsToDelete.add(cachedPost);
-                    }
-                }
-                deleteModels(postsToDelete);
+                Observable.from(cachedPosts)
+                        .filter(cached -> ! postList.contains(cached.getUuid()))
+                        .toList()
+                        .forEach(NetworkService.this::deleteModels);
 
                 // make sure drafts have a publishedAt of FAR_FUTURE so they're sorted to the top
-                for (Post receivedPost : postList.posts) {
-                    if (receivedPost.getPublishedAt() == null) {
-                        receivedPost.setPublishedAt(DateTimeUtils.FAR_FUTURE);
-                    }
-                }
+                Observable.from(postList.posts)
+                        .filter(post -> post.getPublishedAt() == null)
+                        .forEach(post -> post.setPublishedAt(DateTimeUtils.FAR_FUTURE));
 
                 // now create / update received posts
                 createOrUpdateModel(postList.posts);
@@ -305,24 +292,21 @@ public class NetworkService {
             return;
         }
 
-        final Runnable syncFinishedCB = new Runnable() {
-            @Override
-            public void run() {
-                // delete only those posts that were successfully uploaded
-                mRealm.beginTransaction();
-                localPosts.where().equalTo("isUploaded", true).findAll().clear();
-                mRealm.commitTransaction();
-                // if refreshPosts is true, first load from the db, AND only then from the network,
-                // to avoid a crash because local posts have been deleted above but are still being
-                // displayed, so we need to refresh the UI first
-                getBus().post(new PostsLoadedEvent(getPostsSorted()));
-                if (event.refreshPosts) {
-                    LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
-                    mRefreshEventsQueue.add(loadPostsEvent);
-                    getBus().post(loadPostsEvent);
-                }
-                refreshDone(event);
+        final Runnable syncFinishedCB = () -> {
+            // delete only those posts that were successfully uploaded
+            mRealm.beginTransaction();
+            localPosts.where().equalTo("isUploaded", true).findAll().clear();
+            mRealm.commitTransaction();
+            // if refreshPosts is true, first load from the db, AND only then from the network,
+            // to avoid a crash because local posts have been deleted above but are still being
+            // displayed, so we need to refresh the UI first
+            getBus().post(new PostsLoadedEvent(getPostsSorted()));
+            if (event.refreshPosts) {
+                LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
+                mRefreshEventsQueue.add(loadPostsEvent);
+                getBus().post(loadPostsEvent);
             }
+            refreshDone(event);
         };
 
         mPostUploadQueue.addAll(localPosts);
@@ -334,12 +318,8 @@ public class NetworkService {
             mApi.createPost(PostStubList.from(localPost), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
-                    createOrUpdateModel(postList.posts, new Runnable() {
-                        @Override
-                        public void run() {
-                            localPost.setUploaded(true);  // mark as uploaded, so the local copy can be deleted
-                        }
-                    });
+                    // mark as uploaded, so the local copy can be deleted
+                    createOrUpdateModel(postList.posts, () -> localPost.setUploaded(true));
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new PostCreatedEvent(postList.posts.get(0)));
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
@@ -527,9 +507,7 @@ public class NetworkService {
 
     private <T extends RealmObject> void deleteModels(List<T> realmObjects) {
         mRealm.beginTransaction();
-        for (T realmObject : realmObjects) {
-            realmObject.removeFromRealm();
-        }
+        Observable.from(realmObjects).forEach(T::removeFromRealm);
         mRealm.commitTransaction();
     }
 

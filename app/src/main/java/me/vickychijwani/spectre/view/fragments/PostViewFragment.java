@@ -58,12 +58,7 @@ public class PostViewFragment extends BaseFragment {
         String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
 
         // set up edit button
-        mEditBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mEditClickListener.onEditClicked();
-            }
-        });
+        mEditBtn.setOnClickListener(v -> mEditClickListener.onEditClicked());
 
         mBypass = new Bypass(getActivity());
         mImageGetter = new PicassoImageGetter(blogUrl, mPostHtmlView, getResources(),

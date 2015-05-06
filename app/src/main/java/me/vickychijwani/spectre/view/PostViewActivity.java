@@ -47,12 +47,7 @@ public class PostViewActivity extends BaseActivity implements
 
         mPost = Parcels.unwrap(getIntent().getExtras().getParcelable(BundleKeys.POST));
 
-        mUpClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavUtils.navigateUpFromSameTask(PostViewActivity.this);
-            }
-        };
+        mUpClickListener = v -> NavUtils.navigateUpFromSameTask(PostViewActivity.this);
 
         mPostViewFragment = addFragment(PostViewFragment.class, R.id.fragment_container, TAG_VIEW_FRAGMENT);
         mPostEditFragment = addFragment(PostEditFragment.class, R.id.fragment_container, TAG_EDIT_FRAGMENT);
