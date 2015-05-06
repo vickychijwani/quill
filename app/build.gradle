@@ -27,7 +27,7 @@ android {
     defaultConfig {
         applicationId "me.vickychijwani.spectre"
         minSdkVersion 14
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
     }
