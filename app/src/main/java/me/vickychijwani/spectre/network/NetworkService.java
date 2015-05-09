@@ -235,7 +235,7 @@ public class NetworkService {
             public void success(PostList postList, Response response) {
                 // update the stored etag
                 Observable.from(response.getHeaders())
-                        .takeFirst(h -> h.getName().equals("Etag"))
+                        .takeFirst(h -> "ETag".equals(h.getName()))
                         .forEach(h -> createOrUpdateModel(new ETag(h.getValue())));
 
                 // delete posts that are no longer present on the server
