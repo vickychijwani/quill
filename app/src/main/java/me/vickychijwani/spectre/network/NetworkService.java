@@ -9,6 +9,7 @@ import com.crashlytics.android.Crashlytics;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -67,6 +68,7 @@ import retrofit.Callback;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
+import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 import rx.Observable;
@@ -78,6 +80,7 @@ public class NetworkService {
     private Realm mRealm = null;
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
+    private OkHttpClient mOkHttpClient = null;
     private GsonConverter mGsonConverter;
     private RequestInterceptor mAuthInterceptor;
 
@@ -108,7 +111,8 @@ public class NetworkService {
         };
     }
 
-    public void start(Context context) {
+    public void start(Context context, OkHttpClient okHttpClient) {
+        mOkHttpClient = okHttpClient;
         getBus().register(this);
         mRealm = Realm.getInstance(context);
         if (AppState.getInstance(context).getBoolean(AppState.Key.LOGGED_IN)) {
@@ -523,6 +527,7 @@ public class NetworkService {
     private GhostApiService buildApiService(@NonNull String blogUrl) {
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(AppUtils.pathJoin(blogUrl, "ghost/api/v0.1"))
+                .setClient(new OkClient(mOkHttpClient))
                 .setConverter(mGsonConverter)
                 .setRequestInterceptor(mAuthInterceptor)
                 .setLogLevel(RestAdapter.LogLevel.HEADERS)

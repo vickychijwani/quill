@@ -20,6 +20,7 @@ apply plugin: 'com.jakewharton.hugo'
 repositories {
     mavenCentral()
     maven { url 'http://download.crashlytics.com/maven' }
+    maven { url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo' }
 }
 
 
@@ -53,6 +54,8 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.1.1'
     compile 'com.jakewharton:butterknife:6.1.0'
+    compile 'com.squareup.okhttp:okhttp-urlconnection:2.3.0'
+    compile 'com.squareup.okhttp:okhttp:2.3.0'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
@@ -66,4 +69,9 @@ dependencies {
     compile 'com.rengwuxian.materialedittext:library:2.1.3'
     compile 'com.github.ksoichiro:android-observablescrollview:1.5.0'
     compile "com.splitwise:tokenautocomplete:1.3.3@aar"
+
+    // debug
+    debugCompile 'com.facebook.stetho:stetho:1.1.1'
+    debugCompile 'com.facebook.stetho:stetho-okhttp:1.1.1'
+    debugCompile 'com.uphyca:stetho_realm:0.4.1'
 }

@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
+import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.DeadEvent;
 import com.squareup.otto.Subscribe;
 
@@ -25,13 +26,15 @@ public class SpectreApplication extends Application {
         Crashlytics.log(Log.DEBUG, TAG, "APP LAUNCHED");
         BusProvider.getBus().register(this);
         sInstance = this;
-
-        NetworkService networkService = new NetworkService();
-        networkService.start(this);
+        new NetworkService().start(this, getOkHttpClient());
     }
 
     public static SpectreApplication getInstance() {
         return sInstance;
+    }
+
+    protected OkHttpClient getOkHttpClient() {
+        return new OkHttpClient();
     }
 
     @Subscribe
