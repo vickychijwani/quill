@@ -415,15 +415,9 @@ public class NetworkService {
     @Subscribe
     public void onLogoutEvent(LogoutEvent event) {
         // clear all persisted blog data to avoid primary key conflicts
-        mRealm.beginTransaction();
-        mRealm.allObjects(AuthToken.class).clear();
-        mRealm.allObjects(User.class).clear();
-        mRealm.allObjects(Setting.class).clear();
-        mRealm.allObjects(Post.class).clear();
-        mRealm.allObjects(ETag.class).clear();
-        mRealm.allObjects(Tag.class).clear();
-        mRealm.allObjects(PendingAction.class).clear();
-        mRealm.commitTransaction();
+        mRealm.close();
+        Realm.deleteRealmFile(event.context);
+        mRealm = Realm.getInstance(event.context);
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, false);
     }
