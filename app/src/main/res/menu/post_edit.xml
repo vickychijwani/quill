@@ -16,4 +16,10 @@
         app:showAsAction="ifRoom"
         />
 
+    <item
+        android:id="@+id/action_publish"
+        android:title="@string/publish"
+        app:showAsAction="never"
+        />
+
 </menu>

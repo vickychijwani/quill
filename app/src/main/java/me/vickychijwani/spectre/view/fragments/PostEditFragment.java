@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -214,6 +215,12 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         boolean actionModeActive = mEditTextActionModeManager.isActionModeActive();
         menu.findItem(R.id.action_done).setVisible(actionModeActive);
         menu.findItem(R.id.action_save).setVisible(!actionModeActive);
+        menu.findItem(R.id.action_publish).setVisible(!actionModeActive);
+        if (Post.PUBLISHED.equals(mPost.getStatus())) {
+            menu.findItem(R.id.action_publish).setTitle(R.string.unpublish);
+        } else {
+            menu.findItem(R.id.action_publish).setTitle(R.string.publish);
+        }
     }
 
     @Override
@@ -225,12 +232,18 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             case R.id.action_save:
                 onSaveClicked(true);
                 return true;
-            default:
-                return super.onOptionsItemSelected(item);
+            case R.id.action_publish:
+                onPublishUnpublishClicked();
+                break;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     private void onSaveClicked(boolean persistChanges) {
+        onSaveClicked(persistChanges, null);
+    }
+
+    private void onSaveClicked(boolean persistChanges, @Nullable @Post.Status String newStatus) {
         mPost.setTitle(mPostTitleEditView.getText().toString());
         mPost.setMarkdown(mPostEditView.getText().toString());
         mPost.setHtml(null);   // omit stale HTML from request body
@@ -240,9 +253,31 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             tags.add((Tag) obj);
         }
         mPost.setTags(tags);
+        if (newStatus != null) {
+            mPost.setStatus(newStatus);
+        }
         if (persistChanges) {
             getBus().post(new SavePostEvent(mPost));
         }
+    }
+
+    private void onPublishUnpublishClicked() {
+        int msg = R.string.alert_publish;
+        String targetStatus = Post.PUBLISHED;
+        if (Post.PUBLISHED.equals(mPost.getStatus())) {
+            msg = R.string.alert_unpublish;
+            targetStatus = Post.DRAFT;
+        }
+        @Post.Status final String finalTargetStatus = targetStatus;
+        new AlertDialog.Builder(mActivity)
+                .setMessage(msg)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    onSaveClicked(true, finalTargetStatus);
+                })
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .create().show();
     }
 
     @Subscribe
