@@ -138,6 +138,12 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        onSaveClicked(false);
+    }
+
+    @Override
     public void onShow() {
         if (mActivity != null && ! mPostHeaderCollapsed) {
             mActivity.setTitle(null);
