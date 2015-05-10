@@ -21,8 +21,6 @@ import android.widget.TextView;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
-import org.parceler.Parcels;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +35,7 @@ import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
+import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
@@ -97,7 +96,7 @@ public class PostListActivity extends BaseActivity {
             int pos = mPostList.getPositionForView(v);
             Post post = (Post) mPostAdapter.getItem(pos);
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-            intent.putExtra(BundleKeys.POST, Parcels.wrap(Post.class, post));
+            intent.putExtra(BundleKeys.POST_UUID, post.getUuid());
             startActivity(intent);
         });
         mPostList.setAdapter(mPostAdapter);
@@ -191,10 +190,13 @@ public class PostListActivity extends BaseActivity {
 
     @OnClick(R.id.new_post_btn)
     public void onNewPostBtnClicked() {
-        Post post = new Post();
-        getBus().post(new CreatePostEvent(post));
+        getBus().post(new CreatePostEvent());
+    }
+
+    @Subscribe
+    public void onPostCreatedEvent(PostCreatedEvent event) {
         Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-        intent.putExtra(BundleKeys.POST, Parcels.wrap(Post.class, post));
+        intent.putExtra(BundleKeys.POST_UUID, event.newPost.getUuid());
         startActivity(intent);
     }
 

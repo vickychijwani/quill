@@ -36,7 +36,7 @@ interface GhostApiService {
     void createPost(@Body PostStubList posts, Callback<PostList> cb);
 
     @PUT("/posts/{id}/?include=tags")
-    void updatePost(@Path("id") int id, @Body PostList posts, Callback<PostList> cb);
+    void updatePost(@Path("id") int id, @Body PostStubList posts, Callback<PostList> cb);
 
     // settings
     @GET("/settings/?type=blog")

@@ -2,18 +2,24 @@ package me.vickychijwani.spectre.model;
 
 import android.support.annotation.NonNull;
 
-// exists only to help with the createPost API call
-// TODO get rid of this as soon as Realm supports boxed primitives (Integer)
-// https://github.com/realm/realm-java/issues/465
+import java.util.ArrayList;
+import java.util.List;
+
 public final class PostStub {
 
-    public String title;
-    public final String status = "draft";
-    public String markdown;
+    public final String title;
+    public final String status;
+    public final String markdown;
+    public final List<TagStub> tags;
 
-    public PostStub(@NonNull Post post) {
+    public PostStub(@NonNull Post post, @Post.Status String status) {
         this.title = post.getTitle();
+        this.status = status;
         this.markdown = post.getMarkdown();
+        this.tags = new ArrayList<>(post.getTags().size());
+        for (Tag tag : post.getTags()) {
+            this.tags.add(new TagStub(tag));
+        }
     }
 
 }

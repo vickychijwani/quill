@@ -8,12 +8,12 @@ import android.view.View;
 
 import com.squareup.otto.Subscribe;
 
-import org.parceler.Parcels;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
-import me.vickychijwani.spectre.event.PostCreatedEvent;
+import me.vickychijwani.spectre.event.LoadPostEvent;
+import me.vickychijwani.spectre.event.PostReplacedEvent;
+import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
@@ -45,7 +45,7 @@ public class PostViewActivity extends BaseActivity implements
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mPost = Parcels.unwrap(getIntent().getExtras().getParcelable(BundleKeys.POST));
+        getBus().post(new LoadPostEvent(getIntent().getExtras().getString(BundleKeys.POST_UUID)));
 
         mUpClickListener = v -> NavUtils.navigateUpFromSameTask(PostViewActivity.this);
 
@@ -62,7 +62,13 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     @Subscribe
-    public void onPostCreatedEvent(PostCreatedEvent event) {
+    public void onPostLoadedEvent(PostLoadedEvent event) {
+        mPost = event.post;
+    }
+
+    @Subscribe
+    public void onPostChangedEvent(PostReplacedEvent event) {
+        // FIXME check which post changed before blindly assigning to mPost!
         mPost = event.newPost;
         mPostViewFragment.setPost(mPost);
         mPostEditFragment.setPost(mPost);

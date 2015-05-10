@@ -2,7 +2,6 @@ package me.vickychijwani.spectre.view.fragments;
 
 import android.app.Activity;
 import android.content.res.TypedArray;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,7 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -23,17 +22,23 @@ import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.melnykov.fab.FloatingActionButton;
 import com.squareup.otto.Subscribe;
 
+import java.util.List;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.view.EditTextActionModeManager;
 import me.vickychijwani.spectre.view.PostViewActivity;
+import me.vickychijwani.spectre.view.TagsEditText;
 
-public class PostEditFragment extends BaseFragment implements
-        ObservableScrollViewCallbacks {
+public class PostEditFragment extends BaseFragment implements ObservableScrollViewCallbacks,
+        EditTextActionModeManager.Callbacks {
 
     private static final String TAG = "PostEditFragment";
 
@@ -42,6 +47,9 @@ public class PostEditFragment extends BaseFragment implements
 
     @InjectView(R.id.post_title_edit)
     EditText mPostTitleEditView;
+
+    @InjectView(R.id.post_tags_edit)
+    TagsEditText mPostTagsEditView;
 
     @InjectView(R.id.post_markdown)
     EditText mPostEditView;
@@ -56,13 +64,8 @@ public class PostEditFragment extends BaseFragment implements
     private Post mPost;
 
     // action mode
-    private enum ActionModeState {
-        STARTING, STARTED, STOPPING, STOPPED
-    }
-    private ActionModeState mActionModeState = ActionModeState.STOPPED;
-    private Drawable mEditTextDefaultBackground;
-    private int mTransparentColor;
     private View.OnClickListener mActionModeCloseClickListener;
+    private EditTextActionModeManager mEditTextActionModeManager;
     private PostViewActivity mActivity;
 
     // scroll behaviour
@@ -93,40 +96,26 @@ public class PostEditFragment extends BaseFragment implements
         ButterKnife.inject(this, view);
 
         mActivity = ((PostViewActivity) getActivity());
-        mPost = mActivity.getPost();
+        setPost(mActivity.getPost());
 
+        // action mode manager
+        mEditTextActionModeManager = new EditTextActionModeManager(mActivity, this);
+        mActionModeCloseClickListener = v -> mEditTextActionModeManager.stopActionMode(true);
+        mEditTextActionModeManager.register(mPostTitleEditView);
+        mEditTextActionModeManager.register(mPostTagsEditView);
+
+        // title
         mActivity.setTitle(null);
-        mPostTitleEditView.setText(mPost.getTitle());
-
-        mActionModeCloseClickListener = v -> {
-            mPostTitleEditView.setText(mPost.getTitle());
-            stopActionMode(true);
-        };
-
-        mEditTextDefaultBackground = mPostTitleEditView.getBackground();
-        mTransparentColor = mActivity.getResources().getColor(android.R.color.transparent);
-        mPostTitleEditView.setBackgroundColor(mTransparentColor);
-        mPostTitleEditView.setOnFocusChangeListener((v, hasFocus) -> {
-            if (mActionModeState == ActionModeState.STOPPED) {
-                startActionMode();
-            } else if (mActionModeState == ActionModeState.STARTED) {
-                stopActionMode(true);
-            }
-        });
-
         // hack for word wrap with "Done" IME action! see http://stackoverflow.com/a/13563946/504611
         mPostTitleEditView.setHorizontallyScrolling(false);
         mPostTitleEditView.setMaxLines(Integer.MAX_VALUE);
-        mPostTitleEditView.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                mPost.setTitle(mPostTitleEditView.getText().toString());
-                stopActionMode(false);
-                return true;
-            }
-            return false;
-        });
 
-        // set up preview button
+        // tags
+        mPostTagsEditView.setAdapter(new ArrayAdapter<>(
+                getActivity(), android.R.layout.simple_list_item_1, new Tag[]{}
+        ));
+
+        // preview button
         mPreviewBtn.setOnClickListener(v -> mPreviewClickListener.onPreviewClicked());
 
         mActionBarSize = getActionBarSize();
@@ -145,7 +134,7 @@ public class PostEditFragment extends BaseFragment implements
     @Override
     public void onResume() {
         super.onResume();
-        mPostEditView.setText(mPost.getMarkdown());
+        setPost(mPost);
     }
 
     @Override
@@ -174,37 +163,36 @@ public class PostEditFragment extends BaseFragment implements
 
 
     // action mode
-    private void startActionMode() {
-        mActionModeState = ActionModeState.STARTING;
-        mPostTitleEditView.setBackgroundDrawable(mEditTextDefaultBackground);
-        mActivity.setTitle(getString(R.string.edit_title));
+    @Override
+    public void onActionModeStarted(EditText editText) {
+        if (editText == mPostTitleEditView) {
+            mActivity.setTitle(getString(R.string.edit_title));
+        } else if (editText == mPostTagsEditView) {
+            mActivity.setTitle(getString(R.string.edit_tags));
+        }
         mActivity.supportInvalidateOptionsMenu();
         mActivity.setNavigationItem(R.drawable.close, mActionModeCloseClickListener);
         mPreviewBtn.hide(false);
-        mActionModeState = ActionModeState.STARTED;
     }
 
-    private void stopActionMode(boolean discardChanges) {
+    @Override
+    public void onActionModeStopped(boolean discardChanges) {
         if (discardChanges) {
-            mPostTitleEditView.setText(mPost.getTitle());
+            setPost(mPost);
         } else {
-            mPost.setTitle(mPostTitleEditView.getText().toString());
+            onSaveClicked(false);
         }
-        mActionModeState = ActionModeState.STOPPING;
-        mActivity.setTitle(null);
-        mPostTitleEditView.setBackgroundColor(mTransparentColor);
-        mPostTitleEditView.clearFocus();
         AppUtils.hideKeyboard(mActivity);
+        mActivity.setTitle(null);
         mActivity.supportInvalidateOptionsMenu();
         mActivity.resetNavigationItem();
         mPreviewBtn.show(false);
-        mActionModeState = ActionModeState.STOPPED;
     }
 
     @Override
     public boolean onBackPressed() {
-        if (mActionModeState == ActionModeState.STARTED) {
-            stopActionMode(true);
+        //noinspection SimplifiableIfStatement
+        if (mEditTextActionModeManager.stopActionMode(true)) {
             return true;
         }
         return super.onBackPressed();
@@ -217,31 +205,38 @@ public class PostEditFragment extends BaseFragment implements
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        boolean actionModeActive =
-                mActionModeState == ActionModeState.STARTING ||
-                mActionModeState == ActionModeState.STARTED;
+        boolean actionModeActive = mEditTextActionModeManager.isActionModeActive();
         menu.findItem(R.id.action_done).setVisible(actionModeActive);
-        menu.findItem(R.id.action_save).setVisible(! actionModeActive);
+        menu.findItem(R.id.action_save).setVisible(!actionModeActive);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_done:
-                stopActionMode(false);
+                mEditTextActionModeManager.stopActionMode(false);
                 return true;
             case R.id.action_save:
-                onSaveClicked();
+                onSaveClicked(true);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void onSaveClicked() {
+    private void onSaveClicked(boolean persistChanges) {
+        mPost.setTitle(mPostTitleEditView.getText().toString());
         mPost.setMarkdown(mPostEditView.getText().toString());
         mPost.setHtml(null);   // omit stale HTML from request body
-        getBus().post(new SavePostEvent(mPost));
+        RealmList<Tag> tags = new RealmList<>();
+        List<Object> tagObjects = mPostTagsEditView.getObjects();
+        for (Object obj : tagObjects) {
+            tags.add((Tag) obj);
+        }
+        mPost.setTags(tags);
+        if (persistChanges) {
+            getBus().post(new SavePostEvent(mPost));
+        }
     }
 
     @Subscribe
@@ -251,7 +246,12 @@ public class PostEditFragment extends BaseFragment implements
 
     public void setPost(@NonNull Post post) {
         mPost = post;
+        mPostTitleEditView.setText(post.getTitle());
         mPostEditView.setText(post.getMarkdown());
+        mPostTagsEditView.clear();
+        for (Tag tag : post.getTags()) {
+            mPostTagsEditView.addObject(tag, tag.getName());
+        }
     }
 
 

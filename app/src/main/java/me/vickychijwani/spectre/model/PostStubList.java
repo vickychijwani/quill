@@ -4,9 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 
 // dummy wrapper class needed for Retrofit
-// exists only to help with the createPost API call
-// TODO get rid of this as soon as Realm supports boxed primitives (Integer)
-// https://github.com/realm/realm-java/issues/465
 public class PostStubList {
 
     public List<PostStub> posts;
@@ -17,9 +14,9 @@ public class PostStubList {
         return stubList;
     }
 
-    public static PostStubList from(Post post) {
+    public static PostStubList from(Post post, @Post.Status String status) {
         PostStubList stubList = new PostStubList();
-        stubList.posts = Arrays.asList(new PostStub(post));
+        stubList.posts = Arrays.asList(new PostStub(post, status));
         return stubList;
     }
 

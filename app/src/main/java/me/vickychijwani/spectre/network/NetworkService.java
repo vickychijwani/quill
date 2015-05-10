@@ -18,9 +18,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import hugo.weaving.DebugLog;
+import io.realm.PostRealmProxy;
 import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.TagRealmProxy;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
@@ -28,6 +30,7 @@ import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
+import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
@@ -35,6 +38,8 @@ import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
+import me.vickychijwani.spectre.event.PostLoadedEvent;
+import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
@@ -44,12 +49,14 @@ import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.AuthReqBody;
 import me.vickychijwani.spectre.model.AuthToken;
 import me.vickychijwani.spectre.model.ETag;
+import me.vickychijwani.spectre.model.PendingAction;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.model.PostStubList;
 import me.vickychijwani.spectre.model.RefreshReqBody;
 import me.vickychijwani.spectre.model.Setting;
 import me.vickychijwani.spectre.model.SettingsList;
+import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.model.User;
 import me.vickychijwani.spectre.model.UserList;
 import me.vickychijwani.spectre.pref.AppState;
@@ -81,10 +88,16 @@ public class NetworkService {
 
     public NetworkService() {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
+        PostSerializer postSerializer = new PostSerializer();
+        TagSerializer tagSerializer = new TagSerializer();
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setExclusionStrategies(new RealmExclusionStrategy())
+                .registerTypeAdapter(Post.class, postSerializer)
+                .registerTypeAdapter(PostRealmProxy.class, postSerializer)
+                .registerTypeAdapter(Tag.class, tagSerializer)
+                .registerTypeAdapter(TagRealmProxy.class, tagSerializer)
                 .create();
         mGsonConverter = new GsonConverter(gson);
         mAuthInterceptor = (request) -> {
@@ -106,6 +119,7 @@ public class NetworkService {
     }
 
     // I don't know how to call this from the Application class!
+    @SuppressWarnings("unused")
     public void stop() {
         getBus().unregister(this);
         mRealm.close();
@@ -247,7 +261,7 @@ public class NetworkService {
                         .findAll();
                 // FIXME time complexity is quadratic in the number of posts!
                 Observable.from(cachedPosts)
-                        .filter(cached -> ! postList.contains(cached.getUuid()))
+                        .filter(cached -> !postList.contains(cached.getUuid()))
                         .toList()
                         .forEach(NetworkService.this::deleteModels);
 
@@ -271,20 +285,36 @@ public class NetworkService {
     }
 
     @Subscribe
+    public void onLoadPostEvent(LoadPostEvent event) {
+        Post post = mRealm.where(Post.class).equalTo("uuid", event.uuid).findFirst();
+        if (post != null) {
+            Post postCopy = new Post(post);   // copy isn't tied to db, so it can be mutated freely
+            getBus().post(new PostLoadedEvent(postCopy));
+        } else {
+            Log.wtf(TAG, "No post with uuid = " + event.uuid + " found!");
+        }
+    }
+
+    @Subscribe
     public void onCreatePostEvent(final CreatePostEvent event) {
-        event.post.setUuid(Post.getTempUniqueId(mRealm));   // save the local post to db
-        createOrUpdateModel(event.post);
+        Post newPost = new Post();
+        newPost.setUuid(getTempUniqueId(Post.class));
+        createOrUpdateModel(newPost);                    // save the local post to db
+        getBus().post(new PostCreatedEvent(newPost));
         getBus().post(new SyncPostsEvent(false));
     }
 
     @Subscribe
     public void onSyncPostsEvent(final SyncPostsEvent event) {
-        final RealmResults<Post> localPosts = mRealm.where(Post.class)
+        final RealmResults<Post> localNewPosts = mRealm.where(Post.class)
                 .equalTo("status", Post.LOCAL_NEW)
                 .findAllSorted("uuid", false);
+        final RealmResults<Post> localEditedPosts = mRealm.where(Post.class)
+                .equalTo("pendingActions.type", PendingAction.EDIT)
+                .findAll();
 
         // nothing to upload
-        if (localPosts.isEmpty() && event.refreshPosts) {
+        if (localNewPosts.isEmpty() && localEditedPosts.isEmpty() && event.refreshPosts) {
             LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
             mRefreshEventsQueue.add(loadPostsEvent);
             getBus().post(loadPostsEvent);
@@ -295,7 +325,7 @@ public class NetworkService {
         final Runnable syncFinishedCB = () -> {
             // delete only those posts that were successfully uploaded
             mRealm.beginTransaction();
-            localPosts.where().equalTo("isUploaded", true).findAll().clear();
+            localNewPosts.where().equalTo("isUploaded", true).findAll().clear();
             mRealm.commitTransaction();
             // if refreshPosts is true, first load from the db, AND only then from the network,
             // to avoid a crash because local posts have been deleted above but are still being
@@ -309,19 +339,46 @@ public class NetworkService {
             refreshDone(event);
         };
 
-        mPostUploadQueue.addAll(localPosts);
+        mPostUploadQueue.addAll(localNewPosts);
+        mPostUploadQueue.addAll(localEditedPosts);
 
-        // the loop variable is *local* to the loop block, so can it be captured in a closure easily
+        // the loop variable is *local* to the loop block, so it can be captured in a closure easily
         // this is unlike JavaScript, in which the same loop variable is mutated
-        for (final Post localPost : localPosts) {
+        for (final Post localPost : localNewPosts) {
             if (! validateAccessToken(event)) return;
-            mApi.createPost(PostStubList.from(localPost), new Callback<PostList>() {
+            mApi.createPost(PostStubList.from(localPost, Post.DRAFT), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
                     // mark as uploaded, so the local copy can be deleted
                     createOrUpdateModel(postList.posts, () -> localPost.setUploaded(true));
                     mPostUploadQueue.removeFirstOccurrence(localPost);
-                    getBus().post(new PostCreatedEvent(postList.posts.get(0)));
+                    // FIXME this is a new post! how do subscribers know which post changed?
+                    getBus().post(new PostReplacedEvent(postList.posts.get(0)));
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    mPostUploadQueue.removeFirstOccurrence(localPost);
+                    getBus().post(new ApiErrorEvent(error));
+                    getBus().post(new PostsLoadedEvent(getPostsSorted()));
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
+                }
+            });
+        }
+
+        // the loop variable is *local* to the loop block, so it can be captured in a closure easily
+        // this is unlike JavaScript, in which the same loop variable is mutated
+        for (final Post localPost : localEditedPosts) {
+            if (! validateAccessToken(event)) return;
+            PostStubList postStubList = PostStubList.from(localPost, localPost.getStatus());
+            mApi.updatePost(localPost.getId(), postStubList, new Callback<PostList>() {
+                @Override
+                public void success(PostList postList, Response response) {
+                    createOrUpdateModel(postList.posts, () -> {
+                        localPost.getPendingActions().clear();
+                    });
+                    mPostUploadQueue.removeFirstOccurrence(localPost);
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
                 }
 
@@ -338,17 +395,21 @@ public class NetworkService {
 
     @Subscribe
     public void onSavePostEvent(SavePostEvent event) {
-        mApi.updatePost(event.post.getId(), PostList.from(event.post), new Callback<PostList>() {
-            @Override
-            public void success(PostList postList, Response response) {
-                getBus().post(new PostSavedEvent());
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                getBus().post(new ApiErrorEvent(error));
-            }
-        });
+        List<PendingAction> pendingActions = event.post.getPendingActions();
+        Observable.from(pendingActions)
+                .filter(a -> PendingAction.EDIT.equals(a.getType()))
+                .isEmpty()
+                .forEach(empty -> {
+                    if (empty) {
+                        pendingActions.add(new PendingAction(PendingAction.EDIT));
+                    }
+                });
+        Observable.from(event.post.getTags())
+                .filter(tag -> tag.getUuid() == null)
+                .forEach(tag -> tag.setUuid(getTempUniqueId(Tag.class)));
+        createOrUpdateModel(event.post);                    // save the local post to db
+        getBus().post(new PostSavedEvent());
+        getBus().post(new SyncPostsEvent(false));
     }
 
     @Subscribe
@@ -360,6 +421,8 @@ public class NetworkService {
         mRealm.allObjects(Setting.class).clear();
         mRealm.allObjects(Post.class).clear();
         mRealm.allObjects(ETag.class).clear();
+        mRealm.allObjects(Tag.class).clear();
+        mRealm.allObjects(PendingAction.class).clear();
         mRealm.commitTransaction();
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, false);
@@ -474,6 +537,16 @@ public class NetworkService {
         RealmResults<Post> posts = mRealm.allObjects(Post.class);
         posts.sort(new String[]{ "publishedAt", "updatedAt" }, new boolean[]{ false, false });
         return posts;
+    }
+
+    // generates a temporary primary key until the actual id is generated by the server
+    @NonNull
+    public <T extends RealmObject> String getTempUniqueId(Class<T> clazz) {
+        int tempId = Integer.MAX_VALUE;
+        while (mRealm.where(clazz).equalTo("uuid", String.valueOf(tempId)).findAll().size() > 0) {
+            --tempId;
+        }
+        return String.valueOf(tempId);
     }
 
     private <T extends RealmObject> T createOrUpdateModel(T object) {
