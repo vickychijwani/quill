@@ -33,12 +33,24 @@ public class Post extends RealmObject {
 
     private String markdown = "";
     private String html = "";
-
     private RealmList<Tag> tags;
+
+    private String image = null;
+    private boolean featured = false;
+    private boolean page = false;
+    private String language = "en_US";
+
+    private int author;
+    private int createdBy;
+    private int updatedBy;
+    private int publishedBy;
 
     private Date createdAt = null;
     private Date updatedAt = DateTimeUtils.FAR_FUTURE;  // so that locally-created posts will be sorted to the top
     private Date publishedAt = DateTimeUtils.FAR_FUTURE;  // so that locally-created posts will be sorted to the top
+
+    private String metaTitle = "";
+    private String metaDescription = "";
 
     // these fields only exist in the db, never in API calls
     private transient boolean isUploaded = false;   // temporary flag
@@ -134,6 +146,70 @@ public class Post extends RealmObject {
         this.tags = tags;
     }
 
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public boolean isFeatured() {
+        return featured;
+    }
+
+    public void setFeatured(boolean featured) {
+        this.featured = featured;
+    }
+
+    public boolean isPage() {
+        return page;
+    }
+
+    public void setPage(boolean page) {
+        this.page = page;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public int getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(int author) {
+        this.author = author;
+    }
+
+    public int getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(int createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public int getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(int updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public int getPublishedBy() {
+        return publishedBy;
+    }
+
+    public void setPublishedBy(int publishedBy) {
+        this.publishedBy = publishedBy;
+    }
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -156,6 +232,22 @@ public class Post extends RealmObject {
 
     public void setPublishedAt(Date publishedAt) {
         this.publishedAt = publishedAt;
+    }
+
+    public String getMetaTitle() {
+        return metaTitle;
+    }
+
+    public void setMetaTitle(String metaTitle) {
+        this.metaTitle = metaTitle;
+    }
+
+    public String getMetaDescription() {
+        return metaDescription;
+    }
+
+    public void setMetaDescription(String metaDesc) {
+        this.metaDescription = metaDesc;
     }
 
     public boolean isUploaded() {
