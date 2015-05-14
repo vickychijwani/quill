@@ -72,9 +72,24 @@ public class Post extends RealmObject {
         post.getTags().toArray(tags);
         this.setTags(new RealmList<>(tags));
 
+        this.setImage(post.getImage());
+        this.setFeatured(post.isFeatured());
+        this.setPage(post.isPage());
+        this.setLanguage(post.getLanguage());
+
+        this.setAuthor(post.getAuthor());
+        this.setCreatedBy(post.getCreatedBy());
+        this.setUpdatedBy(post.getUpdatedBy());
+        this.setPublishedBy(post.getPublishedBy());
+
         this.setCreatedAt(post.getCreatedAt());
         this.setUpdatedAt(post.getUpdatedAt());
         this.setPublishedAt(post.getPublishedAt());
+
+        this.setMetaTitle(post.getMetaTitle());
+        this.setMetaDescription(post.getMetaDescription());
+
+        this.setUploaded(post.isUploaded());
 
         PendingAction[] pendingActions = new PendingAction[post.getPendingActions().size()];
         post.getPendingActions().toArray(pendingActions);
