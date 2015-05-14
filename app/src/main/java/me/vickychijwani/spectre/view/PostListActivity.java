@@ -5,17 +5,20 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
@@ -46,6 +49,7 @@ import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.DateTimeUtils;
+import me.vickychijwani.spectre.view.widget.SpaceItemDecoration;
 
 public class PostListActivity extends BaseActivity {
 
@@ -70,7 +74,7 @@ public class PostListActivity extends BaseActivity {
     SwipeRefreshLayout mSwipeRefreshLayout;
 
     @InjectView(R.id.post_list)
-    ListView mPostList;
+    RecyclerView mPostList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,18 +92,27 @@ public class PostListActivity extends BaseActivity {
         setSupportActionBar(mToolbar);
 
         // get rid of the default action bar confetti
+        //noinspection ConstantConditions
         getSupportActionBar().setDisplayOptions(0);
 
         // initialize post list UI
+        UserPrefs prefs = UserPrefs.getInstance(this);
+        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
         mPosts = new ArrayList<>();
-        mPostAdapter = new PostAdapter(this, mPosts, v -> {
-            int pos = mPostList.getPositionForView(v);
-            Post post = (Post) mPostAdapter.getItem(pos);
+        mPostAdapter = new PostAdapter(this, mPosts, blogUrl, getPicasso(), v -> {
+            int pos = mPostList.getChildLayoutPosition(v);
+            if (pos == RecyclerView.NO_POSITION) return;
+            Post post = mPostAdapter.getItem(pos);
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
             intent.putExtra(BundleKeys.POST_UUID, post.getUuid());
             startActivity(intent);
         });
         mPostList.setAdapter(mPostAdapter);
+        mPostList.setLayoutManager(new LinearLayoutManager(this));
+        mPostList.setItemAnimator(new DefaultItemAnimator());
+        int hSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_h);
+        int vSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_v);
+        mPostList.addItemDecoration(new SpaceItemDecoration(hSpace, vSpace));
 
         mHandler = new Handler(Looper.getMainLooper());
 
@@ -163,7 +176,7 @@ public class PostListActivity extends BaseActivity {
         UserPrefs prefs = UserPrefs.getInstance(this);
         String imageUrl = AppUtils.pathJoin(prefs.getString(UserPrefs.Key.BLOG_URL),
                 event.user.getImage());
-        Picasso.with(this)
+        getPicasso()
                 .load(imageUrl)
                 .transform(new BorderedCircleTransformation())
                 .fit()
@@ -217,62 +230,64 @@ public class PostListActivity extends BaseActivity {
     }
 
 
-    static class PostAdapter extends BaseAdapter {
+    static class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
         private final LayoutInflater mLayoutInflater;
         private final List<Post> mPosts;
         private final Context mContext;
+        private final String mBlogUrl;
+        private final Picasso mPicasso;
         private final View.OnClickListener mItemClickListener;
 
-        public PostAdapter(Context context, List<Post> posts, View.OnClickListener itemClickListener) {
+        public PostAdapter(Context context, List<Post> posts, String blogUrl, Picasso picasso,
+                           View.OnClickListener itemClickListener) {
             mContext = context;
+            mBlogUrl = blogUrl;
+            mPicasso = picasso;
             mLayoutInflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
             mPosts = posts;
             mItemClickListener = itemClickListener;
+            setHasStableIds(true);
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return mPosts.size();
         }
 
-        @Override
-        public Object getItem(int position) {
+        public Post getItem(int position) {
             return mPosts.get(position);
         }
 
         @Override
-        public boolean hasStableIds() {
-            return true;
-        }
-
-        @Override
         public long getItemId(int position) {
-            return ((Post) getItem(position)).getId();
+            return getItem(position).getUuid().hashCode();
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            PostViewHolder holder;
-            final Post item = (Post) getItem(position);
+        public PostViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = mLayoutInflater.inflate(R.layout.post_list_item, parent, false);
+            return new PostViewHolder(view, mItemClickListener);
+        }
 
-            if (convertView == null) {
-                convertView = mLayoutInflater.inflate(R.layout.post_list_item, parent, false);
-                holder = new PostViewHolder(convertView);
-                convertView.setOnClickListener(mItemClickListener);
-                convertView.setTag(holder);
+        @Override
+        public void onBindViewHolder(PostViewHolder viewHolder, int position) {
+            Post post = getItem(position);
+            viewHolder.title.setText(post.getTitle());
+            if (! TextUtils.isEmpty(post.getImage())) {
+                String imageUrl = AppUtils.pathJoin(mBlogUrl, post.getImage());
+                viewHolder.image.setVisibility(View.VISIBLE);
+                mPicasso.load(imageUrl).into(viewHolder.image);
             } else {
-                holder = (PostViewHolder) convertView.getTag();
+                viewHolder.image.setVisibility(View.GONE);
             }
-
-            holder.title.setText(item.getTitle());
             String statusStr = "";
             int statusColor = R.color.published;
-            switch (item.getStatus()) {
+            switch (post.getStatus()) {
                 case Post.PUBLISHED:
                     statusStr = String.format(
                             mContext.getString(R.string.published),
-                            DateTimeUtils.dateToIsoDateString(item.getPublishedAt()));
+                            DateTimeUtils.dateToIsoDateString(post.getPublishedAt()));
                     statusColor = R.color.published;
                     break;
                 case Post.DRAFT:
@@ -284,20 +299,21 @@ public class PostListActivity extends BaseActivity {
                     statusColor = R.color.local_new;
                     break;
                 default:
-                    Log.wtf(TAG, "Invalid post status = " + item.getStatus() + "!");
+                    Log.wtf(TAG, "Invalid post status = " + post.getStatus() + "!");
             }
-            holder.published.setText(statusStr);
-            holder.published.setTextColor(mContext.getResources().getColor(statusColor));
-
-            return convertView;
+            viewHolder.published.setText(statusStr);
+            viewHolder.published.setTextColor(mContext.getResources().getColor(statusColor));
         }
 
-        static class PostViewHolder {
+        static class PostViewHolder extends RecyclerView.ViewHolder {
             @InjectView(R.id.post_title)        TextView title;
             @InjectView(R.id.post_published)    TextView published;
+            @InjectView(R.id.post_image)        ImageView image;
 
-            public PostViewHolder(View view) {
+            public PostViewHolder(@NonNull View view, View.OnClickListener clickListener) {
+                super(view);
                 ButterKnife.inject(this, view);
+                view.setOnClickListener(clickListener);
             }
         }
 

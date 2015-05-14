@@ -28,4 +28,7 @@
     <string name="save">Save</string>
     <string name="refresh">Refresh</string>
 
+    <!-- content descriptions -->
+    <string name="cdesc_post_image">Post image</string>
+
 </resources>

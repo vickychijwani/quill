@@ -50,15 +50,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <ListView
+            <android.support.v7.widget.RecyclerView
                 android:id="@+id/post_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingBottom="@dimen/padding_fab_normal"
                 android:clipToPadding="false"
                 android:scrollbarStyle="outsideOverlay"
-                android:divider="@color/divider"
-                android:dividerHeight="0.5dp"
+                android:scrollbars="vertical"
                 tools:listitem="@layout/post_list_item"
                 />
 

@@ -4,13 +4,19 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.squareup.otto.Bus;
+import com.squareup.picasso.Picasso;
 
+import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BusProvider;
 
 public class BaseFragment extends Fragment {
 
     protected Bus getBus() {
         return BusProvider.getBus();
+    }
+
+    protected Picasso getPicasso() {
+        return SpectreApplication.getInstance().getPicasso();
     }
 
     @Override

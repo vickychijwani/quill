@@ -10,8 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import in.uncod.android.bypass.Bypass;
@@ -61,8 +59,7 @@ public class PostViewFragment extends BaseFragment {
         mEditBtn.setOnClickListener(v -> mEditClickListener.onEditClicked());
 
         mBypass = new Bypass(getActivity());
-        mImageGetter = new PicassoImageGetter(blogUrl, mPostHtmlView, getResources(),
-                Picasso.with(getActivity()));
+        mImageGetter = new PicassoImageGetter(blogUrl, mPostHtmlView, getResources(), getPicasso());
 
         return view;
     }

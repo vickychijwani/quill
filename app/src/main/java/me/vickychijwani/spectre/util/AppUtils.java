@@ -10,6 +10,7 @@ import android.view.inputmethod.InputMethodManager;
 public class AppUtils {
 
     public static String pathJoin(String basePath, String relativePath) {
+        if (relativePath.startsWith("http")) return relativePath;
         return Uri.withAppendedPath(Uri.parse(basePath), relativePath).toString();
     }
 

@@ -11,9 +11,11 @@ import android.view.MenuItem;
 
 import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.view.fragments.BaseFragment;
 
@@ -23,6 +25,10 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     public Bus getBus() {
         return BusProvider.getBus();
+    }
+
+    public Picasso getPicasso() {
+        return SpectreApplication.getInstance().getPicasso();
     }
 
     @Override

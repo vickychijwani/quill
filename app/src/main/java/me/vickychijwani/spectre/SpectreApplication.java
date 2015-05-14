@@ -7,6 +7,8 @@ import com.crashlytics.android.Crashlytics;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.DeadEvent;
 import com.squareup.otto.Subscribe;
+import com.squareup.picasso.OkHttpDownloader;
+import com.squareup.picasso.Picasso;
 
 import java.net.HttpURLConnection;
 
@@ -18,6 +20,8 @@ public class SpectreApplication extends Application {
 
     public static final String TAG = "SpectreApplication";
     private static SpectreApplication sInstance;
+
+    private Picasso mPicasso = null;
 
     @Override
     public void onCreate() {
@@ -35,6 +39,19 @@ public class SpectreApplication extends Application {
 
     protected OkHttpClient getOkHttpClient() {
         return new OkHttpClient();
+    }
+
+    public Picasso getPicasso() {
+        if (mPicasso == null) {
+            mPicasso = new Picasso.Builder(this)
+                    .downloader(new OkHttpDownloader(getOkHttpClient()))
+                    .listener((picasso, uri, exception) -> {
+                        Log.e("Picasso", "Failed to load image: " + uri + "\n"
+                                + Log.getStackTraceString(exception));
+                    })
+                    .build();
+        }
+        return mPicasso;
     }
 
     @Subscribe
