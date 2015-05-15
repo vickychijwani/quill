@@ -19,11 +19,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import hugo.weaving.DebugLog;
-import io.realm.PostRealmProxy;
 import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
-import io.realm.TagRealmProxy;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
@@ -91,16 +89,10 @@ public class NetworkService {
 
     public NetworkService() {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
-        PostSerializer postSerializer = new PostSerializer();
-        TagSerializer tagSerializer = new TagSerializer();
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setExclusionStrategies(new RealmExclusionStrategy())
-                .registerTypeAdapter(Post.class, postSerializer)
-                .registerTypeAdapter(PostRealmProxy.class, postSerializer)
-                .registerTypeAdapter(Tag.class, tagSerializer)
-                .registerTypeAdapter(TagRealmProxy.class, tagSerializer)
                 .create();
         mGsonConverter = new GsonConverter(gson);
         mAuthInterceptor = (request) -> {
