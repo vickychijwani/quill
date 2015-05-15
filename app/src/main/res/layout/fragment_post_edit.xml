@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:overScrollMode="never"
+        android:fillViewport="true"
         >
 
         <LinearLayout
@@ -28,11 +29,12 @@
             <EditText
                 android:id="@+id/post_markdown"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:paddingLeft="@dimen/padding_large"
                 android:paddingRight="@dimen/padding_large"
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_fab_normal"
+                android:gravity="top"
                 android:inputType="text|textMultiLine|textLongMessage|textCapSentences"
                 android:background="@android:color/transparent"
                 android:textAppearance="@style/TextAppearance.Medium.Light"
