@@ -15,6 +15,7 @@ import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 
@@ -34,8 +35,10 @@ public class PostViewActivity extends BaseActivity implements
     private Post mPost;
     private PostViewFragment mPostViewFragment;
     private PostEditFragment mPostEditFragment;
-    private boolean mIsPreviewVisible = false;
     private View.OnClickListener mUpClickListener;
+
+    private boolean mIsPreviewVisible = false;
+    private View mFocussedView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +79,8 @@ public class PostViewActivity extends BaseActivity implements
 
     @Override
     public void onPreviewClicked() {
+        mFocussedView = getCurrentFocus();
+        AppUtils.defocusAndHideKeyboard(this);
         mPostEditFragment.hide();
         mPostViewFragment.show();
         mIsPreviewVisible = true;
@@ -85,6 +90,10 @@ public class PostViewActivity extends BaseActivity implements
     public void onEditClicked() {
         mPostViewFragment.hide();
         mPostEditFragment.show();
+        if (mFocussedView != null) {
+            AppUtils.focusAndShowKeyboard(this, mFocussedView);
+        }
+        mFocussedView = null;
         mIsPreviewVisible = false;
     }
 
