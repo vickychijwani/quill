@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,9 +22,11 @@ import android.widget.Toast;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
+import com.github.slugify.Slugify;
 import com.melnykov.fab.FloatingActionButton;
 import com.squareup.otto.Subscribe;
 
+import java.io.IOException;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -272,6 +276,17 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         new AlertDialog.Builder(mActivity)
                 .setMessage(msg)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    if (Post.PUBLISHED.equals(mPost.getStatus())) {
+                        Log.wtf(TAG, "Cannot publish an already published post!");
+                    }
+                    if (TextUtils.isEmpty(mPost.getSlug())
+                            || mPost.getSlug().startsWith(Post.DEFAULT_SLUG_PREFIX)) {
+                        try {
+                            mPost.setSlug(new Slugify().slugify(mPost.getTitle()));
+                        } catch (IOException e) {
+                            Log.wtf(TAG, Log.getStackTraceString(e));
+                        }
+                    }
                     onSaveClicked(true, finalTargetStatus);
                 })
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> {

@@ -8,12 +8,14 @@ import java.util.List;
 public final class PostStub {
 
     public final String title;
+    public final String slug;
     public final String status;
     public final String markdown;
     public final List<TagStub> tags;
 
     public PostStub(@NonNull Post post, @Post.Status String status) {
         this.title = post.getTitle();
+        this.slug = post.getSlug();
         this.status = status;
         this.markdown = post.getMarkdown();
         this.tags = new ArrayList<>(post.getTags().size());

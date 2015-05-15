@@ -24,10 +24,13 @@ public class Post extends RealmObject {
     public static final String DRAFT = "draft";
     public static final String PUBLISHED = "published";
 
+    public static final String DEFAULT_TITLE = "(Untitled)";
+    public static final String DEFAULT_SLUG_PREFIX = "untitled";
+
     @PrimaryKey
     private String uuid = null;
     private int id;
-    private String title = "(Untitled)";
+    private String title = DEFAULT_TITLE;
     private String slug = null;
     @Status private String status = LOCAL_NEW;
 
