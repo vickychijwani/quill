@@ -55,10 +55,11 @@ public class PostListActivity extends BaseActivity {
 
     private static final String TAG = "PostListActivity";
 
-    private List<Post> mPosts;
+    private List<Post> mPosts = new ArrayList<>();
     private PostAdapter mPostAdapter;
 
-    private Handler mHandler;
+    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private Runnable mRefreshDataRunnable = this::refreshData;
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;  // milliseconds
 
     @InjectView(R.id.toolbar)
@@ -98,7 +99,6 @@ public class PostListActivity extends BaseActivity {
         // initialize post list UI
         UserPrefs prefs = UserPrefs.getInstance(this);
         String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
-        mPosts = new ArrayList<>();
         mPostAdapter = new PostAdapter(this, mPosts, blogUrl, getPicasso(), v -> {
             int pos = mPostList.getChildLayoutPosition(v);
             if (pos == RecyclerView.NO_POSITION) return;
@@ -113,8 +113,6 @@ public class PostListActivity extends BaseActivity {
         int hSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_h);
         int vSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_v);
         mPostList.addItemDecoration(new SpaceItemDecoration(hSpace, vSpace));
-
-        mHandler = new Handler(Looper.getMainLooper());
 
         getBus().post(new LoadUserEvent(false));
         getBus().post(new LoadBlogSettingsEvent(false));
@@ -218,11 +216,14 @@ public class PostListActivity extends BaseActivity {
     private void scheduleDataRefresh() {
         // cancel already-scheduled refresh event
         cancelDataRefresh();
-        mHandler.postDelayed(this::refreshData, REFRESH_FREQUENCY);
+        // NOTE do not pass this::refreshData directly, because that creates a new Runnable and
+        // hence cannot be removed using Handler.removeCallbacks later, indirectly causing the
+        // entire Activity to leak!
+        mHandler.postDelayed(mRefreshDataRunnable, REFRESH_FREQUENCY);
     }
 
     private void cancelDataRefresh() {
-        mHandler.removeCallbacks(this::refreshData);
+        mHandler.removeCallbacks(mRefreshDataRunnable);
     }
 
     private void refreshData() {
