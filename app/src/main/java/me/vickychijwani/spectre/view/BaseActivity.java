@@ -132,11 +132,13 @@ public abstract class BaseActivity extends AppCompatActivity {
             try {
                 fragment = type.newInstance();
             } catch (InstantiationException e) {
-                Log.wtf("WTF", "Given Fragment class does not have a zero-argument static factory" +
-                        "method named newInstance(), as required by this method");
+                throw new IllegalArgumentException("Given Fragment class does not have a zero-" +
+                        "argument static factory method named newInstance(), as required by this" +
+                        "method");
             } catch (IllegalAccessException e) {
-                Log.wtf("WTF", "Given Fragment class does not have a zero-argument static factory" +
-                        "method named newInstance(), as required by this method");
+                throw new IllegalArgumentException("Given Fragment class does not have a zero-" +
+                        "argument static factory method named newInstance(), as required by this" +
+                        "method");
             }
             getSupportFragmentManager()
                     .beginTransaction()

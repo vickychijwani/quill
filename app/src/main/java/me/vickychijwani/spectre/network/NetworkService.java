@@ -291,7 +291,9 @@ public class NetworkService {
             Post postCopy = new Post(post);   // copy isn't tied to db, so it can be mutated freely
             getBus().post(new PostLoadedEvent(postCopy));
         } else {
-            Log.wtf(TAG, "No post with uuid = " + event.uuid + " found!");
+            String error = "No post with uuid = " + event.uuid + " found!";
+            Crashlytics.logException(new IllegalArgumentException(error));
+            Log.e(TAG, error);
         }
     }
 
