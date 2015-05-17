@@ -13,10 +13,10 @@ public final class PostStub {
     public final String markdown;
     public final List<TagStub> tags;
 
-    public PostStub(@NonNull Post post, @Post.Status String status) {
+    public PostStub(@NonNull Post post) {
         this.title = post.getTitle();
         this.slug = post.getSlug();
-        this.status = status;
+        this.status = post.getStatus();
         this.markdown = post.getMarkdown();
         this.tags = new ArrayList<>(post.getTags().size());
         for (Tag tag : post.getTags()) {

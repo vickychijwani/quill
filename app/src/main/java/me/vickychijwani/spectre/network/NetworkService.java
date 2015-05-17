@@ -15,6 +15,7 @@ import com.squareup.otto.Subscribe;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -62,6 +63,7 @@ import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.DateTimeUtils;
+import me.vickychijwani.spectre.util.PostUtils;
 import retrofit.Callback;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
@@ -294,6 +296,7 @@ public class NetworkService {
     @Subscribe
     public void onCreatePostEvent(final CreatePostEvent event) {
         Post newPost = new Post();
+        PostUtils.addPendingAction(newPost, PendingAction.CREATE);
         newPost.setUuid(getTempUniqueId(Post.class));
         createOrUpdateModel(newPost);                    // save the local post to db
         getBus().post(new PostCreatedEvent(newPost));
@@ -303,7 +306,7 @@ public class NetworkService {
     @Subscribe
     public void onSyncPostsEvent(final SyncPostsEvent event) {
         final RealmResults<Post> localNewPosts = mRealm.where(Post.class)
-                .equalTo("status", Post.LOCAL_NEW)
+                .equalTo("pendingActions.type", PendingAction.CREATE)
                 .findAllSorted("uuid", false);
         final RealmResults<Post> localEditedPosts = mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.EDIT)
@@ -318,11 +321,12 @@ public class NetworkService {
             return;
         }
 
+        // keep track of new posts uploaded successfully, so the local copies can be deleted
+        List<Post> localNewPostsUploaded = new ArrayList<>();
+
         final Runnable syncFinishedCB = () -> {
-            // delete only those posts that were successfully uploaded
-            mRealm.beginTransaction();
-            localNewPosts.where().equalTo("isUploaded", true).findAll().clear();
-            mRealm.commitTransaction();
+            // delete local copies of only those new posts that were successfully uploaded
+            deleteModels(localNewPostsUploaded);
             // if refreshPosts is true, first load from the db, AND only then from the network,
             // to avoid a crash because local posts have been deleted above but are still being
             // displayed, so we need to refresh the UI first
@@ -342,12 +346,14 @@ public class NetworkService {
         // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localNewPosts) {
             if (! validateAccessToken(event)) return;
-            mApi.createPost(PostStubList.from(localPost, Post.DRAFT), new Callback<PostList>() {
+            mApi.createPost(PostStubList.from(localPost), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
-                    // mark as uploaded, so the local copy can be deleted
-                    createOrUpdateModel(postList.posts, () -> localPost.setUploaded(true));
+                    createOrUpdateModel(postList.posts, () -> {
+                        localPost.getPendingActions().clear();
+                    });
                     mPostUploadQueue.removeFirstOccurrence(localPost);
+                    localNewPostsUploaded.add(localPost);
                     // FIXME this is a new post! how do subscribers know which post changed?
                     getBus().post(new PostReplacedEvent(postList.posts.get(0)));
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
@@ -367,7 +373,7 @@ public class NetworkService {
         // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localEditedPosts) {
             if (! validateAccessToken(event)) return;
-            PostStubList postStubList = PostStubList.from(localPost, localPost.getStatus());
+            PostStubList postStubList = PostStubList.from(localPost);
             mApi.updatePost(localPost.getId(), postStubList, new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
@@ -391,15 +397,7 @@ public class NetworkService {
 
     @Subscribe
     public void onSavePostEvent(SavePostEvent event) {
-        List<PendingAction> pendingActions = event.post.getPendingActions();
-        Observable.from(pendingActions)
-                .filter(a -> PendingAction.EDIT.equals(a.getType()))
-                .isEmpty()
-                .forEach(empty -> {
-                    if (empty) {
-                        pendingActions.add(new PendingAction(PendingAction.EDIT));
-                    }
-                });
+        PostUtils.addPendingAction(event.post, PendingAction.EDIT);
         for (Tag tag : event.post.getTags()) {
             if (tag.getUuid() == null) {
                 tag.setUuid(getTempUniqueId(Tag.class));

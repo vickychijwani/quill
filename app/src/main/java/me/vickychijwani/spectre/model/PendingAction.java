@@ -11,9 +11,10 @@ import io.realm.annotations.RealmClass;
 @RealmClass
 public class PendingAction extends RealmObject {
 
+    public static final String CREATE = "pendingaction:create";
     public static final String EDIT = "pendingaction:edit";
 
-    @StringDef({EDIT})
+    @StringDef({CREATE, EDIT})
     @Retention(RetentionPolicy.SOURCE)
     public @interface Type {}
 

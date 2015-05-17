@@ -14,9 +14,9 @@ public class PostStubList {
         return stubList;
     }
 
-    public static PostStubList from(Post post, @Post.Status String status) {
+    public static PostStubList from(Post post) {
         PostStubList stubList = new PostStubList();
-        stubList.posts = Arrays.asList(new PostStub(post, status));
+        stubList.posts = Arrays.asList(new PostStub(post));
         return stubList;
     }
 

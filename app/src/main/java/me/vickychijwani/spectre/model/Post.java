@@ -17,10 +17,9 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 public class Post extends RealmObject {
 
     @Retention(RetentionPolicy.SOURCE)
-    @StringDef({ LOCAL_NEW, DRAFT, PUBLISHED })
+    @StringDef({ DRAFT, PUBLISHED })
     public @interface Status {}
 
-    public static final String LOCAL_NEW = "local_new";
     public static final String DRAFT = "draft";
     public static final String PUBLISHED = "published";
 
@@ -32,7 +31,7 @@ public class Post extends RealmObject {
     private int id;
     private String title = DEFAULT_TITLE;
     private String slug = null;
-    @Status private String status = LOCAL_NEW;
+    @Status private String status = DRAFT;
 
     private String markdown = "";
     private String html = "";
@@ -55,8 +54,9 @@ public class Post extends RealmObject {
     private String metaTitle = "";
     private String metaDescription = "";
 
-    // these fields only exist in the db, never in API calls
-    private transient boolean isUploaded = false;   // temporary flag
+    // transient fields are not serialized / deserialized
+    // NOTE: default values for these fields will be assigned to all serialized Posts (because they
+    // are not touched by Retrofit), so don't assign any defaults specific to new posts here!
     private transient RealmList<PendingAction> pendingActions = new RealmList<>();
 
     public Post() {}
@@ -91,8 +91,6 @@ public class Post extends RealmObject {
 
         this.setMetaTitle(post.getMetaTitle());
         this.setMetaDescription(post.getMetaDescription());
-
-        this.setUploaded(post.isUploaded());
 
         PendingAction[] pendingActions = new PendingAction[post.getPendingActions().size()];
         post.getPendingActions().toArray(pendingActions);
@@ -266,14 +264,6 @@ public class Post extends RealmObject {
 
     public void setMetaDescription(String metaDesc) {
         this.metaDescription = metaDesc;
-    }
-
-    public boolean isUploaded() {
-        return isUploaded;
-    }
-
-    public void setUploaded(boolean isUploaded) {
-        this.isUploaded = isUploaded;
     }
 
     public RealmList<PendingAction> getPendingActions() {

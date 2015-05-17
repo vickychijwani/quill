@@ -12,7 +12,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,7 +44,7 @@ import me.vickychijwani.spectre.network.BorderedCircleTransformation;
 import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
-import me.vickychijwani.spectre.util.DateTimeUtils;
+import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.widget.SpaceItemDecoration;
 
 public class PostListActivity extends BaseActivity {
@@ -275,28 +274,8 @@ public class PostListActivity extends BaseActivity {
             } else {
                 viewHolder.image.setVisibility(View.GONE);
             }
-            String statusStr = "";
-            int statusColor = R.color.published;
-            switch (post.getStatus()) {
-                case Post.PUBLISHED:
-                    statusStr = String.format(
-                            mContext.getString(R.string.published),
-                            DateTimeUtils.dateToIsoDateString(post.getPublishedAt()));
-                    statusColor = R.color.published;
-                    break;
-                case Post.DRAFT:
-                    statusStr = mContext.getString(R.string.draft);
-                    statusColor = R.color.draft;
-                    break;
-                case Post.LOCAL_NEW:
-                    statusStr = mContext.getString(R.string.local_new);
-                    statusColor = R.color.local_new;
-                    break;
-                default:
-                    Log.wtf(TAG, "Invalid post status = " + post.getStatus() + "!");
-            }
-            viewHolder.published.setText(statusStr);
-            viewHolder.published.setTextColor(mContext.getResources().getColor(statusColor));
+            viewHolder.published.setText(PostUtils.getStatusString(post, mContext));
+            viewHolder.published.setTextColor(PostUtils.getStatusColor(post, mContext));
         }
 
         static class PostViewHolder extends RecyclerView.ViewHolder {
