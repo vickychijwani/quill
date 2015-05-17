@@ -55,7 +55,7 @@ public class PostListActivity extends BaseActivity {
     private PostAdapter mPostAdapter;
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
-    private Runnable mRefreshDataRunnable = this::refreshData;
+    private Runnable mRefreshDataRunnable;
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;  // milliseconds
 
     @InjectView(R.id.toolbar)
@@ -110,6 +110,7 @@ public class PostListActivity extends BaseActivity {
         int vSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_v);
         mPostList.addItemDecoration(new SpaceItemDecoration(hSpace, vSpace));
 
+        mRefreshDataRunnable = this::refreshData;
         mSwipeRefreshLayout.setColorSchemeResources(
                 R.color.accent,
                 R.color.primary_dark,
@@ -129,6 +130,13 @@ public class PostListActivity extends BaseActivity {
     protected void onPause() {
         super.onPause();
         cancelDataRefresh();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mRefreshDataRunnable = null;    // the runnable holds an implicit reference to the activity!
+                                        // allow it to get GC'ed to avoid a memory leak
     }
 
     @Override
