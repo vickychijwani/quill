@@ -34,9 +34,6 @@ import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
-import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
-import me.vickychijwani.spectre.event.LoadPostsEvent;
-import me.vickychijwani.spectre.event.LoadUserEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
@@ -113,10 +110,6 @@ public class PostListActivity extends BaseActivity {
         int hSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_h);
         int vSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_v);
         mPostList.addItemDecoration(new SpaceItemDecoration(hSpace, vSpace));
-
-        getBus().post(new LoadUserEvent(false));
-        getBus().post(new LoadBlogSettingsEvent(false));
-        getBus().post(new LoadPostsEvent(false));
 
         mSwipeRefreshLayout.setColorSchemeResources(
                 R.color.accent,
