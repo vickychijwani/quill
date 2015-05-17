@@ -277,6 +277,7 @@ public class NetworkService {
             @Override
             public void failure(RetrofitError error) {
                 getBus().post(new ApiErrorEvent(error));
+                getBus().post(new PostsLoadedEvent(getPostsSorted())); // broadcast stale data anyway
                 refreshDone(event);
             }
         });
