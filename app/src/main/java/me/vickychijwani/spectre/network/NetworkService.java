@@ -17,6 +17,7 @@ import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import hugo.weaving.DebugLog;
@@ -92,7 +93,7 @@ public class NetworkService {
     public NetworkService() {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
         Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                .registerTypeAdapter(Date.class, new DateDeserializer())
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setExclusionStrategies(new RealmExclusionStrategy())
                 .create();

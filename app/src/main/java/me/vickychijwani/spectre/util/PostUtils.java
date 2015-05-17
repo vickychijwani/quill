@@ -39,7 +39,7 @@ public class PostUtils {
         if (! post.getPendingActions().isEmpty()) {
             status = context.getString(R.string.offline_changes);
         } else if (Post.PUBLISHED.equals(post.getStatus())) {
-            String dateStr = DateTimeUtils.dateToIsoDateString(post.getPublishedAt());
+            String dateStr = DateTimeUtils.formatRelative(post.getPublishedAt());
             status = String.format(context.getString(R.string.published), dateStr);
         } else if (Post.DRAFT.equals(post.getStatus())) {
             status = context.getString(R.string.draft);
