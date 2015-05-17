@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="LiftUp">
+        <item name="android:stateListAnimator">@anim/lift_up</item>
+    </style>
+
+</resources>

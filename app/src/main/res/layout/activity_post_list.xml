@@ -73,6 +73,7 @@
             app:fab_colorNormal="?attr/colorFab"
             app:fab_colorPressed="?attr/colorFabPressed"
             app:fab_colorRipple="?attr/colorFabRipple"
+            style="@style/LiftUp"
             />
 
     </FrameLayout>

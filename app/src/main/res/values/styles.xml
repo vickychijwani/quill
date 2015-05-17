@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- widget styles -->
+    <style name="LiftUp">
+    </style>
+
     <!-- Text styles -->
     <style name="TextAppearance" parent="@android:style/TextAppearance">
         <item name="android:textColor">@color/text_primary</item>

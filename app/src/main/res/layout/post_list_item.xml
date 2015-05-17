@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:foreground="?attr/selectableItemBackground"
+    style="@style/LiftUp"
     app:cardPreventCornerOverlap="false"
     app:cardUseCompatPadding="true">
 
