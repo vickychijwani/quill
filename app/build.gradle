@@ -23,6 +23,13 @@ repositories {
     maven { url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo' }
 }
 
+// don't lint for every build (run it manually when you want it to run)
+tasks.whenTaskAdded { task ->
+    if (task.name.equals("lint")) {
+        task.enabled = false
+    }
+}
+
 
 android {
     compileSdkVersion 22
