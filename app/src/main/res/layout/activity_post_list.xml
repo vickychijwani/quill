@@ -1,81 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PostListActivity"
-    android:orientation="vertical">
-
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-
-        <ImageView
-            android:id="@+id/user_image"
-            android:layout_width="@dimen/toolbar_height"
-            android:layout_height="@dimen/toolbar_height"
-            android:padding="@dimen/padding_default"
-            android:contentDescription="@string/user_image"
-            tools:src="@drawable/ic_launcher"
-            />
-
-        <TextView
-            android:id="@+id/user_blog_title"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:paddingRight="@dimen/padding_default"
-            android:paddingLeft="@dimen/padding_default"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:text="@string/app_name"
-            style="@style/TextAppearance.Large.Light.Inverse"
-            tools:text="My Awesome Blog Title"
-            />
-
-    </android.support.v7.widget.Toolbar>
+    >
 
     <FrameLayout
+        android:id="@+id/app_bar_bg"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="@dimen/toolbar_container_height"
+        android:background="@color/primary"
+        />
 
-        <android.support.v4.widget.SwipeRefreshLayout
-            android:id="@+id/swipe_refresh_layout"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".PostListActivity">
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/toolbar_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="0dp">
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+                <ImageView
+                    android:id="@+id/user_image"
+                    android:layout_width="@dimen/toolbar_height"
+                    android:layout_height="@dimen/toolbar_height"
+                    android:contentDescription="@string/user_image"
+                    android:padding="@dimen/padding_default"
+                    tools:src="@drawable/ic_launcher"
+                    />
+
+                <TextView
+                    android:id="@+id/user_blog_title"
+                    style="@style/TextAppearance.Large.Light.Inverse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingLeft="@dimen/padding_default"
+                    android:paddingRight="@dimen/padding_default"
+                    android:singleLine="true"
+                    android:text="@string/app_name"
+                    tools:text="My Awesome Blog Title"
+                    />
+
+            </android.support.v7.widget.Toolbar>
+
+        </android.support.v7.widget.CardView>
+
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/post_list"
+            <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swipe_refresh_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/post_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="@dimen/padding_fab_normal"
+                    android:scrollbarStyle="outsideOverlay"
+                    android:scrollbars="vertical"
+                    tools:listitem="@layout/post_list_item"
+                    />
+
+            </android.support.v4.widget.SwipeRefreshLayout>
+
+            <com.melnykov.fab.FloatingActionButton
+                android:id="@+id/new_post_btn"
+                style="@style/LiftUp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingBottom="@dimen/padding_fab_normal"
-                android:clipToPadding="false"
-                android:scrollbarStyle="outsideOverlay"
-                android:scrollbars="vertical"
-                tools:listitem="@layout/post_list_item"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="@dimen/padding_large"
+                android:src="@drawable/create"
+                app:fab_colorNormal="?attr/colorFab"
+                app:fab_colorPressed="?attr/colorFabPressed"
+                app:fab_colorRipple="?attr/colorFabRipple"
                 />
 
-        </android.support.v4.widget.SwipeRefreshLayout>
+        </FrameLayout>
 
-        <com.melnykov.fab.FloatingActionButton
-            android:id="@+id/new_post_btn"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/padding_large"
-            android:src="@drawable/create"
-            app:fab_colorNormal="?attr/colorFab"
-            app:fab_colorPressed="?attr/colorFabPressed"
-            app:fab_colorRipple="?attr/colorFabRipple"
-            style="@style/LiftUp"
-            />
+    </LinearLayout>
 
-    </FrameLayout>
-
-</LinearLayout>
+</FrameLayout>

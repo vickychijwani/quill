@@ -20,6 +20,8 @@
 
     <!-- view dimensions and spacing -->
     <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="toolbar_container_height">96dp</dimen>
+    <dimen name="toolbar_elevation">4dp</dimen>
 
     <!-- integers -->
     <integer name="animation_duration">200</integer>

@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -61,6 +62,12 @@ public class PostListActivity extends BaseActivity {
     @InjectView(R.id.toolbar)
     Toolbar mToolbar;
 
+    @InjectView(R.id.toolbar_card)
+    CardView mToolbarCard;
+
+    @InjectView(R.id.app_bar_bg)
+    View mAppBarBg;
+
     @InjectView(R.id.user_image)
     ImageView mUserImageView;
 
@@ -109,6 +116,18 @@ public class PostListActivity extends BaseActivity {
         int hSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_h);
         int vSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_v);
         mPostList.addItemDecoration(new SpaceItemDecoration(hSpace, vSpace));
+
+        final int toolbarElevation = getResources()
+                .getDimensionPixelOffset(R.dimen.toolbar_elevation);
+        mPostList.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int scrollY = mPostList.computeVerticalScrollOffset();
+                mAppBarBg.setTranslationY(-scrollY);
+                mToolbarCard.setCardElevation(scrollY <= 0 ? 0 : toolbarElevation);
+            }
+        });
 
         mRefreshDataRunnable = this::refreshData;
         mSwipeRefreshLayout.setColorSchemeResources(
