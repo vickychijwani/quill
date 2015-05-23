@@ -13,6 +13,7 @@ import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
 import com.squareup.picasso.Picasso;
 
+import butterknife.ButterKnife;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BusProvider;
 
@@ -78,6 +79,7 @@ public abstract class BaseFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDestroyView()");
+        ButterKnife.reset(this);
     }
 
     @Override

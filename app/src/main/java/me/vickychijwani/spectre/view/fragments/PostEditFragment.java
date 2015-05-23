@@ -245,7 +245,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
                 return true;
             case R.id.action_publish:
                 onPublishUnpublishClicked();
-                break;
+                return true;
             case R.id.action_discard:
                 onDiscardChangesClicked();
                 return true;
