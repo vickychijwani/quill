@@ -38,6 +38,7 @@ import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.EditTextActionModeManager;
 import me.vickychijwani.spectre.view.PostViewActivity;
 import me.vickychijwani.spectre.view.TagsEditText;
@@ -66,7 +67,9 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     ObservableScrollView mScrollView;
 
     private OnPreviewClickListener mPreviewClickListener;
+    private Post mOriginalPost;
     private Post mPost;
+    private boolean mbDiscardChanges = false;
 
     // action mode
     private View.OnClickListener mActionModeCloseClickListener;
@@ -101,7 +104,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         ButterKnife.inject(this, view);
 
         mActivity = ((PostViewActivity) getActivity());
-        setPost(mActivity.getPost());
+        setPost(mActivity.getPost(), true);
 
         // action mode manager
         mEditTextActionModeManager = new EditTextActionModeManager(mActivity, this);
@@ -139,13 +142,14 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     @Override
     public void onResume() {
         super.onResume();
-        setPost(mPost);
+        setPost(mPost, false);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        onSaveClicked(false);
+        // persist changes to drafts, unless the user opted to discard those changes
+        onSaveClicked(Post.DRAFT.equals(mPost.getStatus()));
     }
 
     @Override
@@ -189,7 +193,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     @Override
     public void onActionModeStopped(boolean discardChanges) {
         if (discardChanges) {
-            setPost(mPost);
+            setPost(mPost, false);
         } else {
             onSaveClicked(false);
         }
@@ -225,6 +229,9 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         } else {
             menu.findItem(R.id.action_publish).setTitle(R.string.publish);
         }
+        onSaveClicked(false);   // make sure user changes are stored in mPost before computing diff
+        boolean isPostDirty = PostUtils.isDirty(mOriginalPost, mPost);
+        menu.findItem(R.id.action_discard).setVisible(isPostDirty && !actionModeActive);
     }
 
     @Override
@@ -239,6 +246,9 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             case R.id.action_publish:
                 onPublishUnpublishClicked();
                 break;
+            case R.id.action_discard:
+                onDiscardChangesClicked();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -260,7 +270,14 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         if (newStatus != null) {
             mPost.setStatus(newStatus);
         }
-        if (persistChanges) {
+
+        // this handles cases like edit => onPause saves changes => discard, which should discard
+        // ALL changes made since the editor was opened, hence save mOriginalPost (can't use
+        // onSaveClicked(isDraft && !mbDiscardChanges) in onPause for this reason)
+        if (mbDiscardChanges) {
+            getBus().post(new SavePostEvent(mOriginalPost));
+            mbDiscardChanges = false;
+        } else if (persistChanges) {
             getBus().post(new SavePostEvent(mPost));
         }
     }
@@ -290,9 +307,18 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
                     }
                     onSaveClicked(true, finalTargetStatus);
                 })
-                .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
-                    dialog.dismiss();
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
+                .create().show();
+    }
+
+    private void onDiscardChangesClicked() {
+        new AlertDialog.Builder(mActivity)
+                .setMessage(getString(R.string.alert_discard_changes))
+                .setPositiveButton(R.string.discard, (dialog, which) -> {
+                    mbDiscardChanges = true;
+                    getActivity().finish();
                 })
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
                 .create().show();
     }
 
@@ -301,8 +327,11 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         Toast.makeText(mActivity, "Post saved!", Toast.LENGTH_SHORT).show();
     }
 
-    public void setPost(@NonNull Post post) {
+    public void setPost(@NonNull Post post, boolean isOriginal) {
         mPost = post;
+        if (isOriginal) {
+            mOriginalPost = new Post(post);   // store a copy for calculating diff later
+        }
         mPostTitleEditView.setText(post.getTitle());
         mPostEditView.setText(post.getMarkdown());
         mPostTagsEditView.clear();

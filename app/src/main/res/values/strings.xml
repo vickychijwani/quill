@@ -19,6 +19,9 @@
     <string name="unpublish">Unpublish</string>
     <string name="alert_publish">Publish draft?</string>
     <string name="alert_unpublish">Unpublish post?</string>
+    <string name="discard_changes">Discard changes</string>
+    <string name="alert_discard_changes">Discard changes?</string>
+    <string name="discard">Discard</string>
 
     <!-- misc -->
     <string name="user_image">User image</string>

@@ -74,7 +74,7 @@ public class PostViewActivity extends BaseActivity implements
         // FIXME check which post changed before blindly assigning to mPost!
         mPost = event.newPost;
         mPostViewFragment.setPost(mPost);
-        mPostEditFragment.setPost(mPost);
+        mPostEditFragment.setPost(mPost, true);
     }
 
     @Override

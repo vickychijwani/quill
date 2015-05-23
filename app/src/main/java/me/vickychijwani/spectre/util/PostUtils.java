@@ -9,9 +9,25 @@ import java.util.List;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.PendingAction;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.Tag;
 
 // TODO this class exists only because Realm doesn't allow arbitrary methods on Post at the moment
 public class PostUtils {
+
+    @SuppressWarnings("RedundantIfStatement")
+    public static boolean isDirty(@NonNull Post original, @NonNull Post current) {
+        if (! original.getTitle().equals(current.getTitle()))
+            return true;
+        if (! original.getSlug().equals(current.getSlug()))
+            return true;
+        if (! original.getMarkdown().equals(current.getMarkdown()))
+            return true;
+        if (original.getTags().size() != current.getTags().size())
+            return true;
+        if (! tagListsMatch(original.getTags(), current.getTags()))
+            return true;
+        return false;
+    }
 
     /**
      * Add a {@link PendingAction} to the given {@link Post}, if it doesn't already exist.
@@ -62,6 +78,25 @@ public class PostUtils {
             throw new IllegalArgumentException("unknown post status!");
         }
         return context.getResources().getColor(colorId);
+    }
+
+
+    // private functions
+    private static boolean tagListsMatch(List<Tag> tags1, List<Tag> tags2) {
+        for (Tag tag1 : tags1)
+            if (! tagListContains(tags2, tag1))
+                return false;
+        for (Tag tag2 : tags2)
+            if (! tagListContains(tags1, tag2))
+                return false;
+        return true;
+    }
+
+    private static boolean tagListContains(List<Tag> haystack, Tag needle) {
+        for (Tag hay : haystack)
+            if (needle.getName().equals(hay.getName()))
+                return true;
+        return false;
     }
 
 }
