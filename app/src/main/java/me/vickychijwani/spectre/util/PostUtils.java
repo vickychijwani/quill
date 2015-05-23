@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.Comparator;
 import java.util.List;
 
 import me.vickychijwani.spectre.R;
@@ -13,6 +14,34 @@ import me.vickychijwani.spectre.model.Tag;
 
 // TODO this class exists only because Realm doesn't allow arbitrary methods on Post at the moment
 public class PostUtils {
+
+    /**
+     * Sort order:
+     * 1. New posts that are yet to be created on the server, sorted by updatedAt
+     * 2. Drafts, sorted by updatedAt
+     * 3. Published posts, sorted by publishedAt
+     */
+    @SuppressWarnings("unused")
+    public static Comparator<Post> COMPARATOR_MAIN_LIST = (lhs, rhs) -> {
+        boolean isLhsNew = hasPendingAction(lhs, PendingAction.CREATE);
+        boolean isRhsNew = hasPendingAction(rhs, PendingAction.CREATE);
+        boolean isLhsDraft = Post.DRAFT.equals(lhs.getStatus());
+        boolean isRhsDraft = Post.DRAFT.equals(rhs.getStatus());
+        boolean isLhsPublished = Post.PUBLISHED.equals(lhs.getStatus());
+        boolean isRhsPublished = Post.PUBLISHED.equals(rhs.getStatus());
+        if (isLhsNew && !isRhsNew) return -1;
+        if (isRhsNew && !isLhsNew) return 1;
+        if (isLhsDraft && !isRhsDraft) return -1;
+        if (isRhsDraft && !isLhsDraft) return 1;
+        // at this point, we know both lhs and rhs belong to the same group (new, drafts, published)
+        // NOTE: (-) sign because we want to sort in reverse chronological order
+        if (isLhsPublished && isRhsPublished) {
+            // use date published for sorting published posts ...
+            return -lhs.getPublishedAt().compareTo(rhs.getPublishedAt());
+        }
+        // ... else use date modified (for drafts and new posts)
+        return -lhs.getUpdatedAt().compareTo(rhs.getUpdatedAt());
+    };
 
     @SuppressWarnings("RedundantIfStatement")
     public static boolean isDirty(@NonNull Post original, @NonNull Post current) {
@@ -38,14 +67,8 @@ public class PostUtils {
     public static boolean addPendingAction(@Nullable Post post, @Nullable @PendingAction.Type String type) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         if (type == null) throw new IllegalArgumentException("pending action type cannot be null!");
-
-        List<PendingAction> pendingActions = post.getPendingActions();
-        for (PendingAction action : pendingActions) {
-            if (type.equals(action.getType())) {
-                return false;
-            }
-        }
-        pendingActions.add(new PendingAction(type));
+        if (hasPendingAction(post, type)) return false;
+        post.getPendingActions().add(new PendingAction(type));
         return true;
     }
 
@@ -96,6 +119,15 @@ public class PostUtils {
         for (Tag hay : haystack)
             if (needle.getName().equals(hay.getName()))
                 return true;
+        return false;
+    }
+
+    private static boolean hasPendingAction(Post post, @PendingAction.Type String type) {
+        for (PendingAction action : post.getPendingActions()) {
+            if (type.equals(action.getType())) {
+                return true;
+            }
+        }
         return false;
     }
 

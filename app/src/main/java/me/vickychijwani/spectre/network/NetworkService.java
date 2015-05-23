@@ -17,6 +17,7 @@ import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -225,7 +226,7 @@ public class NetworkService {
     @Subscribe
     public void onLoadPostsEvent(final LoadPostsEvent event) {
         if (! event.forceNetworkCall) {
-            RealmResults<Post> posts = getPostsSorted();
+            List<Post> posts = getPostsSorted();
             // if there are no posts, there could be 2 cases:
             // 1. there are actually no posts
             // 2. we just haven't fetched any posts from the server yet (Realm returns an empty list in this case too)
@@ -408,7 +409,8 @@ public class NetworkService {
                 createOrUpdateModel(tag);
             }
         }
-        createOrUpdateModel(event.post);                    // save the local post to db
+        event.post.setUpdatedAt(new Date());         // mark as updated, to promote in sorted order
+        createOrUpdateModel(event.post);             // save the local post to db
         getBus().post(new PostSavedEvent());
         getBus().post(new SyncPostsEvent(false));
     }
@@ -529,10 +531,11 @@ public class NetworkService {
         return restAdapter.create(GhostApiService.class);
     }
 
-    private RealmResults<Post> getPostsSorted() {
+    private List<Post> getPostsSorted() {
         RealmResults<Post> posts = mRealm.allObjects(Post.class);
-        posts.sort(new String[]{ "publishedAt", "updatedAt" }, new boolean[]{ false, false });
-        return posts;
+        List<Post> postsCopy = new ArrayList<>(posts);
+        Collections.sort(postsCopy, PostUtils.COMPARATOR_MAIN_LIST);
+        return postsCopy;
     }
 
     /**
