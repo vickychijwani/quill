@@ -249,8 +249,9 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             case R.id.action_discard:
                 onDiscardChangesClicked();
                 return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     private void onSaveClicked(boolean persistChanges) {
