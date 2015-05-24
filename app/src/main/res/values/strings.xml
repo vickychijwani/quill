@@ -22,6 +22,7 @@
     <string name="discard_changes">Discard changes</string>
     <string name="alert_discard_changes">Discard changes?</string>
     <string name="discard">Discard</string>
+    <string name="view_homepage">View homepage</string>
 
     <!-- misc -->
     <string name="user_image">User image</string>

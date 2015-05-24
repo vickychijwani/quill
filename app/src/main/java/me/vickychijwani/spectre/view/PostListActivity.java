@@ -31,6 +31,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
@@ -168,14 +169,21 @@ public class PostListActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_view_homepage:
+                UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
+                String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
+                Intent browserIntent = new Intent(this, BrowserActivity.class);
+                browserIntent.putExtra(BundleKeys.URL, blogUrl);
+                startActivity(browserIntent);
+                return true;
             case R.id.action_refresh:
                 refreshData();
                 return true;
             case R.id.action_logout:
                 getBus().post(new LogoutEvent(this));
                 finish();
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
+                Intent logoutIntent = new Intent(this, LoginActivity.class);
+                startActivity(logoutIntent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
