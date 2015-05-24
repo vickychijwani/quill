@@ -8,14 +8,12 @@ buildscript {
         classpath 'me.tatarka:gradle-retrolambda:3.1.0'
         classpath 'com.crashlytics.tools.gradle:crashlytics-gradle:1.+'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
-        classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
     }
 }
 apply plugin: 'com.android.application'
 apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'crashlytics'
 apply plugin: 'com.neenbedankt.android-apt'
-apply plugin: 'com.jakewharton.hugo'
 
 repositories {
     mavenCentral()

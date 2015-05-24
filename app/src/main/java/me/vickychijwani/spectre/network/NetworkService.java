@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import hugo.weaving.DebugLog;
 import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
@@ -435,7 +434,6 @@ public class NetworkService {
         return valid;
     }
 
-    @DebugLog
     private void refreshAccessToken(@Nullable final Object eventToDefer) {
         mApiEventQueue.addLast(eventToDefer);
         if (mbAuthRequestOnGoing) return;
@@ -487,7 +485,6 @@ public class NetworkService {
         }
     }
 
-    @DebugLog
     private void postLoginStartEvent() {
         UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
         String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
@@ -496,7 +493,6 @@ public class NetworkService {
         getBus().post(new LoginStartEvent(blogUrl, username, password));
     }
 
-    @DebugLog
     private void onNewAuthToken(AuthToken authToken) {
         Log.d(TAG, "Got new access token = " + authToken.getAccessToken());
         mbAuthRequestOnGoing = false;
