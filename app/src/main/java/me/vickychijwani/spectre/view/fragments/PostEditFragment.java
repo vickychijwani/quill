@@ -275,9 +275,13 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         // ALL changes made since the editor was opened, hence save mOriginalPost (can't use
         // onSaveClicked(isDraft && !mbDiscardChanges) in onPause for this reason)
         if (mbDiscardChanges) {
+            // avoid network call if no changes have been made
+            if (! PostUtils.isDirty(mOriginalPost, mPost)) return;
             getBus().post(new SavePostEvent(mOriginalPost));
             mbDiscardChanges = false;
         } else if (persistChanges) {
+            // avoid network call if no changes have been made
+            if (! PostUtils.isDirty(mOriginalPost, mPost)) return;
             getBus().post(new SavePostEvent(mPost));
         }
     }
