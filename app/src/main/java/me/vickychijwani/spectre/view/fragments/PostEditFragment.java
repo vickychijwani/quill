@@ -254,11 +254,11 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         }
     }
 
-    private void onSaveClicked(boolean persistChanges) {
-        onSaveClicked(persistChanges, null);
+    public boolean onSaveClicked(boolean persistChanges) {
+        return onSaveClicked(persistChanges, null);
     }
 
-    private void onSaveClicked(boolean persistChanges, @Nullable @Post.Status String newStatus) {
+    private boolean onSaveClicked(boolean persistChanges, @Nullable @Post.Status String newStatus) {
         mPost.setTitle(mPostTitleEditView.getText().toString());
         mPost.setMarkdown(mPostEditView.getText().toString());
         mPost.setHtml(null);   // omit stale HTML from request body
@@ -277,14 +277,17 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         // onSaveClicked(isDraft && !mbDiscardChanges) in onPause for this reason)
         if (mbDiscardChanges) {
             // avoid network call if no changes have been made
-            if (! PostUtils.isDirty(mOriginalPost, mPost)) return;
+            if (! PostUtils.isDirty(mOriginalPost, mPost)) return false;
             getBus().post(new SavePostEvent(mOriginalPost));
             mbDiscardChanges = false;
+            return true;
         } else if (persistChanges) {
             // avoid network call if no changes have been made
-            if (! PostUtils.isDirty(mOriginalPost, mPost)) return;
+            if (! PostUtils.isDirty(mOriginalPost, mPost)) return false;
             getBus().post(new SavePostEvent(mPost));
+            return true;
         }
+        return false;
     }
 
     private void onPublishUnpublishClicked() {

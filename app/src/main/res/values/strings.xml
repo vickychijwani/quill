@@ -24,6 +24,7 @@
     <string name="discard">Discard</string>
     <string name="view_homepage">View homepage</string>
     <string name="view_post_on_blog">View post on blog</string>
+    <string name="save_post_failed">Couldn\'t save post</string>
 
     <!-- misc -->
     <string name="user_image">User image</string>

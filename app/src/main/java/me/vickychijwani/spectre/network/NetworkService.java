@@ -43,6 +43,7 @@ import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
+import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
@@ -407,6 +408,7 @@ public class NetworkService {
                         localPost.getPendingActions().clear();
                     });
                     mPostUploadQueue.removeFirstOccurrence(localPost);
+                    getBus().post(new PostSyncedEvent(localPost.getUuid()));
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
                 }
 
