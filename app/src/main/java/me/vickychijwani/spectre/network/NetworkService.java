@@ -25,6 +25,7 @@ import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
@@ -86,7 +87,7 @@ public class NetworkService {
     private RequestInterceptor mAuthInterceptor;
 
     private boolean mbAuthRequestOnGoing = false;
-    private ArrayDeque<Object> mApiEventQueue = new ArrayDeque<>();
+    private ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
     private ArrayDeque<Object> mRefreshEventsQueue = new ArrayDeque<>();
     private ArrayDeque<Object> mPostUploadQueue = new ArrayDeque<>();
 
@@ -142,6 +143,8 @@ public class NetworkService {
             public void failure(RetrofitError error) {
                 mbAuthRequestOnGoing = false;
                 getBus().post(new LoginErrorEvent(error));
+                // TODO handle the case where logging in automatically and password is changed
+                flushApiEventQueue(true);
             }
         });
     }
@@ -166,7 +169,7 @@ public class NetworkService {
 
     @Subscribe
     public void onLoadUserEvent(final LoadUserEvent event) {
-        if (! event.forceNetworkCall) {
+        if (event.loadCachedData || ! event.forceNetworkCall) {
             RealmResults<User> users = mRealm.allObjects(User.class);
             if (users.size() > 0) {
                 getBus().post(new UserLoadedEvent(users.first()));
@@ -188,6 +191,11 @@ public class NetworkService {
             @Override
             public void failure(RetrofitError error) {
                 getBus().post(new ApiErrorEvent(error));
+                // fallback to cached data
+                RealmResults<User> users = mRealm.allObjects(User.class);
+                if (users.size() > 0) {
+                    getBus().post(new UserLoadedEvent(users.first()));
+                }
                 refreshDone(event);
             }
         });
@@ -195,7 +203,7 @@ public class NetworkService {
 
     @Subscribe
     public void onLoadBlogSettingsEvent(final LoadBlogSettingsEvent event) {
-        if (! event.forceNetworkCall) {
+        if (event.loadCachedData || ! event.forceNetworkCall) {
             RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
             if (settings.size() > 0) {
                 getBus().post(new BlogSettingsLoadedEvent(settings));
@@ -217,6 +225,11 @@ public class NetworkService {
             @Override
             public void failure(RetrofitError error) {
                 getBus().post(new ApiErrorEvent(error));
+                // fallback to cached data
+                RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
+                if (settings.size() > 0) {
+                    getBus().post(new BlogSettingsLoadedEvent(settings));
+                }
                 refreshDone(event);
             }
         });
@@ -224,7 +237,7 @@ public class NetworkService {
 
     @Subscribe
     public void onLoadPostsEvent(final LoadPostsEvent event) {
-        if (! event.forceNetworkCall) {
+        if (event.loadCachedData || ! event.forceNetworkCall) {
             List<Post> posts = getPostsSorted();
             // if there are no posts, there could be 2 cases:
             // 1. there are actually no posts
@@ -278,7 +291,8 @@ public class NetworkService {
             @Override
             public void failure(RetrofitError error) {
                 getBus().post(new ApiErrorEvent(error));
-                getBus().post(new PostsLoadedEvent(getPostsSorted())); // broadcast stale data anyway
+                // fallback to cached data
+                getBus().post(new PostsLoadedEvent(getPostsSorted()));
                 refreshDone(event);
             }
         });
@@ -309,6 +323,14 @@ public class NetworkService {
 
     @Subscribe
     public void onSyncPostsEvent(final SyncPostsEvent event) {
+        if (event.loadCachedData) {
+            LoadPostsEvent loadPostsEvent = new LoadPostsEvent(false);
+            mRefreshEventsQueue.add(loadPostsEvent);
+            getBus().post(loadPostsEvent);
+            refreshDone(event);
+            return;
+        }
+
         final RealmResults<Post> localNewPosts = mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.CREATE)
                 .findAllSorted("uuid", false);
@@ -317,7 +339,7 @@ public class NetworkService {
                 .findAll();
 
         // nothing to upload
-        if (localNewPosts.isEmpty() && localEditedPosts.isEmpty() && event.refreshPosts) {
+        if (localNewPosts.isEmpty() && localEditedPosts.isEmpty() && event.forceNetworkCall) {
             LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
             mRefreshEventsQueue.add(loadPostsEvent);
             getBus().post(loadPostsEvent);
@@ -331,11 +353,11 @@ public class NetworkService {
         final Runnable syncFinishedCB = () -> {
             // delete local copies of only those new posts that were successfully uploaded
             deleteModels(localNewPostsUploaded);
-            // if refreshPosts is true, first load from the db, AND only then from the network,
+            // if forceNetworkCall is true, first load from the db, AND only then from the network,
             // to avoid a crash because local posts have been deleted above but are still being
             // displayed, so we need to refresh the UI first
             getBus().post(new PostsLoadedEvent(getPostsSorted()));
-            if (event.refreshPosts) {
+            if (event.forceNetworkCall) {
                 LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
                 mRefreshEventsQueue.add(loadPostsEvent);
                 getBus().post(loadPostsEvent);
@@ -426,7 +448,7 @@ public class NetworkService {
 
 
     // private methods
-    private boolean validateAccessToken(@NonNull Object event) {
+    private boolean validateAccessToken(@NonNull ApiCallEvent event) {
         boolean valid = ! hasAccessTokenExpired();
         if (! valid) {
             refreshAccessToken(event);
@@ -434,7 +456,7 @@ public class NetworkService {
         return valid;
     }
 
-    private void refreshAccessToken(@Nullable final Object eventToDefer) {
+    private void refreshAccessToken(@Nullable final ApiCallEvent eventToDefer) {
         mApiEventQueue.addLast(eventToDefer);
         if (mbAuthRequestOnGoing) return;
 
@@ -466,15 +488,18 @@ public class NetworkService {
                     Log.e(TAG, "Expired refresh token used! You're wasting bandwidth / battery!");
                 } else {
                     getBus().post(new LoginErrorEvent(error));
+                    flushApiEventQueue(true);
                 }
             }
         });
     }
 
-    private void flushApiEventQueue() {
+    private void flushApiEventQueue(boolean loadCachedData) {
         Bus bus = getBus();
         while (! mApiEventQueue.isEmpty()) {
-            bus.post(mApiEventQueue.remove());
+            ApiCallEvent event = mApiEventQueue.remove();
+            if (loadCachedData) event.loadCachedData();
+            bus.post(event);
         }
     }
 
@@ -500,7 +525,7 @@ public class NetworkService {
         mAuthToken = createOrUpdateModel(authToken);
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, true);
-        flushApiEventQueue();
+        flushApiEventQueue(false);
     }
 
     private boolean hasAccessTokenExpired() {

@@ -1,11 +1,17 @@
 package me.vickychijwani.spectre.event;
 
-public class SyncPostsEvent {
+public class SyncPostsEvent implements ApiCallEvent {
 
-    public final boolean refreshPosts;
+    public final boolean forceNetworkCall;
+    public boolean loadCachedData = false;
 
-    public SyncPostsEvent(boolean refreshPosts) {
-        this.refreshPosts = refreshPosts;
+    public SyncPostsEvent(boolean forceNetworkCall) {
+        this.forceNetworkCall = forceNetworkCall;
+    }
+
+    @Override
+    public void loadCachedData() {
+        loadCachedData = true;
     }
 
 }
