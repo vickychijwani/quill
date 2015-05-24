@@ -1,5 +1,6 @@
 package me.vickychijwani.spectre.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -109,6 +110,12 @@ public abstract class BaseActivity extends AppCompatActivity {
             }
         }
         super.onBackPressed();
+    }
+
+    protected void startBrowserActivity(String url) {
+        Intent browserIntent = new Intent(this, BrowserActivity.class);
+        browserIntent.putExtra(BundleKeys.URL, url);
+        startActivity(browserIntent);
     }
 
     /**

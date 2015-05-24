@@ -8,9 +8,11 @@ import java.util.Comparator;
 import java.util.List;
 
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.model.PendingAction;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Tag;
+import me.vickychijwani.spectre.pref.UserPrefs;
 
 // TODO this class exists only because Realm doesn't allow arbitrary methods on Post at the moment
 public class PostUtils {
@@ -56,6 +58,13 @@ public class PostUtils {
         if (! tagListsMatch(original.getTags(), current.getTags()))
             return true;
         return false;
+    }
+
+    public static String getPostUrl(@Nullable Post post) {
+        if (post == null) throw new IllegalArgumentException("post cannot be null!");
+        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
+        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
+        return AppUtils.pathJoin(blogUrl, post.getSlug());
     }
 
     /**

@@ -171,10 +171,7 @@ public class PostListActivity extends BaseActivity {
         switch (item.getItemId()) {
             case R.id.action_view_homepage:
                 UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-                String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
-                Intent browserIntent = new Intent(this, BrowserActivity.class);
-                browserIntent.putExtra(BundleKeys.URL, blogUrl);
-                startActivity(browserIntent);
+                startBrowserActivity(prefs.getString(UserPrefs.Key.BLOG_URL));
                 return true;
             case R.id.action_refresh:
                 refreshData();
