@@ -4,25 +4,20 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.webkit.JavascriptInterface;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import in.uncod.android.bypass.Bypass;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
-import me.vickychijwani.spectre.network.PicassoImageGetter;
 import me.vickychijwani.spectre.pref.UserPrefs;
+import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.view.PostViewActivity;
 
 public class PostViewFragment extends BaseFragment {
-
-    @InjectView(R.id.post_html)
-    TextView mPostHtmlView;
 
     @InjectView(R.id.edit_post_btn)
     View mEditBtn;
@@ -30,8 +25,7 @@ public class PostViewFragment extends BaseFragment {
     private OnEditClickListener mEditClickListener;
     private Post mPost;
     private int mMarkdownHashCode;
-    private Bypass mBypass;
-    private PicassoImageGetter mImageGetter;
+    private WebViewFragment mWebViewFragment;
 
     public interface OnEditClickListener {
         void onEditClicked();
@@ -55,11 +49,22 @@ public class PostViewFragment extends BaseFragment {
         UserPrefs prefs = UserPrefs.getInstance(getActivity());
         String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
 
+        mWebViewFragment = WebViewFragment.newInstance("file:///android_asset/post-preview.html");
+        mWebViewFragment.setJSInterface(new Object() {
+            @JavascriptInterface
+            public String getMarkdown() {
+                // FIXME dirty string-replacement hack!
+                return mPost.getMarkdown().replaceAll("/content/images",
+                        AppUtils.pathJoin(blogUrl, "/content/images"));
+            }
+        }, "POST");
+        getChildFragmentManager()
+                .beginTransaction()
+                .add(R.id.web_view_container, mWebViewFragment)
+                .commit();
+
         // set up edit button
         mEditBtn.setOnClickListener(v -> mEditClickListener.onEditClicked());
-
-        mBypass = new Bypass(getActivity());
-        mImageGetter = new PicassoImageGetter(blogUrl, mPostHtmlView, getResources(), getPicasso());
 
         return view;
     }
@@ -76,8 +81,7 @@ public class PostViewFragment extends BaseFragment {
         }
         int markdownHashCode = mPost.getMarkdown().hashCode();
         if (markdownHashCode != mMarkdownHashCode) {
-            mPostHtmlView.setText(mBypass.markdownToSpannable(mPost.getMarkdown(), mImageGetter));
-            mPostHtmlView.setMovementMethod(LinkMovementMethod.getInstance());
+            mWebViewFragment.evaluateJavascript("preview()");
             mMarkdownHashCode = markdownHashCode;
         }
     }

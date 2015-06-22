@@ -4,27 +4,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".view.fragments.PostViewFragment">
 
-    <com.github.ksoichiro.android.observablescrollview.ObservableScrollView
+    <FrameLayout
+        android:id="@+id/web_view_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:overScrollMode="never"
-        >
-
-        <TextView
-            android:id="@+id/post_html"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="@dimen/padding_large"
-            android:paddingRight="@dimen/padding_large"
-            android:paddingTop="@dimen/padding_large"
-            android:paddingBottom="@dimen/padding_fab_normal"
-            android:textAppearance="@style/TextAppearance.Medium.Light"
-            tools:text="@string/lorem_ipsum"
-            />
-
-    </com.github.ksoichiro.android.observablescrollview.ObservableScrollView>
+        />
 
     <com.melnykov.fab.FloatingActionButton
         android:id="@+id/edit_post_btn"

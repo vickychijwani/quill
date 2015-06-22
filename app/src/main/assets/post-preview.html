@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="file:///android_asset/css/main.css" />
+    <link rel="stylesheet" href="file:///android_asset/css/defer.css" />
+    <style type="text/css">
+        body {
+            padding-bottom: 88px;   // == @dimen/padding_fab_normal, to ensure the FAB does not hide content
+        }
+    </style>
+
+    <script type="text/javascript" src="file:///android_asset/showdown-ghost/showdown.js"></script>
+    <script type="text/javascript" src="file:///android_asset/showdown-ghost/extensions/ghostgfm.js"></script>
+    <script type="text/javascript" src="file:///android_asset/showdown-ghost/extensions/footnotes.js"></script>
+    <script type="text/javascript" src="file:///android_asset/showdown-ghost/extensions/highlight.js"></script>
+    <script type="text/javascript" src="file:///android_asset/js/prism.min.js"></script>
+    <script type="text/javascript">
+        // https://github.com/TryGhost/Ghost/blob/master/core/client/app/helpers/gh-format-markdown.js#L8
+        var showdown = new Showdown.converter({
+            extensions: [
+                // 'ghostimagepreview',
+                'ghostgfm',
+                'footnotes',
+                'highlight'
+            ]
+        });
+
+        var content = undefined;
+        window.addEventListener('load', function () {
+            content = document.getElementsByClassName('post-content')[0];
+        });
+
+        function preview() {
+            if (! content) {
+                return;         // DOM not ready yet
+            }
+            markdown = POST.getMarkdown();
+            content.innerHTML = showdown.makeHtml(markdown);
+            Prism.highlightAll();
+        }
+    </script>
+</head>
+
+<body>
+    <main class="content">
+        <article class="post">
+            <section class="post-content">
+                <!-- post preview content goes here -->
+            </section>
+        </article>
+    </main>
+</body>
+</html>
