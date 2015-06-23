@@ -42,16 +42,33 @@
 
         <TextView
             android:id="@+id/post_published"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/post_title"
             android:layout_alignLeft="@id/post_title"
+            android:layout_toLeftOf="@+id/post_tags"
             android:paddingLeft="@dimen/padding_large"
             android:paddingRight="@dimen/padding_large"
             android:paddingBottom="@dimen/padding_large"
+            android:singleLine="true"
             android:textAppearance="@style/TextAppearance.Small.Dim"
             android:textColor="@color/published"
             tools:text="Published 2015-01-04 13:45"
+            />
+
+        <TextView
+            android:id="@+id/post_tags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/post_title"
+            android:layout_alignRight="@id/post_title"
+            android:paddingLeft="@dimen/padding_large"
+            android:paddingRight="@dimen/padding_large"
+            android:paddingBottom="@dimen/padding_large"
+            android:maxLines="1"
+            android:ellipsize="none"
+            android:textAppearance="@style/TextAppearance.Small.Dim"
+            tools:text="#android +2"
             />
 
     </RelativeLayout>

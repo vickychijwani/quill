@@ -42,6 +42,7 @@ import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Setting;
+import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.network.BorderedCircleTransformation;
 import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
@@ -308,12 +309,24 @@ public class PostListActivity extends BaseActivity {
             }
             viewHolder.published.setText(PostUtils.getStatusString(post, mContext));
             viewHolder.published.setTextColor(PostUtils.getStatusColor(post, mContext));
+            List<Tag> tags = post.getTags();
+            if (tags.size() > 0) {
+                String tagsStr = "#" + tags.get(0).getName();
+                if (tags.size() > 1) {
+                    tagsStr += " +" + (tags.size()-1);
+                }
+                viewHolder.tags.setText(tagsStr);
+                viewHolder.tags.setVisibility(View.VISIBLE);
+            } else {
+                viewHolder.tags.setVisibility(View.GONE);
+            }
         }
 
         static class PostViewHolder extends RecyclerView.ViewHolder {
             @InjectView(R.id.post_title)        TextView title;
             @InjectView(R.id.post_published)    TextView published;
             @InjectView(R.id.post_image)        ImageView image;
+            @InjectView(R.id.post_tags)         TextView tags;
 
             public PostViewHolder(@NonNull View view, View.OnClickListener clickListener) {
                 super(view);
