@@ -26,7 +26,6 @@ public class WebViewFragment extends BaseFragment {
     @InjectView(R.id.web_view)
     WebView mWebView;
 
-    private boolean mIsWebViewAvailable;
     private Object mJsInterface;
     private String mJsInterfaceName;
 
@@ -61,7 +60,7 @@ public class WebViewFragment extends BaseFragment {
 
         // enable remote debugging
         if (0 != (getActivity().getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE) &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
@@ -83,11 +82,10 @@ public class WebViewFragment extends BaseFragment {
         mWebView.addJavascriptInterface(mJsInterface, mJsInterfaceName);
     }
 
-    // methods copied from android.webkit.WebViewFragment
     @Override
     public void onResume() {
-        mWebView.onResume();
         super.onResume();
+        mWebView.onResume();
     }
 
     @Override
@@ -97,12 +95,14 @@ public class WebViewFragment extends BaseFragment {
     }
 
     @Override
-    public void onDestroy() {
+    public void onDestroyView() {
         if (mWebView != null) {
             mWebView.destroy();
             mWebView = null;
         }
-        super.onDestroy();
+        // NOTE: super must be called AFTER WebView is destroyed, because super method calls
+        // ButterKnife.reset which sets mWebView to null WITHOUT destroying it!
+        super.onDestroyView();
     }
 
     // our custom methods

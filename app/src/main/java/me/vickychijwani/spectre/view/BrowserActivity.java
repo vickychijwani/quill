@@ -1,55 +1,25 @@
 package me.vickychijwani.spectre.view;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.Window;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.view.fragments.WebViewFragment;
 
 public class BrowserActivity extends BaseActivity {
 
-    @InjectView(R.id.web_view)
-    WebView mWebView;
-
-    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // requestFeature must be called at the very beginning
-        getWindow().requestFeature(Window.FEATURE_PROGRESS);
-        getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_VISIBILITY_ON);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_browser);
-        ButterKnife.inject(this);
-
-        setProgressBarVisibility(true);
-
-        WebSettings settings = mWebView.getSettings();
-        settings.setJavaScriptEnabled(true);
-
-        mWebView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public void onProgressChanged(WebView view, int newProgress) {
-                BrowserActivity.this.setProgress(newProgress * 100);
-            }
-        });
-
-        mWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return false;
-            }
-        });
 
         String url = getIntent().getStringExtra(BundleKeys.URL);
-        mWebView.loadUrl(url);
+        WebViewFragment webViewFragment = WebViewFragment.newInstance(url);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.web_view_container, webViewFragment)
+                .commit();
     }
 
     @Override
@@ -60,15 +30,6 @@ public class BrowserActivity extends BaseActivity {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (mWebView.canGoBack()) {
-            mWebView.goBack();
-        } else {
-            super.onBackPressed();
         }
     }
 
