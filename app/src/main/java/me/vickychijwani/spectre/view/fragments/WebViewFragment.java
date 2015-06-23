@@ -110,7 +110,7 @@ public class WebViewFragment extends BaseFragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mWebView.evaluateJavascript(javascript, null);
         } else {
-            mWebView.loadUrl(javascript);
+            mWebView.loadUrl("javascript:" + javascript);
         }
     }
 
