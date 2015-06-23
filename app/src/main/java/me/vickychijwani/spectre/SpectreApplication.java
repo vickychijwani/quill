@@ -2,6 +2,7 @@ package me.vickychijwani.spectre;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Build;
 import android.os.StatFs;
 import android.util.Log;
 
@@ -68,7 +69,14 @@ public class SpectreApplication extends Application {
         long size = MIN_DISK_CACHE_SIZE;
         try {
             StatFs statFs = new StatFs(dir.getAbsolutePath());
-            long available = statFs.getBlockCountLong() * statFs.getBlockSizeLong();
+            long available;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                available = statFs.getBlockCountLong() * statFs.getBlockSizeLong();
+            } else {
+                // checked at runtime
+                //noinspection deprecation
+                available = statFs.getBlockCount() * statFs.getBlockSize();
+            }
             // Target 2% of the total space.
             size = available / 50;
         } catch (IllegalArgumentException ignored) {
