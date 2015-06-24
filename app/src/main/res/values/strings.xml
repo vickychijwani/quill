@@ -20,7 +20,8 @@
     <string name="alert_publish">Publish draft?</string>
     <string name="alert_unpublish">Unpublish post?</string>
     <string name="discard_changes">Discard changes</string>
-    <string name="alert_discard_changes">Discard changes?</string>
+    <string name="alert_discard_changes_title">Discard ALL changes since you opened this post?</string>
+    <string name="alert_discard_changes_msg">There\'s no going back!</string>
     <string name="discard">Discard</string>
     <string name="view_homepage">View homepage</string>
     <string name="view_post_on_blog">View post on blog</string>

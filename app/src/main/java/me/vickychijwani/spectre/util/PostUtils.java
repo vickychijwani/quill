@@ -14,7 +14,8 @@ import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.pref.UserPrefs;
 
-// TODO this class exists only because Realm doesn't allow arbitrary methods on Post at the moment
+// TODO some of these methods belong in the Post class but Realm doesn't allow arbitrary methods on
+// RealmObjects at the moment
 public class PostUtils {
 
     /**

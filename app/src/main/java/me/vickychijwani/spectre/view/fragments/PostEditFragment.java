@@ -258,6 +258,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         return onSaveClicked(persistChanges, null);
     }
 
+    // returns true if a network call is pending, false otherwise
     private boolean onSaveClicked(boolean persistChanges, @Nullable @Post.Status String newStatus) {
         mPost.setTitle(mPostTitleEditView.getText().toString());
         mPost.setMarkdown(mPostEditView.getText().toString());
@@ -283,7 +284,8 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             return true;
         } else if (persistChanges) {
             // avoid network call if no changes have been made
-            if (! PostUtils.isDirty(mOriginalPost, mPost)) return false;
+            // cleverness disabled as a quick workaround for issue #71
+            // if (! PostUtils.isDirty(mOriginalPost, mPost)) return false;
             getBus().post(new SavePostEvent(mPost));
             return true;
         }
@@ -321,7 +323,8 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     private void onDiscardChangesClicked() {
         new AlertDialog.Builder(mActivity)
-                .setMessage(getString(R.string.alert_discard_changes))
+                .setTitle(getString(R.string.alert_discard_changes_title))
+                .setMessage(getString(R.string.alert_discard_changes_msg))
                 .setPositiveButton(R.string.discard, (dialog, which) -> {
                     mbDiscardChanges = true;
                     getActivity().finish();
