@@ -16,6 +16,7 @@ import android.webkit.WebViewClient;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.view.BundleKeys;
 
 /**
@@ -103,6 +104,7 @@ public class WebViewFragment extends BaseFragment {
         // NOTE: super must be called AFTER WebView is destroyed, because super method calls
         // ButterKnife.reset which sets mWebView to null WITHOUT destroying it!
         super.onDestroyView();
+        ((SpectreApplication) getActivity().getApplicationContext()).forceUnregisterComponentCallbacks();
     }
 
     // our custom methods
