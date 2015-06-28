@@ -156,7 +156,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         String blogUrl = mBlogUrlView.getText().toString();
         String username = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
-        getBus().post(new LoginStartEvent(blogUrl, username, password));
+        getBus().post(new LoginStartEvent(blogUrl, username, password, true));
     }
 
     @Subscribe

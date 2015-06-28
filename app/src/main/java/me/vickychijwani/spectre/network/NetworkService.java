@@ -39,6 +39,7 @@ import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
+import me.vickychijwani.spectre.event.PasswordChangedEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
@@ -143,8 +144,15 @@ public class NetworkService {
             @Override
             public void failure(RetrofitError error) {
                 mbAuthRequestOnGoing = false;
-                getBus().post(new LoginErrorEvent(error));
-                // TODO handle the case where logging in automatically and password is changed
+                // if the response is 401 Unauthorized, we can recover from it by asking for the
+                // password again
+                if (! event.initiatedByUser && error.getResponse() != null &&
+                        error.getResponse().getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    clearSavedPassword();
+                    getBus().post(new PasswordChangedEvent());
+                } else {
+                    getBus().post(new LoginErrorEvent(error));
+                }
                 flushApiEventQueue(true);
             }
         });
@@ -512,12 +520,19 @@ public class NetworkService {
         }
     }
 
+    private void clearSavedPassword() {
+        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
+        prefs.clear(UserPrefs.Key.PASSWORD);
+        AppState appState = AppState.getInstance(SpectreApplication.getInstance());
+        appState.clear(AppState.Key.LOGGED_IN);
+    }
+
     private void postLoginStartEvent() {
         UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
         String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
         String username = prefs.getString(UserPrefs.Key.USERNAME);
         String password = prefs.getString(UserPrefs.Key.PASSWORD);
-        getBus().post(new LoginStartEvent(blogUrl, username, password));
+        getBus().post(new LoginStartEvent(blogUrl, username, password, false));
     }
 
     private void onNewAuthToken(AuthToken authToken) {

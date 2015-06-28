@@ -72,4 +72,8 @@ abstract class Prefs<K extends BaseKey> {
         mPrefs.edit().putString(key.toString(), value).apply();
     }
 
+    public final void clear(K key) {
+        mPrefs.edit().remove(key.toString()).apply();
+    }
+
 }
