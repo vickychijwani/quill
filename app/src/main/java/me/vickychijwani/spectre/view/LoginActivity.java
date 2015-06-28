@@ -180,10 +180,8 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             ApiErrorList errorList = (ApiErrorList) error.getBodyAs(ApiErrorList.class);
             ApiError apiError = errorList.errors.get(0);
             EditText errorView = mPasswordView;
-            if (apiError.type.equals("NotFoundError")) {
+            if ("NotFoundError".equals(apiError.errorType)) {
                 errorView = mEmailView;
-            } else if (apiError.type.equals("UnauthorizedError")) {
-                errorView = mPasswordView;
             }
             errorView.setError(Html.fromHtml(apiError.message));
             errorView.requestFocus();
