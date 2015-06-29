@@ -28,15 +28,14 @@
     <string name="view_post_on_blog">View post on blog</string>
     <string name="save_post_failed">Couldn\'t save post</string>
 
-    <!-- misc -->
-    <string name="user_image">User image</string>
-
     <!-- generic -->
     <string name="done">Done</string>
     <string name="save">Save</string>
     <string name="refresh">Refresh</string>
+    <string name="no_internet_connection">No Internet connection</string>
 
     <!-- content descriptions -->
+    <string name="user_image">User image</string>
     <string name="cdesc_post_image">Post image</string>
 
 </resources>

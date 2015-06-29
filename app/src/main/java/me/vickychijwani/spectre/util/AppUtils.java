@@ -2,6 +2,8 @@ package me.vickychijwani.spectre.util;
 
 import android.app.Activity;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -65,6 +67,16 @@ public class AppUtils {
             view.clearFocus();
             hideKeyboard(activity, view.getWindowToken());
         }
+    }
+
+    /**
+     * Check whether there is any network with a usable connection.
+     */
+    public static boolean isNetworkConnected(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
 
