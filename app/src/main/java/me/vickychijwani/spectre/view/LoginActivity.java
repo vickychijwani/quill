@@ -17,14 +17,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Subscribe;
 
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
@@ -44,29 +45,29 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     private final String TAG = "LoginActivity";
 
     // UI references
-    @InjectView(R.id.toolbar)
+    @Bind(R.id.toolbar)
     Toolbar mToolbar;
 
-    @InjectView(R.id.blog_url)
+    @Bind(R.id.blog_url)
     EditText mBlogUrlView;
 
-    @InjectView(R.id.email)
+    @Bind(R.id.email)
     EditText mEmailView;
 
-    @InjectView(R.id.password)
+    @Bind(R.id.password)
     EditText mPasswordView;
 
-    @InjectView(R.id.login_progress)
+    @Bind(R.id.login_progress)
     View mProgressView;
 
-    @InjectView(R.id.login_form)
+    @Bind(R.id.login_form)
     View mLoginFormView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
 
         mPasswordView.setOnEditorActionListener(this);
@@ -180,6 +181,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     @Subscribe
     public void onLoginErrorEvent(LoginErrorEvent event) {
         RetrofitError error = event.error;
+        Crashlytics.logException(error);        // report login failures to Crashlytics
         Log.e(TAG, Log.getStackTraceString(error));
         showProgress(false);
         try {

@@ -27,8 +27,8 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
@@ -61,25 +61,25 @@ public class PostListActivity extends BaseActivity {
     private Runnable mRefreshDataRunnable;
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;  // milliseconds
 
-    @InjectView(R.id.toolbar)
+    @Bind(R.id.toolbar)
     Toolbar mToolbar;
 
-    @InjectView(R.id.toolbar_card)
+    @Bind(R.id.toolbar_card)
     CardView mToolbarCard;
 
-    @InjectView(R.id.app_bar_bg)
+    @Bind(R.id.app_bar_bg)
     View mAppBarBg;
 
-    @InjectView(R.id.user_image)
+    @Bind(R.id.user_image)
     ImageView mUserImageView;
 
-    @InjectView(R.id.user_blog_title)
+    @Bind(R.id.user_blog_title)
     TextView mBlogTitleView;
 
-    @InjectView(R.id.swipe_refresh_layout)
+    @Bind(R.id.swipe_refresh_layout)
     SwipeRefreshLayout mSwipeRefreshLayout;
 
-    @InjectView(R.id.post_list)
+    @Bind(R.id.post_list)
     RecyclerView mPostList;
 
     @Override
@@ -94,7 +94,7 @@ public class PostListActivity extends BaseActivity {
         }
 
         setContentView(R.layout.activity_post_list);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
 
         // get rid of the default action bar confetti
@@ -323,14 +323,14 @@ public class PostListActivity extends BaseActivity {
         }
 
         static class PostViewHolder extends RecyclerView.ViewHolder {
-            @InjectView(R.id.post_title)        TextView title;
-            @InjectView(R.id.post_published)    TextView published;
-            @InjectView(R.id.post_image)        ImageView image;
-            @InjectView(R.id.post_tags)         TextView tags;
+            @Bind(R.id.post_title)        TextView title;
+            @Bind(R.id.post_published)    TextView published;
+            @Bind(R.id.post_image)        ImageView image;
+            @Bind(R.id.post_tags)         TextView tags;
 
             public PostViewHolder(@NonNull View view, View.OnClickListener clickListener) {
                 super(view);
-                ButterKnife.inject(this, view);
+                ButterKnife.bind(this, view);
                 view.setOnClickListener(clickListener);
             }
         }

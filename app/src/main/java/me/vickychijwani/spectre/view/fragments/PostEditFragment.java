@@ -29,8 +29,8 @@ import com.squareup.otto.Subscribe;
 import java.io.IOException;
 import java.util.List;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.PostSavedEvent;
@@ -48,22 +48,22 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     private static final String TAG = "PostEditFragment";
 
-    @InjectView(R.id.post_header)
+    @Bind(R.id.post_header)
     View mPostHeader;
 
-    @InjectView(R.id.post_title_edit)
+    @Bind(R.id.post_title_edit)
     EditText mPostTitleEditView;
 
-    @InjectView(R.id.post_tags_edit)
+    @Bind(R.id.post_tags_edit)
     TagsEditText mPostTagsEditView;
 
-    @InjectView(R.id.post_markdown)
+    @Bind(R.id.post_markdown)
     EditText mPostEditView;
 
-    @InjectView(R.id.preview_btn)
+    @Bind(R.id.preview_btn)
     FloatingActionButton mPreviewBtn;
 
-    @InjectView(R.id.post_markdown_scroll_view)
+    @Bind(R.id.post_markdown_scroll_view)
     ObservableScrollView mScrollView;
 
     private OnPreviewClickListener mPreviewClickListener;
@@ -101,7 +101,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_post_edit, container, false);
-        ButterKnife.inject(this, view);
+        ButterKnife.bind(this, view);
 
         mActivity = ((PostViewActivity) getActivity());
         setPost(mActivity.getPost(), true);

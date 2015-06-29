@@ -13,8 +13,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.view.BundleKeys;
@@ -24,7 +24,7 @@ import me.vickychijwani.spectre.view.BundleKeys;
  */
 public class WebViewFragment extends BaseFragment {
 
-    @InjectView(R.id.web_view)
+    @Bind(R.id.web_view)
     WebView mWebView;
 
     private Object mJsInterface;
@@ -50,7 +50,7 @@ public class WebViewFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_web_view, container, false);
-        ButterKnife.inject(this, view);
+        ButterKnife.bind(this, view);
         String mUrl = getArguments().getString(BundleKeys.URL);
         if (TextUtils.isEmpty(mUrl)) {
             throw new IllegalArgumentException("Empty URL passed to WebViewFragment!");
@@ -102,7 +102,7 @@ public class WebViewFragment extends BaseFragment {
             mWebView = null;
         }
         // NOTE: super must be called AFTER WebView is destroyed, because super method calls
-        // ButterKnife.reset which sets mWebView to null WITHOUT destroying it!
+        // ButterKnife.unbind which sets mWebView to null WITHOUT destroying it!
         super.onDestroyView();
         ((SpectreApplication) getActivity().getApplicationContext()).forceUnregisterComponentCallbacks();
     }

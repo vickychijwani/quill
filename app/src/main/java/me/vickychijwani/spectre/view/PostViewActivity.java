@@ -14,8 +14,8 @@ import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
@@ -37,7 +37,7 @@ public class PostViewActivity extends BaseActivity implements
     private static final String TAG_EDIT_FRAGMENT = "tag:edit_fragment";
     private static final String KEY_IS_PREVIEW_VISIBLE = "key:is_preview_visible";
 
-    @InjectView(R.id.toolbar)
+    @Bind(R.id.toolbar)
     Toolbar mToolbar;
 
     private Post mPost;
@@ -57,7 +57,7 @@ public class PostViewActivity extends BaseActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_edit);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 

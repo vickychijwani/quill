@@ -9,8 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.pref.UserPrefs;
@@ -19,7 +19,7 @@ import me.vickychijwani.spectre.view.PostViewActivity;
 
 public class PostViewFragment extends BaseFragment {
 
-    @InjectView(R.id.edit_post_btn)
+    @Bind(R.id.edit_post_btn)
     View mEditBtn;
 
     private OnEditClickListener mEditClickListener;
@@ -42,7 +42,7 @@ public class PostViewFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_post_view, container, false);
-        ButterKnife.inject(this, view);
+        ButterKnife.bind(this, view);
 
         mPost = ((PostViewActivity) getActivity()).getPost();
 

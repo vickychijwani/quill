@@ -79,7 +79,7 @@ public abstract class BaseFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDestroyView()");
-        ButterKnife.reset(this);
+        ButterKnife.unbind(this);
     }
 
     @Override
