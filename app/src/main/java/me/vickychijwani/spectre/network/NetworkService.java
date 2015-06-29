@@ -58,6 +58,7 @@ import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.model.PostStubList;
 import me.vickychijwani.spectre.model.RefreshReqBody;
+import me.vickychijwani.spectre.model.RevokeReqBody;
 import me.vickychijwani.spectre.model.Setting;
 import me.vickychijwani.spectre.model.SettingsList;
 import me.vickychijwani.spectre.model.Tag;
@@ -70,6 +71,7 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import retrofit.Callback;
 import retrofit.RequestInterceptor;
+import retrofit.ResponseCallback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.OkClient;
@@ -448,6 +450,24 @@ public class NetworkService {
 
     @Subscribe
     public void onLogoutEvent(LogoutEvent event) {
+        // revoke access and refresh tokens
+        RevokeReqBody revokeReqs[] = new RevokeReqBody[] {
+                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, mAuthToken.getAccessToken()),
+                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, mAuthToken.getRefreshToken())
+        };
+        for (RevokeReqBody reqBody : revokeReqs) {
+            mApi.revokeAuthToken(reqBody, new ResponseCallback() {
+                @Override
+                public void success(Response response) {
+                    // no-op
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Crashlytics.log(Log.ERROR, TAG, "Failed to revoke " + reqBody.tokenTypeHint);
+                }
+            });
+        }
         // clear all persisted blog data to avoid primary key conflicts
         mRealm.close();
         Realm.deleteRealmFile(event.context);

@@ -5,9 +5,11 @@ import me.vickychijwani.spectre.model.AuthToken;
 import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.model.PostStubList;
 import me.vickychijwani.spectre.model.RefreshReqBody;
+import me.vickychijwani.spectre.model.RevokeReqBody;
 import me.vickychijwani.spectre.model.SettingsList;
 import me.vickychijwani.spectre.model.UserList;
 import retrofit.Callback;
+import retrofit.ResponseCallback;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Header;
@@ -23,6 +25,9 @@ interface GhostApiService {
 
     @POST("/authentication/token")
     void refreshAuthToken(@Body RefreshReqBody credentials, Callback<AuthToken> cb);
+
+    @POST("/authentication/revoke")
+    void revokeAuthToken(@Body RevokeReqBody revoke, ResponseCallback cb);
 
     // users
     @GET("/users/me/?include=roles&status=all")
