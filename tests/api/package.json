@@ -1,0 +1,10 @@
+{
+  "name": "quill-ghost-api-tests",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "frisby": "^0.8.5",
+    "lodash-node": "^3.10.0"
+  }
+}
