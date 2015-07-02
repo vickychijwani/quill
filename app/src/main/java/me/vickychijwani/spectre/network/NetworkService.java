@@ -83,6 +83,7 @@ public class NetworkService {
 
     public static final String TAG = "NetworkService";
 
+    private Context mAppContext = null;     // Application context, not Activity context!
     private Realm mRealm = null;
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
@@ -114,7 +115,8 @@ public class NetworkService {
     public void start(Context context, OkHttpClient okHttpClient) {
         mOkHttpClient = okHttpClient;
         getBus().register(this);
-        mRealm = Realm.getInstance(context);
+        mAppContext = context.getApplicationContext();
+        mRealm = Realm.getInstance(mAppContext);
         if (AppState.getInstance(context).getBoolean(AppState.Key.LOGGED_IN)) {
             mAuthToken = mRealm.allObjects(AuthToken.class).first();
             String blogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
@@ -491,8 +493,8 @@ public class NetworkService {
         }
         // clear all persisted blog data to avoid primary key conflicts
         mRealm.close();
-        Realm.deleteRealmFile(event.context);
-        mRealm = Realm.getInstance(event.context);
+        Realm.deleteRealmFile(mAppContext);
+        mRealm = Realm.getInstance(mAppContext);
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, false);
     }
@@ -611,6 +613,7 @@ public class NetworkService {
     }
 
     private List<Post> getPostsSorted() {
+        // FIXME time complexity O(n) for copying + O(n log n) for sorting!
         RealmResults<Post> posts = mRealm.allObjects(Post.class);
         List<Post> postsCopy = new ArrayList<>(posts);
         Collections.sort(postsCopy, PostUtils.COMPARATOR_MAIN_LIST);
@@ -636,6 +639,8 @@ public class NetworkService {
     }
 
     private <T extends RealmObject> T createOrUpdateModel(T object, @Nullable Runnable transaction) {
+        // TODO add error handling
+        // TODO use Realm#executeTransaction(Realm.Transaction) instead of this
         mRealm.beginTransaction();
         T realmObject = mRealm.copyToRealmOrUpdate(object);
         if (transaction != null) {

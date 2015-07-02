@@ -178,7 +178,7 @@ public class PostListActivity extends BaseActivity {
                 refreshData();
                 return true;
             case R.id.action_logout:
-                getBus().post(new LogoutEvent(this));
+                getBus().post(new LogoutEvent());
                 finish();
                 Intent logoutIntent = new Intent(this, LoginActivity.class);
                 startActivity(logoutIntent);
