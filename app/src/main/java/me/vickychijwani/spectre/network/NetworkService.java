@@ -277,16 +277,20 @@ public class NetworkService {
 
                 // delete posts that are no longer present on the server
                 // this assumes that postList.posts is a list of ALL posts on the server
-                RealmResults<Post> cachedPosts = mRealm
-                        .where(Post.class)
-                        .equalTo("status", Post.DRAFT)
-                        .or().equalTo("status", Post.PUBLISHED)
-                        .findAll();
                 // FIXME time complexity is quadratic in the number of posts!
-                Observable.from(cachedPosts)
-                        .filter(cached -> !postList.contains(cached.getUuid()))
+                Observable.from(mRealm.allObjects(Post.class))
+                        .filter(cached -> postList.indexOf(cached.getUuid()) == -1)
                         .toList()
                         .forEach(NetworkService.this::deleteModels);
+
+                // skip posts with local-only edits (e.g., auto-saved edits to published posts)
+                RealmResults<Post> localOnlyEdits = mRealm.where(Post.class)
+                        .equalTo("pendingActions.type", PendingAction.EDIT_LOCAL)
+                        .findAll();
+                Observable.from(localOnlyEdits)
+                        .map(post -> postList.indexOf(post.getUuid()))
+                        .filter(idx -> idx > -1)
+                        .forEach(postList::remove);
 
                 // make sure drafts have a publishedAt of FAR_FUTURE so they're sorted to the top
                 Observable.from(postList.posts)
@@ -435,16 +439,33 @@ public class NetworkService {
 
     @Subscribe
     public void onSavePostEvent(SavePostEvent event) {
-        PostUtils.addPendingAction(event.post, PendingAction.EDIT);
-        for (Tag tag : event.post.getTags()) {
+        Post post = event.post;
+        //noinspection StatementWithEmptyBody
+        if (PostUtils.hasPendingAction(post, PendingAction.CREATE)) {
+            // no-op; if the post is yet to be created, we DO NOT change the PendingAction on it
+        } else if (Post.DRAFT.equals(post.getStatus())) {
+            PostUtils.addPendingAction(post, PendingAction.EDIT);
+        } else if (Post.PUBLISHED.equals(post.getStatus()) && event.isAutoSave) {
+            post.getPendingActions().clear();
+            PostUtils.addPendingAction(post, PendingAction.EDIT_LOCAL);
+        } else {
+            // user hit "publish changes" explicitly, on a published post, so mark it for uploading
+            post.getPendingActions().clear();
+            PostUtils.addPendingAction(post, PendingAction.EDIT);
+        }
+
+        // save tags to Realm first
+        for (Tag tag : post.getTags()) {
             if (tag.getUuid() == null) {
                 tag.setUuid(getTempUniqueId(Tag.class));
                 createOrUpdateModel(tag);
             }
         }
-        event.post.setUpdatedAt(new Date());         // mark as updated, to promote in sorted order
-        createOrUpdateModel(event.post);             // save the local post to db
-        getBus().post(new PostSavedEvent());
+
+        post.setUpdatedAt(new Date());              // mark as updated, to promote in sorted order
+        createOrUpdateModel(post);                  // save the local post to db
+
+        getBus().post(new PostSavedEvent(post, event.isAutoSave));
         getBus().post(new SyncPostsEvent(false));
     }
 

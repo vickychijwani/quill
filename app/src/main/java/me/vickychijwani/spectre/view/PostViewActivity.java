@@ -120,7 +120,7 @@ public class PostViewActivity extends BaseActivity implements
     private void viewPostInBrowser() {
         if (Post.DRAFT.equals(mPost.getStatus())) {
             mbPreviewDraft = true;
-            boolean isNetworkCallPending = mPostEditFragment.onSaveClicked(true);
+            boolean isNetworkCallPending = mPostEditFragment.onSaveClicked(true, false);
             if (isNetworkCallPending) {
                 mProgressDialog = new ProgressDialog(this);
                 mProgressDialog.setIndeterminate(true);

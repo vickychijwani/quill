@@ -13,8 +13,10 @@ public class PendingAction extends RealmObject {
 
     public static final String CREATE = "pendingaction:create";
     public static final String EDIT = "pendingaction:edit";
+    // for published posts that are saved automatically
+    public static final String EDIT_LOCAL = "pendingaction:edit_local";
 
-    @StringDef({CREATE, EDIT})
+    @StringDef({CREATE, EDIT, EDIT_LOCAL})
     @Retention(RetentionPolicy.SOURCE)
     public @interface Type {}
 

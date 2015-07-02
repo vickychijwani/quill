@@ -66,9 +66,11 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     @Bind(R.id.post_markdown_scroll_view)
     ObservableScrollView mScrollView;
 
+    private Post mOriginalPost;     // copy of post since the time it was opened for editing
+    private Post mLastSavedPost;    // copy of post since it was last saved
+    private Post mPost;             // current copy of post in memory
+
     private OnPreviewClickListener mPreviewClickListener;
-    private Post mOriginalPost;
-    private Post mPost;
     private boolean mbDiscardChanges = false;
 
     // action mode
@@ -147,9 +149,10 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     @Override
     public void onPause() {
+        // persist changes to disk, unless the user opted to discard those changes
+        onSaveClicked(true, true);
+        // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
         super.onPause();
-        // persist changes to drafts, unless the user opted to discard those changes
-        onSaveClicked(Post.DRAFT.equals(mPost.getStatus()));
     }
 
     @Override
@@ -195,7 +198,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         if (discardChanges) {
             setPost(mPost, false);
         } else {
-            onSaveClicked(false);
+            onSaveClicked(false, true);
         }
         AppUtils.hideKeyboard(mActivity);
         mActivity.setTitle(null);
@@ -229,7 +232,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         } else {
             menu.findItem(R.id.action_publish).setTitle(R.string.publish);
         }
-        onSaveClicked(false);   // make sure user changes are stored in mPost before computing diff
+        onSaveClicked(false, true);   // make sure user changes are stored in mPost before computing diff
         boolean isPostDirty = PostUtils.isDirty(mOriginalPost, mPost);
         menu.findItem(R.id.action_discard).setVisible(isPostDirty && !actionModeActive);
     }
@@ -241,7 +244,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
                 mEditTextActionModeManager.stopActionMode(false);
                 return true;
             case R.id.action_save:
-                onSaveClicked(true);
+                onSaveClicked(true, false);
                 return true;
             case R.id.action_publish:
                 onPublishUnpublishClicked();
@@ -254,12 +257,13 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         }
     }
 
-    public boolean onSaveClicked(boolean persistChanges) {
-        return onSaveClicked(persistChanges, null);
+    public boolean onSaveClicked(boolean persistChanges, boolean isAutoSave) {
+        return onSaveClicked(persistChanges, isAutoSave, null);
     }
 
     // returns true if a network call is pending, false otherwise
-    private boolean onSaveClicked(boolean persistChanges, @Nullable @Post.Status String newStatus) {
+    private boolean onSaveClicked(boolean persistChanges, boolean isAutoSave,
+                                  @Nullable @Post.Status String newStatus) {
         mPost.setTitle(mPostTitleEditView.getText().toString());
         mPost.setMarkdown(mPostEditView.getText().toString());
         mPost.setHtml(null);   // omit stale HTML from request body
@@ -277,16 +281,15 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         // ALL changes made since the editor was opened, hence save mOriginalPost (can't use
         // onSaveClicked(isDraft && !mbDiscardChanges) in onPause for this reason)
         if (mbDiscardChanges) {
-            // avoid network call if no changes have been made
+            // avoid network call if no changes have been made SINCE THE POST WAS OPENED FOR EDITING
             if (! PostUtils.isDirty(mOriginalPost, mPost)) return false;
-            getBus().post(new SavePostEvent(mOriginalPost));
+            getBus().post(new SavePostEvent(mOriginalPost, false));
             mbDiscardChanges = false;
             return true;
         } else if (persistChanges) {
-            // avoid network call if no changes have been made
-            // cleverness disabled as a quick workaround for issue #71
-            // if (! PostUtils.isDirty(mOriginalPost, mPost)) return false;
-            getBus().post(new SavePostEvent(mPost));
+            // avoid network call if AUTO-SAVING and no changes have been made SINCE LAST SAVE
+            if (isAutoSave && ! PostUtils.isDirty(mLastSavedPost, mPost)) return false;
+            getBus().post(new SavePostEvent(mPost, isAutoSave));
             return true;
         }
         return false;
@@ -315,7 +318,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
                             Crashlytics.logException(e);
                         }
                     }
-                    onSaveClicked(true, finalTargetStatus);
+                    onSaveClicked(true, false, finalTargetStatus);
                 })
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
                 .create().show();
@@ -335,13 +338,19 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     @Subscribe
     public void onPostSavedEvent(PostSavedEvent event) {
+        // FIXME the assumption is that SavePostEvent and PostSavedEvent are synchronously sent one
+        // FIXME after the other, which breaks the EventBus' "don't assume synchronous" contract
+        if (mPost.getUuid().equals(event.post.getUuid())) {
+            mLastSavedPost = new Post(mPost);
+        }
         Toast.makeText(mActivity, "Post saved!", Toast.LENGTH_SHORT).show();
     }
 
     public void setPost(@NonNull Post post, boolean isOriginal) {
         mPost = post;
         if (isOriginal) {
-            mOriginalPost = new Post(post);   // store a copy for calculating diff later
+            mOriginalPost = new Post(post);             // store a copy for calculating diff later
+            mLastSavedPost = new Post(mOriginalPost);   // the original is obviously already "saved"
         }
         mPostTitleEditView.setText(post.getTitle());
         mPostEditView.setText(post.getMarkdown());

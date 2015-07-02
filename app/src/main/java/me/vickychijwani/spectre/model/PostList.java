@@ -16,13 +16,18 @@ public class PostList {
         return postList;
     }
 
-    public boolean contains(@NonNull String uuid) {
-        for (Post post : posts) {
-            if (post.getUuid().equals(uuid)) {
-                return true;
+    public int indexOf(@NonNull String uuid) {
+        for (int i = 0, numPosts = posts.size(); i < numPosts; ++i) {
+            Post post = posts.get(i);
+            if (uuid.equals(post.getUuid())) {
+                return i;
             }
         }
-        return false;
+        return -1;
+    }
+
+    public Post remove(int idx) {
+        return posts.remove(idx);
     }
 
 }

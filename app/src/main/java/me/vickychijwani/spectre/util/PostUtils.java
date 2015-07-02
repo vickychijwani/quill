@@ -91,7 +91,9 @@ public class PostUtils {
     public static String getStatusString(@Nullable Post post, @NonNull Context context) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         String status;
-        if (! post.getPendingActions().isEmpty()) {
+        if (hasPendingAction(post, PendingAction.EDIT_LOCAL)) {
+            status = context.getString(R.string.published_auto_saved);
+        } else if (! post.getPendingActions().isEmpty()) {
             status = context.getString(R.string.offline_changes);
         } else if (Post.PUBLISHED.equals(post.getStatus())) {
             String dateStr = DateTimeUtils.formatRelative(post.getPublishedAt());
@@ -107,7 +109,9 @@ public class PostUtils {
     public static int getStatusColor(@Nullable Post post, @NonNull Context context) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         int colorId;
-        if (! post.getPendingActions().isEmpty()) {
+        if (hasPendingAction(post, PendingAction.EDIT_LOCAL)) {
+            colorId = R.color.published_auto_saved;
+        } else if (! post.getPendingActions().isEmpty()) {
             colorId = R.color.offline_changes;
         } else if (Post.PUBLISHED.equals(post.getStatus())) {
             colorId = R.color.published;
@@ -117,6 +121,15 @@ public class PostUtils {
             throw new IllegalArgumentException("unknown post status!");
         }
         return context.getResources().getColor(colorId);
+    }
+
+    public static boolean hasPendingAction(Post post, @PendingAction.Type String type) {
+        for (PendingAction action : post.getPendingActions()) {
+            if (type.equals(action.getType())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -135,15 +148,6 @@ public class PostUtils {
         for (Tag hay : haystack)
             if (needle.getName().equals(hay.getName()))
                 return true;
-        return false;
-    }
-
-    private static boolean hasPendingAction(Post post, @PendingAction.Type String type) {
-        for (PendingAction action : post.getPendingActions()) {
-            if (type.equals(action.getType())) {
-                return true;
-            }
-        }
         return false;
     }
 

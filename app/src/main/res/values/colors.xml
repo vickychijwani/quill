@@ -18,6 +18,7 @@
 
     <!-- one-off colors -->
     <color name="offline_changes">#F33</color>
+    <color name="published_auto_saved">#F33</color>
     <color name="draft">#0A0</color>
     <color name="published">@color/text_secondary</color>
 
