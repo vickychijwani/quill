@@ -150,7 +150,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     @Override
     public void onPause() {
         // persist changes to disk, unless the user opted to discard those changes
-        onSaveClicked(true, true);
+        saveAutomatically();
         // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
         super.onPause();
     }
@@ -198,7 +198,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         if (discardChanges) {
             setPost(mPost, false);
         } else {
-            onSaveClicked(false, true);
+            saveToMemory();
         }
         AppUtils.hideKeyboard(mActivity);
         mActivity.setTitle(null);
@@ -232,7 +232,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         } else {
             menu.findItem(R.id.action_publish).setTitle(R.string.publish);
         }
-        onSaveClicked(false, true);   // make sure user changes are stored in mPost before computing diff
+        saveToMemory();   // make sure user changes are stored in mPost before computing diff
         boolean isPostDirty = PostUtils.isDirty(mOriginalPost, mPost);
         menu.findItem(R.id.action_discard).setVisible(isPostDirty && !actionModeActive);
     }
@@ -244,7 +244,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
                 mEditTextActionModeManager.stopActionMode(false);
                 return true;
             case R.id.action_save:
-                onSaveClicked(true, false);
+                saveToServerExplicitly();
                 return true;
             case R.id.action_publish:
                 onPublishUnpublishClicked();
@@ -257,13 +257,25 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         }
     }
 
-    public boolean onSaveClicked(boolean persistChanges, boolean isAutoSave) {
-        return onSaveClicked(persistChanges, isAutoSave, null);
+    public boolean saveToServerExplicitly() {
+        return saveToServerExplicitly(null);
+    }
+
+    public boolean saveToServerExplicitly(@Nullable @Post.Status String newStatus) {
+        return savePost(true, false, newStatus);
+    }
+
+    public boolean saveToMemory() {
+        return savePost(false, true, null);
+    }
+
+    public boolean saveAutomatically() {
+        return savePost(true, true, null);
     }
 
     // returns true if a network call is pending, false otherwise
-    private boolean onSaveClicked(boolean persistChanges, boolean isAutoSave,
-                                  @Nullable @Post.Status String newStatus) {
+    private boolean savePost(boolean persistChanges, boolean isAutoSave,
+                             @Nullable @Post.Status String newStatus) {
         mPost.setTitle(mPostTitleEditView.getText().toString());
         mPost.setMarkdown(mPostEditView.getText().toString());
         mPost.setHtml(null);   // omit stale HTML from request body
@@ -279,7 +291,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
         // this handles cases like edit => onPause saves changes => discard, which should discard
         // ALL changes made since the editor was opened, hence save mOriginalPost (can't use
-        // onSaveClicked(isDraft && !mbDiscardChanges) in onPause for this reason)
+        // savePost(!mbDiscardChanges, ...) in onPause for this reason)
         if (mbDiscardChanges) {
             // avoid network call if no changes have been made SINCE THE POST WAS OPENED FOR EDITING
             if (! PostUtils.isDirty(mOriginalPost, mPost)) return false;
@@ -318,7 +330,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
                             Crashlytics.logException(e);
                         }
                     }
-                    onSaveClicked(true, false, finalTargetStatus);
+                    saveToServerExplicitly(finalTargetStatus);
                 })
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
                 .create().show();
