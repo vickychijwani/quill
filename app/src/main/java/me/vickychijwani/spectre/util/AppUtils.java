@@ -2,6 +2,8 @@ package me.vickychijwani.spectre.util;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -11,6 +13,8 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+
+import com.crashlytics.android.Crashlytics;
 
 public class AppUtils {
 
@@ -77,6 +81,19 @@ public class AppUtils {
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    /**
+     * Return this app's PackageInfo containing info about version code, version name, etc.
+     */
+    @Nullable
+    public static PackageInfo getPackageInfo(@NonNull Context context) {
+        try {
+            return context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            Crashlytics.logException(e);
+            return null;
+        }
     }
 
 

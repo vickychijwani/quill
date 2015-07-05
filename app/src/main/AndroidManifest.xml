@@ -46,6 +46,22 @@
                 android:value=".view.PostListActivity"/>
         </activity>
 
+        <activity
+            android:name=".view.AboutActivity"
+            android:parentActivityName=".view.PostListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.PostListActivity"/>
+        </activity>
+
+        <activity
+            android:name=".view.OpenSourceLibsActivity"
+            android:parentActivityName=".view.AboutActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.AboutActivity"/>
+        </activity>
+
     </application>
 
 </manifest>

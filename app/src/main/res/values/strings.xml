@@ -29,6 +29,15 @@
     <string name="view_post_on_blog">View post on blog</string>
     <string name="save_post_failed">Couldn\'t save post</string>
 
+    <!-- about -->
+    <string name="about_action">About…</string>
+    <string name="about">About</string>
+    <string name="version">Version</string>
+    <string name="open_source_libs">Open-source libraries</string>
+    <string name="about_author">Made with &lt;3 by <a href="http://github.com/vickychijwani">@vickychijwani</a>. Have feedback? <a href="mailto:vickychijwani@gmail.com?subject=Quill for Android feedback">Email me</a> or open a <a href="http://github.com/vickychijwani/quill/issues">Github issue</a>.</string>
+    <string name="about_desc">This app is <a href="http://github.com/vickychijwani/quill">completely open-source</a> and would not be possible without a bunch of open-source libraries.</string>
+    <string name="about_icon_credits">Launcher icon \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a>.</string>
+
     <!-- generic -->
     <string name="done">Done</string>
     <string name="save">Save</string>
