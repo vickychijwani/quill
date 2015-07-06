@@ -42,6 +42,9 @@ import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.EditTextActionModeManager;
 import me.vickychijwani.spectre.view.PostViewActivity;
 import me.vickychijwani.spectre.view.TagsEditText;
+import rx.Observable;
+import rx.functions.Actions;
+import rx.subscriptions.Subscriptions;
 
 public class PostEditFragment extends BaseFragment implements ObservableScrollViewCallbacks,
         EditTextActionModeManager.Callbacks {
@@ -244,7 +247,8 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
                 mEditTextActionModeManager.stopActionMode(false);
                 return true;
             case R.id.action_save:
-                saveToServerExplicitly();
+                // TODO hate having to do an empty subscribe here
+                onSaveClicked().subscribe(Actions.empty());
                 return true;
             case R.id.action_publish:
                 onPublishUnpublishClicked();
@@ -257,19 +261,19 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         }
     }
 
-    public boolean saveToServerExplicitly() {
+    private boolean saveToServerExplicitly() {
         return saveToServerExplicitly(null);
     }
 
-    public boolean saveToServerExplicitly(@Nullable @Post.Status String newStatus) {
+    private boolean saveToServerExplicitly(@Nullable @Post.Status String newStatus) {
         return savePost(true, false, newStatus);
     }
 
-    public boolean saveToMemory() {
+    private boolean saveToMemory() {
         return savePost(false, true, null);
     }
 
-    public boolean saveAutomatically() {
+    private boolean saveAutomatically() {
         return savePost(true, true, null);
     }
 
@@ -305,6 +309,34 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             return true;
         }
         return false;
+    }
+
+    public Observable<Boolean> onSaveClicked() {
+        // can't use cleverness like !PostUtils.isDirty(mLastSavedPost, mPost) here
+        // consider: edit published post => hit back to auto-save => open again and hit "Save"
+        // in this case we will end up not asking for confirmation! here again, we're conflating 2
+        // kinds of "dirtiness": (1) dirty relative to auto-saved post, and, (2) dirty relative to
+        // post on server TODO fix this behaviour!
+        if (Post.DRAFT.equals(mPost.getStatus())) {
+            return Observable.just(saveToServerExplicitly());
+        }
+        return Observable.create((subscriber) -> {
+            // confirm save for published posts
+            final AlertDialog alertDialog = new AlertDialog.Builder(mActivity)
+                    .setMessage(getString(R.string.alert_save_msg))
+                    .setPositiveButton(R.string.alert_save_yes, (dialog, which) -> {
+                        subscriber.onNext(saveToServerExplicitly());
+                        subscriber.onCompleted();
+                    })
+                    .setNegativeButton(R.string.alert_save_no, (dialog, which) -> {
+                        dialog.dismiss();
+                        subscriber.onNext(false);
+                        subscriber.onCompleted();
+                    })
+                    .create();
+            subscriber.add(Subscriptions.create(alertDialog::dismiss));
+            alertDialog.show();
+        });
     }
 
     private void onPublishUnpublishClicked() {

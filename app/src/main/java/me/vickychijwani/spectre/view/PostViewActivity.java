@@ -26,6 +26,7 @@ import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
+import rx.Observable;
 
 public class PostViewActivity extends BaseActivity implements
         PostViewFragment.OnEditClickListener,
@@ -48,7 +49,7 @@ public class PostViewActivity extends BaseActivity implements
     private boolean mIsPreviewVisible = false;
     private View mFocussedView = null;
 
-    private boolean mbPreviewDraft = false;
+    private boolean mbPreviewPost = false;
     private ProgressDialog mProgressDialog;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mSaveTimeoutRunnable;
@@ -65,9 +66,9 @@ public class PostViewActivity extends BaseActivity implements
 
         mUpClickListener = v -> NavUtils.navigateUpFromSameTask(PostViewActivity.this);
         mSaveTimeoutRunnable = () -> {
-            if (mbPreviewDraft) {
+            if (mbPreviewPost) {
                 mProgressDialog.dismiss();
-                mbPreviewDraft = false;
+                mbPreviewPost = false;
                 Toast.makeText(this, R.string.save_post_failed, Toast.LENGTH_LONG).show();
             }
         };
@@ -118,31 +119,30 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     private void viewPostInBrowser() {
-        if (Post.DRAFT.equals(mPost.getStatus())) {
-            mbPreviewDraft = true;
-            boolean isNetworkCallPending = mPostEditFragment.saveToServerExplicitly();
+        mbPreviewPost = true;
+        Observable<Boolean> waitForNetworkObservable = mPostEditFragment.onSaveClicked();
+        waitForNetworkObservable.subscribe(isNetworkCallPending -> {
             if (isNetworkCallPending) {
                 mProgressDialog = new ProgressDialog(this);
                 mProgressDialog.setIndeterminate(true);
-                mProgressDialog.setMessage("Loading draft preview...");
+                mProgressDialog.setMessage(getString(R.string.save_post_progress));
                 mProgressDialog.setCancelable(false);
                 mProgressDialog.show();
                 mHandler.postDelayed(mSaveTimeoutRunnable, 10000);
             } else {
-                mbPreviewDraft = false;
+                mbPreviewPost = false;
                 startBrowserActivity(PostUtils.getPostUrl(mPost));
             }
-        } else {
-            startBrowserActivity(PostUtils.getPostUrl(mPost));
-        }
+        });
     }
 
     @Subscribe
     public void onPostSyncedEvent(PostSyncedEvent event) {
-        if (event.uuid.equals(mPost.getUuid()) && mbPreviewDraft) {
+        if (event.uuid.equals(mPost.getUuid()) && mbPreviewPost) {
+            mHandler.removeCallbacks(mSaveTimeoutRunnable);
             startBrowserActivity(PostUtils.getPostUrl(mPost));
             mProgressDialog.dismiss();
-            mbPreviewDraft = false;
+            mbPreviewPost = false;
         }
     }
 
