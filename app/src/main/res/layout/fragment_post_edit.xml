@@ -26,20 +26,26 @@
                 android:layout_height="wrap_content"
                 />
 
-            <EditText
-                android:id="@+id/post_markdown"
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingLeft="@dimen/padding_large"
-                android:paddingRight="@dimen/padding_large"
-                android:paddingTop="@dimen/padding_large"
-                android:paddingBottom="@dimen/padding_fab_normal"
-                android:gravity="top"
-                android:inputType="text|textMultiLine|textLongMessage|textCapSentences"
-                android:background="@android:color/transparent"
-                android:textAppearance="@style/TextAppearance.Medium.Light"
-                tools:text="@string/lorem_ipsum"
-                />
+                android:layout_height="match_parent">
+
+                <EditText
+                    android:id="@+id/post_markdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="@dimen/padding_large"
+                    android:paddingRight="@dimen/padding_large"
+                    android:paddingTop="@dimen/padding_large"
+                    android:paddingBottom="@dimen/padding_fab_normal"
+                    android:gravity="top"
+                    android:inputType="text|textMultiLine|textLongMessage|textCapSentences"
+                    android:background="@android:color/transparent"
+                    android:textAppearance="@style/TextAppearance.Medium.Light"
+                    tools:text="@string/lorem_ipsum"
+                    />
+
+            </ScrollView>
 
         </LinearLayout>
 
