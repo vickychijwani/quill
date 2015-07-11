@@ -235,9 +235,9 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         } else {
             menu.findItem(R.id.action_publish).setTitle(R.string.publish);
         }
-        saveToMemory();   // make sure user changes are stored in mPost before computing diff
-        boolean isPostDirty = PostUtils.isDirty(mOriginalPost, mPost);
-        menu.findItem(R.id.action_discard).setVisible(isPostDirty && !actionModeActive);
+//         saveToMemory();   // make sure user changes are stored in mPost before computing diff
+//         boolean isPostDirty = PostUtils.isDirty(mOriginalPost, mPost);
+//         menu.findItem(R.id.action_discard).setVisible(isPostDirty && !actionModeActive);
     }
 
     @Override
@@ -253,9 +253,9 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             case R.id.action_publish:
                 onPublishUnpublishClicked();
                 return true;
-            case R.id.action_discard:
-                onDiscardChangesClicked();
-                return true;
+//            case R.id.action_discard:
+//                onDiscardChangesClicked();
+//                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

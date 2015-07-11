@@ -22,10 +22,10 @@
         app:showAsAction="never"
         />
 
-    <item
-        android:id="@+id/action_discard"
-        android:title="@string/discard_changes"
-        app:showAsAction="never"
-        />
+    <!--<item-->
+        <!--android:id="@+id/action_discard"-->
+        <!--android:title="@string/discard_changes"-->
+        <!--app:showAsAction="never"-->
+        <!--/>-->
 
 </menu>
