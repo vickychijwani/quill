@@ -2,19 +2,25 @@ package me.vickychijwani.spectre.view.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.pm.ApplicationInfo;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.crashlytics.android.Crashlytics;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.view.BundleKeys;
@@ -69,6 +75,15 @@ public class WebViewFragment extends BaseFragment {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return false;
+            }
+
+            @Override
+            public void onReceivedSslError(WebView view, @NonNull SslErrorHandler handler, SslError error) {
+                if (BuildConfig.DEBUG) {
+                    handler.proceed();      // ignore in debug builds
+                } else {
+                    Crashlytics.logException(new RuntimeException("SSL error: " + error.toString()));
+                }
             }
         });
         mWebView.loadUrl(mUrl);
