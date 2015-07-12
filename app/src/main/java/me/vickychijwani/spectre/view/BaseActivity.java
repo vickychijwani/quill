@@ -19,6 +19,8 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import butterknife.ButterKnife;
+import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BusProvider;
@@ -43,6 +45,14 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onCreate()");
         getBus().register(this);
+    }
+
+    public void setLayout(int layoutResID) {
+        super.setContentView(layoutResID);
+        ButterKnife.bind(this);
+        if (BuildConfig.DEBUG) {
+            SpectreApplication.getInstance().addDebugDrawer(this);
+        }
     }
 
     @Override

@@ -28,6 +28,7 @@ public class OpenSourceLibsActivity extends BaseActivity {
             new Library("Android-ObservableScrollView", "Soichiro Kashima", "https://github.com/ksoichiro/Android-ObservableScrollView"),
             new Library("ButterKnife", "Jake Wharton", "http://jakewharton.github.io/butterknife/"),
             new Library("Crashlytics", "Crashlytics", "https://crashlytics.com"),
+            new Library("DebugDrawer", "Mantas Palaima", "https://github.com/palaima/DebugDrawer"),
             new Library("FloatingActionButton", "Melnykov Oleksandr", "https://github.com/makovkastar/FloatingActionButton"),
             new Library("Gson", "Google Inc.", "https://github.com/google/gson"),
             new Library("LeakCanary", "Square Inc.", "https://github.com/square/leakcanary"),
@@ -53,8 +54,7 @@ public class OpenSourceLibsActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_open_source_libs);
-        ButterKnife.bind(this);
+        setLayout(R.layout.activity_open_source_libs);
 
         setSupportActionBar(mToolbar);
         //noinspection ConstantConditions

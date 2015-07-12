@@ -25,7 +25,6 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 
 import butterknife.Bind;
-import butterknife.ButterKnife;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
@@ -66,8 +65,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
-        ButterKnife.bind(this);
+        setLayout(R.layout.activity_login);
         setSupportActionBar(mToolbar);
 
         mPasswordView.setOnEditorActionListener(this);

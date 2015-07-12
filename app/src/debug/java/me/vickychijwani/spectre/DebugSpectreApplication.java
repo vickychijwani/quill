@@ -1,9 +1,11 @@
 package me.vickychijwani.spectre;
 
+import android.app.Activity;
+import android.support.annotation.NonNull;
+
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.okhttp.StethoInterceptor;
 import com.squareup.leakcanary.LeakCanary;
-import com.squareup.okhttp.OkHttpClient;
 import com.uphyca.stetho_realm.RealmInspectorModulesProvider;
 
 import java.security.cert.CertificateException;
@@ -12,6 +14,14 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import io.palaima.debugdrawer.DebugDrawer;
+import io.palaima.debugdrawer.module.BuildModule;
+import io.palaima.debugdrawer.module.DeviceModule;
+import io.palaima.debugdrawer.module.SettingsModule;
+import io.palaima.debugdrawer.okhttp.OkHttpModule;
+import io.palaima.debugdrawer.picasso.PicassoModule;
+import io.palaima.debugdrawer.scalpel.ScalpelModule;
 
 public class DebugSpectreApplication extends SpectreApplication {
 
@@ -31,15 +41,28 @@ public class DebugSpectreApplication extends SpectreApplication {
     }
 
     @Override
-    protected OkHttpClient getOkHttpClient() {
-        OkHttpClient client = super.getOkHttpClient();
-        client.networkInterceptors().add(new StethoInterceptor());
+    protected void initOkHttpClient() {
+        if (mOkHttpClient != null) {
+            return;
+        }
+        super.initOkHttpClient();
+        mOkHttpClient.networkInterceptors().add(new StethoInterceptor());
 
         // trust all SSL certs, for TESTING ONLY!
-        client.setHostnameVerifier((hostname, session) -> true);
-        client.setSslSocketFactory(getUnsafeSslSocketFactory());
+        mOkHttpClient.setHostnameVerifier((hostname, session) -> true);
+        mOkHttpClient.setSslSocketFactory(getUnsafeSslSocketFactory());
+    }
 
-        return client;
+    @Override
+    public void addDebugDrawer(@NonNull Activity activity) {
+        new DebugDrawer.Builder(activity).modules(
+                new ScalpelModule(activity),
+                new OkHttpModule(mOkHttpClient),
+                new PicassoModule(mPicasso),
+                new DeviceModule(this),
+                new BuildModule(this),
+                new SettingsModule(this)
+        ).build();
     }
 
     private SSLSocketFactory getUnsafeSslSocketFactory() {

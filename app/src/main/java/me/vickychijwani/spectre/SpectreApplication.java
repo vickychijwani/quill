@@ -1,11 +1,13 @@
 package me.vickychijwani.spectre;
 
+import android.app.Activity;
 import android.app.Application;
 import android.app.ApplicationErrorReport;
 import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.os.Build;
 import android.os.StatFs;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -33,7 +35,9 @@ public class SpectreApplication extends Application {
     private static final String IMAGE_CACHE_PATH = "images";
     private static final int MIN_DISK_CACHE_SIZE = 5 * 1024 * 1024; // 5MB
     private static final int MAX_DISK_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
-    private Picasso mPicasso = null;
+
+    protected OkHttpClient mOkHttpClient = null;
+    protected Picasso mPicasso = null;
 
     @Override
     public void onCreate() {
@@ -42,34 +46,48 @@ public class SpectreApplication extends Application {
         Crashlytics.log(Log.DEBUG, TAG, "APP LAUNCHED");
         BusProvider.getBus().register(this);
         sInstance = this;
-        new NetworkService().start(this, getOkHttpClient());
+
+        initOkHttpClient();
+        initPicasso();
+        new NetworkService().start(this, mOkHttpClient);
     }
 
     public static SpectreApplication getInstance() {
         return sInstance;
     }
 
-    protected OkHttpClient getOkHttpClient() {
+    protected void initOkHttpClient() {
+        if (mOkHttpClient != null) {
+            return;
+        }
         File cacheDir = createCacheDir(this, IMAGE_CACHE_PATH);
         long size = calculateDiskCacheSize(cacheDir);
         Cache cache = new Cache(cacheDir, size);
-        return new OkHttpClient().setCache(cache);
+        mOkHttpClient = new OkHttpClient().setCache(cache);
+    }
+
+    protected void initPicasso() {
+        if (mPicasso != null) {
+            return;
+        }
+        mPicasso = new Picasso.Builder(this)
+                .downloader(new OkHttpDownloader(mOkHttpClient))
+                .listener((picasso, uri, exception) -> {
+                    Log.e("Picasso", "Failed to load image: " + uri + "\n"
+                            + Log.getStackTraceString(exception));
+                })
+                .build();
     }
 
     public Picasso getPicasso() {
-        if (mPicasso == null) {
-            mPicasso = new Picasso.Builder(this)
-                    .downloader(new OkHttpDownloader(getOkHttpClient()))
-                    .listener((picasso, uri, exception) -> {
-                        Log.e("Picasso", "Failed to load image: " + uri + "\n"
-                                + Log.getStackTraceString(exception));
-                    })
-                    .build();
-        }
         return mPicasso;
     }
 
-    static long calculateDiskCacheSize(File dir) {
+    public void addDebugDrawer(@NonNull Activity activity) {
+        // no-op, overridden in debug build
+    }
+
+    private static long calculateDiskCacheSize(File dir) {
         long size = MIN_DISK_CACHE_SIZE;
         try {
             StatFs statFs = new StatFs(dir.getAbsolutePath());

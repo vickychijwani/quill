@@ -93,8 +93,7 @@ public class PostListActivity extends BaseActivity {
             return;
         }
 
-        setContentView(R.layout.activity_post_list);
-        ButterKnife.bind(this);
+        setLayout(R.layout.activity_post_list);
         setSupportActionBar(mToolbar);
 
         // get rid of the default action bar confetti

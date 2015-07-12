@@ -57,8 +57,7 @@ public class PostViewActivity extends BaseActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_post_edit);
-        ButterKnife.bind(this);
+        setLayout(R.layout.activity_post_edit);
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 

@@ -96,4 +96,8 @@ dependencies {
     debugCompile 'com.facebook.stetho:stetho-okhttp:1.1.1'
     debugCompile 'com.uphyca:stetho_realm:0.4.1'
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3'
+    debugCompile 'io.palaima.debugdrawer:debugdrawer:0.3.0'
+    debugCompile 'io.palaima.debugdrawer:debugdrawer-okhttp:0.3.0'
+    debugCompile 'io.palaima.debugdrawer:debugdrawer-picasso:0.3.0'
+    debugCompile 'io.palaima.debugdrawer:debugdrawer-scalpel:0.3.0'
 }

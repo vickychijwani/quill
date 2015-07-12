@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import butterknife.Bind;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.util.AppUtils;
@@ -25,8 +24,7 @@ public class AboutActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_about);
-        ButterKnife.bind(this);
+        setLayout(R.layout.activity_about);
 
         setSupportActionBar(mToolbar);
         //noinspection ConstantConditions
