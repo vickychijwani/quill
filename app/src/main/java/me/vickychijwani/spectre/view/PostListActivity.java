@@ -131,12 +131,7 @@ public class PostListActivity extends BaseActivity {
         });
 
         mRefreshDataRunnable = this::refreshData;
-        mSwipeRefreshLayout.setColorSchemeResources(
-                R.color.accent,
-                R.color.primary_dark,
-                R.color.accent_light,
-                R.color.primary
-        );
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.accent, R.color.primary);
         mSwipeRefreshLayout.setOnRefreshListener(this::refreshData);
     }
 

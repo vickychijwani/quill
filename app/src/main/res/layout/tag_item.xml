@@ -15,7 +15,7 @@
         android:paddingRight="5dp"
         android:paddingTop="2dp"
         android:paddingBottom="2dp"
-        android:textAppearance="@style/TextAppearance.Medium"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium.Inverse"
         android:background="@drawable/tag_bg"
         tools:text="android"
         />
