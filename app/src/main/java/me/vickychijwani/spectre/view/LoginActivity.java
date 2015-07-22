@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.TextUtils;
@@ -44,23 +45,15 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     private final String TAG = "LoginActivity";
 
     // UI references
-    @Bind(R.id.toolbar)
-    Toolbar mToolbar;
-
-    @Bind(R.id.blog_url)
-    EditText mBlogUrlView;
-
-    @Bind(R.id.email)
-    EditText mEmailView;
-
-    @Bind(R.id.password)
-    EditText mPasswordView;
-
-    @Bind(R.id.login_progress)
-    View mProgressView;
-
-    @Bind(R.id.login_form)
-    View mLoginFormView;
+    @Bind(R.id.toolbar)         Toolbar mToolbar;
+    @Bind(R.id.blog_url_layout) TextInputLayout mBlogUrlLayout;
+    @Bind(R.id.blog_url)        EditText mBlogUrlView;
+    @Bind(R.id.email_layout)    TextInputLayout mEmailLayout;
+    @Bind(R.id.email)           EditText mEmailView;
+    @Bind(R.id.password_layout) TextInputLayout mPasswordLayout;
+    @Bind(R.id.password)        EditText mPasswordView;
+    @Bind(R.id.login_progress)  View mProgressView;
+    @Bind(R.id.login_form)      View mLoginFormView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,8 +98,8 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         }
 
         // Reset errors.
-        mEmailView.setError(null);
-        mPasswordView.setError(null);
+        mEmailLayout.setError(null);
+        mPasswordLayout.setError(null);
 
         // Store values at the time of the login attempt.
         String blogUrl = mBlogUrlView.getText().toString();
@@ -118,29 +111,29 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
 
         // check for a valid url
         if (TextUtils.isEmpty(blogUrl)) {
-            mBlogUrlView.setError(getString(R.string.error_field_required));
+            mBlogUrlLayout.setError(getString(R.string.error_field_required));
             focusView = mBlogUrlView;
             cancel = true;
         }
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(password)) {
-            mPasswordView.setError(getString(R.string.error_field_required));
+            mPasswordLayout.setError(getString(R.string.error_field_required));
             focusView = mPasswordView;
             cancel = true;
         } else if (! isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
+            mPasswordLayout.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
         }
 
         // Check for a valid email address.
         if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
+            mEmailLayout.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
         } else if (! isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
+            mEmailLayout.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
         }
@@ -186,11 +179,13 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             ApiErrorList errorList = (ApiErrorList) error.getBodyAs(ApiErrorList.class);
             ApiError apiError = errorList.errors.get(0);
             EditText errorView = mPasswordView;
+            TextInputLayout errorLayout = mPasswordLayout;
             if ("NotFoundError".equals(apiError.errorType)) {
                 errorView = mEmailView;
+                errorLayout = mEmailLayout;
             }
-            errorView.setError(Html.fromHtml(apiError.message));
             errorView.requestFocus();
+            errorLayout.setError(Html.fromHtml(apiError.message));
         } catch (Exception ignored) {
             boolean userNetworkError = error.getKind() == RetrofitError.Kind.NETWORK
                     && (error.getCause() instanceof UnknownHostException
@@ -200,7 +195,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             boolean conversionError = error.getKind() == RetrofitError.Kind.CONVERSION;
             String blogUrl = mBlogUrlView.getText().toString();
             if (userNetworkError || conversionError) {
-                mBlogUrlView.setError(String.format(getString(R.string.no_such_blog), blogUrl));
+                mBlogUrlLayout.setError(String.format(getString(R.string.no_such_blog), blogUrl));
                 mBlogUrlView.requestFocus();
             } else if (connectionError) {
                 Toast.makeText(this, String.format(getString(R.string.login_connection_error), blogUrl),

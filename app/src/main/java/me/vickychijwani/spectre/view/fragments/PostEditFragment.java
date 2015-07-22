@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -23,7 +24,6 @@ import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.github.slugify.Slugify;
-import com.melnykov.fab.FloatingActionButton;
 import com.squareup.otto.Subscribe;
 
 import java.io.IOException;
@@ -193,7 +193,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         }
         mActivity.supportInvalidateOptionsMenu();
         mActivity.setNavigationItem(R.drawable.close, mActionModeCloseClickListener);
-        mPreviewBtn.hide(false);
+        mPreviewBtn.setVisibility(View.GONE);
     }
 
     @Override
@@ -207,7 +207,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         mActivity.setTitle(null);
         mActivity.supportInvalidateOptionsMenu();
         mActivity.resetNavigationItem();
-        mPreviewBtn.show(false);
+        mPreviewBtn.setVisibility(View.VISIBLE);
     }
 
     @Override

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,17 +12,13 @@
         android:layout_height="match_parent"
         />
 
-    <com.melnykov.fab.FloatingActionButton
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/edit_post_btn"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/padding_large"
         android:src="@drawable/edit"
-        app:fab_colorNormal="?attr/colorFab"
-        app:fab_colorPressed="?attr/colorFabPressed"
-        app:fab_colorRipple="?attr/colorFabRipple"
-        style="@style/LiftUp"
+        style="@style/MyFloatingActionButton"
         />
 
 </FrameLayout>

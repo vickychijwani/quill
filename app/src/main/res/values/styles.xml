@@ -2,7 +2,22 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
     <!-- widget styles -->
-    <style name="LiftUp">
+    <style name="MyToolbar" parent="Widget.AppCompat.Toolbar">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
+    </style>
+
+    <style name="MyCardView" parent="@style/CardView.Light">
+        <item name="cardPreventCornerOverlap">false</item>
+        <item name="cardUseCompatPadding">true</item>
+        <item name="android:foreground">?attr/selectableItemBackground</item>
+        <item name="android:stateListAnimator" tools:targetApi="lollipop">@anim/lift_up</item>
+    </style>
+
+    <style name="MyFloatingActionButton" parent="Widget.Design.FloatingActionButton">
+        <!-- design support library already adds padding (for shadow) -->
+        <item name="android:layout_margin">0dp</item>
     </style>
 
     <!-- Text styles -->

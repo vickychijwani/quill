@@ -51,17 +51,13 @@
 
     </com.github.ksoichiro.android.observablescrollview.ObservableScrollView>
 
-    <com.melnykov.fab.FloatingActionButton
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/preview_btn"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/padding_large"
         android:src="@drawable/preview"
-        app:fab_colorNormal="?attr/colorFab"
-        app:fab_colorPressed="?attr/colorFabPressed"
-        app:fab_colorRipple="?attr/colorFabRipple"
-        style="@style/LiftUp"
+        style="@style/MyFloatingActionButton"
         />
 
 </FrameLayout>
