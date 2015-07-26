@@ -42,6 +42,8 @@
                     android:inputType="text|textMultiLine|textLongMessage|textCapSentences"
                     android:background="@android:color/transparent"
                     android:textAppearance="@style/TextAppearance.Medium.Light"
+                    android:hint="@string/post_body_hint"
+                    android:textColorHint="@color/text_secondary"
                     tools:text="@string/lorem_ipsum"
                     />
 

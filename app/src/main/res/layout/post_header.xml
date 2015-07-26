@@ -53,7 +53,8 @@
             android:imeOptions="actionDone"
             android:nextFocusUp="@id/post_title_edit"
             android:nextFocusLeft="@id/post_title_edit"
-            tools:text="My awesome post title"
+            android:hint="@string/post_title_hint"
+            android:textColorHint="@color/text_primary_inverted_dim"
             />
 
         <me.vickychijwani.spectre.view.TagsEditText
@@ -64,7 +65,8 @@
             android:textColor="@color/text_primary_inverted"
             android:inputType="text"
             android:imeOptions="actionDone"
-            tools:text="tag1, tag2"
+            android:hint="@string/post_tags_hint"
+            android:textColorHint="@color/text_primary_inverted_dim"
             />
 
     </LinearLayout>

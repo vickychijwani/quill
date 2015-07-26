@@ -32,6 +32,9 @@
     <string name="view_post_on_blog">View post on blog</string>
     <string name="save_post_progress">Saving post…</string>
     <string name="save_post_failed">Couldn\'t save post</string>
+    <string name="post_title_hint">Give your post a title…</string>
+    <string name="post_tags_hint">Add some tags…</string>
+    <string name="post_body_hint">Type something here…</string>
 
     <!-- about -->
     <string name="about_action">About…</string>

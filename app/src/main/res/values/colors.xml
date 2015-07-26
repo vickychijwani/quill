@@ -8,6 +8,7 @@
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#727272</color>
     <color name="text_primary_inverted">#FFFFFF</color>
+    <color name="text_primary_inverted_dim">#88FFFFFF</color>
     <color name="text_secondary_inverted">#D7CCC8</color>
     <color name="text_shadow">#000000</color>
 
