@@ -96,11 +96,6 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         return new PostEditFragment();
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -152,6 +147,8 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     @Override
     public void onPause() {
+        // stop editing title / tags and discard changes
+        mEditTextActionModeManager.stopActionMode(true);
         // persist changes to disk, unless the user opted to discard those changes
         saveAutomatically();
         // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
@@ -398,6 +395,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         }
         mPostTitleEditView.setText(post.getTitle());
         mPostEditView.setText(post.getMarkdown());
+        // FIXME clear doesn't work when fragment is pausing, because it posts to the UI thread
         mPostTagsEditView.clear();
         for (Tag tag : post.getTags()) {
             mPostTagsEditView.addObject(tag, tag.getName());
