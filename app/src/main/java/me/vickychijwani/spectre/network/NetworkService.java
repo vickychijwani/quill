@@ -24,6 +24,7 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
+import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
@@ -602,12 +603,15 @@ public class NetworkService {
     }
 
     private GhostApiService buildApiService(@NonNull String blogUrl) {
+        RestAdapter.LogLevel logLevel = BuildConfig.DEBUG
+                ? RestAdapter.LogLevel.HEADERS
+                : RestAdapter.LogLevel.NONE;
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(AppUtils.pathJoin(blogUrl, "ghost/api/v0.1"))
                 .setClient(new OkClient(mOkHttpClient))
                 .setConverter(mGsonConverter)
                 .setRequestInterceptor(mAuthInterceptor)
-                .setLogLevel(RestAdapter.LogLevel.HEADERS)
+                .setLogLevel(logLevel)
                 .build();
         return restAdapter.create(GhostApiService.class);
     }
