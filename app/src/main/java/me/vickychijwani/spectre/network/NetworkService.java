@@ -94,7 +94,7 @@ public class NetworkService {
 
     private boolean mbAuthRequestOnGoing = false;
     private ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
-    private ArrayDeque<Object> mRefreshEventsQueue = new ArrayDeque<>();
+    private ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
     private ArrayDeque<Object> mPostUploadQueue = new ArrayDeque<>();
 
     public NetworkService() {
@@ -165,20 +165,28 @@ public class NetworkService {
 
     @Subscribe
     public void onRefreshDataEvent(RefreshDataEvent event) {
-        // do nothing if a refresh is already in progress
-        if (! mRefreshEventsQueue.isEmpty()) {
+        // do nothing if a refresh is already in progress, unless this one was initiated by the user
+        if (! mRefreshEventsQueue.isEmpty() && ! event.isUserInitiated) {
             refreshDone(null);
             return;
         }
 
-        Bus bus = getBus();
+        mRefreshEventsQueue.clear();
         mRefreshEventsQueue.addAll(Arrays.asList(
                 new LoadUserEvent(true),
                 new LoadBlogSettingsEvent(true),
                 new SyncPostsEvent(true)
         ));
-        Observable.from(mRefreshEventsQueue)
-                .forEach(bus::post);
+
+        if (event.loadCachedData) {
+            for (ApiCallEvent refreshEvent : mRefreshEventsQueue) {
+                refreshEvent.loadCachedData();
+            }
+        }
+
+        for (ApiCallEvent refreshEvent : mRefreshEventsQueue) {
+            getBus().post(refreshEvent);
+        }
     }
 
     @Subscribe
@@ -557,7 +565,7 @@ public class NetworkService {
         }
     }
 
-    private void refreshDone(@Nullable Object sourceEvent) {
+    private void refreshDone(@Nullable ApiCallEvent sourceEvent) {
         mRefreshEventsQueue.removeFirstOccurrence(sourceEvent);
         if (mRefreshEventsQueue.isEmpty()) {
             getBus().post(new DataRefreshedEvent());

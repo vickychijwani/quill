@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
@@ -59,7 +60,10 @@ public class PostListActivity extends BaseActivity {
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mRefreshDataRunnable;
-    private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;  // milliseconds
+    private Runnable mRefreshTimeoutRunnable;
+
+    private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;    // milliseconds
+    private static final int REFRESH_TIMEOUT = 30 * 1000;           // milliseconds
 
     @Bind(R.id.toolbar)                     Toolbar mToolbar;
     @Bind(R.id.toolbar_card)                CardView mToolbarCard;
@@ -117,15 +121,19 @@ public class PostListActivity extends BaseActivity {
             }
         });
 
-        mRefreshDataRunnable = this::refreshData;
+        mRefreshDataRunnable = () -> refreshData(false);
+        mRefreshTimeoutRunnable = this::refreshTimedOut;
         mSwipeRefreshLayout.setColorSchemeResources(R.color.accent, R.color.primary);
-        mSwipeRefreshLayout.setOnRefreshListener(this::refreshData);
+        mSwipeRefreshLayout.setOnRefreshListener(() -> refreshData(true));
+
+        // load cached data immediately
+        refreshData(true, true);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        refreshData();
+        refreshData(true);
     }
 
     @Override
@@ -156,7 +164,7 @@ public class PostListActivity extends BaseActivity {
                 startBrowserActivity(prefs.getString(UserPrefs.Key.BLOG_URL));
                 return true;
             case R.id.action_refresh:
-                refreshData();
+                refreshData(true);
                 return true;
             case R.id.action_about:
                 Intent aboutIntent = new Intent(this, AboutActivity.class);
@@ -176,6 +184,7 @@ public class PostListActivity extends BaseActivity {
     @Subscribe
     public void onDataRefreshedEvent(DataRefreshedEvent event) {
         mSwipeRefreshLayout.setRefreshing(false);
+        cancelRefreshTimeout();
         scheduleDataRefresh();
     }
 
@@ -234,10 +243,28 @@ public class PostListActivity extends BaseActivity {
 
     private void cancelDataRefresh() {
         mHandler.removeCallbacks(mRefreshDataRunnable);
+        cancelRefreshTimeout();
     }
 
-    private void refreshData() {
-        getBus().post(new RefreshDataEvent());
+    private void refreshData(boolean isUserInitiated) {
+        refreshData(isUserInitiated, false);
+    }
+
+    private void refreshData(boolean isUserInitiated, boolean loadCachedData) {
+        getBus().post(new RefreshDataEvent(isUserInitiated, loadCachedData));
+        if (isUserInitiated) {
+            mHandler.postDelayed(mRefreshTimeoutRunnable, REFRESH_TIMEOUT);
+        }
+    }
+
+    private void cancelRefreshTimeout() {
+        mHandler.removeCallbacks(mRefreshTimeoutRunnable);
+    }
+
+    private void refreshTimedOut() {
+        mSwipeRefreshLayout.setRefreshing(false);
+        Toast.makeText(this, R.string.network_timeout, Toast.LENGTH_LONG).show();
+        scheduleDataRefresh();
     }
 
 
