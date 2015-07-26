@@ -61,26 +61,13 @@ public class PostListActivity extends BaseActivity {
     private Runnable mRefreshDataRunnable;
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;  // milliseconds
 
-    @Bind(R.id.toolbar)
-    Toolbar mToolbar;
-
-    @Bind(R.id.toolbar_card)
-    CardView mToolbarCard;
-
-    @Bind(R.id.app_bar_bg)
-    View mAppBarBg;
-
-    @Bind(R.id.user_image)
-    ImageView mUserImageView;
-
-    @Bind(R.id.user_blog_title)
-    TextView mBlogTitleView;
-
-    @Bind(R.id.swipe_refresh_layout)
-    SwipeRefreshLayout mSwipeRefreshLayout;
-
-    @Bind(R.id.post_list)
-    RecyclerView mPostList;
+    @Bind(R.id.toolbar)                     Toolbar mToolbar;
+    @Bind(R.id.toolbar_card)                CardView mToolbarCard;
+    @Bind(R.id.app_bar_bg)                  View mAppBarBg;
+    @Bind(R.id.user_image)                  ImageView mUserImageView;
+    @Bind(R.id.user_blog_title)             TextView mBlogTitleView;
+    @Bind(R.id.swipe_refresh_layout)        SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.post_list)                   RecyclerView mPostList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

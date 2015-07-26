@@ -2,6 +2,7 @@ package me.vickychijwani.spectre.view.fragments;
 
 import android.app.Activity;
 import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -25,11 +28,13 @@ import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCal
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.github.slugify.Slugify;
 import com.squareup.otto.Subscribe;
+import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.List;
 
 import butterknife.Bind;
+import butterknife.BindDimen;
 import butterknife.ButterKnife;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
@@ -37,6 +42,7 @@ import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Tag;
+import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.EditTextActionModeManager;
@@ -51,27 +57,22 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     private static final String TAG = "PostEditFragment";
 
-    @Bind(R.id.post_header)
-    View mPostHeader;
-
-    @Bind(R.id.post_title_edit)
-    EditText mPostTitleEditView;
-
-    @Bind(R.id.post_tags_edit)
-    TagsEditText mPostTagsEditView;
-
-    @Bind(R.id.post_markdown)
-    EditText mPostEditView;
-
-    @Bind(R.id.preview_btn)
-    FloatingActionButton mPreviewBtn;
-
-    @Bind(R.id.post_markdown_scroll_view)
-    ObservableScrollView mScrollView;
+    @Bind(R.id.post_header_container)       ViewGroup mPostHeaderContainer;
+    @Bind(R.id.post_header)                 View mPostHeader;
+    @Bind(R.id.post_image)                  ImageView mPostImageView;
+    @Bind(R.id.post_image_overlay)          View mPostImageOverlay;
+    @Bind(R.id.post_title_edit)             EditText mPostTitleEditView;
+    @Bind(R.id.post_tags_edit)              TagsEditText mPostTagsEditView;
+    @Bind(R.id.post_markdown)               EditText mPostEditView;
+    @Bind(R.id.preview_btn)                 FloatingActionButton mPreviewBtn;
+    @Bind(R.id.observable_scroll_view)      ObservableScrollView mScrollView;
 
     private Post mOriginalPost;     // copy of post since the time it was opened for editing
     private Post mLastSavedPost;    // copy of post since it was last saved
     private Post mPost;             // current copy of post in memory
+
+    private String mBlogUrl;
+    private Picasso mPicasso;
 
     private OnPreviewClickListener mPreviewClickListener;
     private boolean mbDiscardChanges = false;
@@ -82,8 +83,15 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     private PostViewActivity mActivity;
 
     // scroll behaviour
+    private boolean mHasImage = false;
     private int mActionBarSize;
+    private int mHeightCollapseDistance;
+    private int mTotalCollapseDistance;
     private boolean mPostHeaderCollapsed = false;
+    private boolean mPostTitleCollapsed = false;
+    private float mImageOverlayBaseAlpha;
+    private Drawable mHeaderBottomScrimDrawable;
+    @BindDimen(R.dimen.post_header_image_height) float mImageMinHeight;
 
 
     public interface OnPreviewClickListener {
@@ -104,6 +112,11 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         ButterKnife.bind(this, view);
 
         mActivity = ((PostViewActivity) getActivity());
+        mBlogUrl = UserPrefs.getInstance(mActivity).getString(UserPrefs.Key.BLOG_URL);
+        mPicasso = getPicasso();
+        mHeaderBottomScrimDrawable = AppUtils.makeCubicGradientScrimDrawable(0xaa000000, 8,
+                Gravity.BOTTOM);
+
         setPost(mActivity.getPost(), true);
 
         // action mode manager
@@ -127,7 +140,24 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         mPreviewBtn.setOnClickListener(v -> mPreviewClickListener.onPreviewClicked());
 
         mActionBarSize = getActionBarSize();
+        TypedValue alphaValue = new TypedValue();
+        getResources().getValue(R.dimen.editor_overlay_base_alpha, alphaValue, true);
+        mImageOverlayBaseAlpha = alphaValue.getFloat();
         mScrollView.setScrollViewCallbacks(this);
+        mPostHeaderContainer.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            int containerHeight = mPostHeaderContainer.getHeight();
+            mTotalCollapseDistance = containerHeight - mActionBarSize;
+            mHeightCollapseDistance = mTotalCollapseDistance - mPostHeader.getHeight()
+                    + mActionBarSize;   // header includes paddingTop = mActionBarSize
+            if (containerHeight > mImageMinHeight) {
+                ViewGroup.LayoutParams lp = mPostImageView.getLayoutParams();
+                lp.height = containerHeight;
+                mPostImageView.setLayoutParams(lp);
+                ViewGroup.LayoutParams lp2 = mPostImageOverlay.getLayoutParams();
+                lp2.height = containerHeight;
+                mPostImageOverlay.setLayoutParams(lp2);
+            }
+        });
 
         setHasOptionsMenu(true);
 
@@ -157,7 +187,8 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     @Override
     public void onShow() {
-        if (mActivity != null && ! mPostHeaderCollapsed) {
+        onScrollChanged(mScrollView.getCurrentScrollY(), false, false);
+        if (mActivity != null && !mPostTitleCollapsed) {
             mActivity.setTitle(null);
         }
     }
@@ -394,6 +425,21 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             mLastSavedPost = new Post(mOriginalPost);   // the original is obviously already "saved"
         }
         mPostTitleEditView.setText(post.getTitle());
+        if (! TextUtils.isEmpty(post.getImage())) {
+            String imageUrl = AppUtils.pathJoin(mBlogUrl, post.getImage());
+            mPicasso.load(imageUrl).into(mPostImageView);
+            mPostImageView.setVisibility(View.VISIBLE);
+            mPostImageOverlay.setVisibility(View.VISIBLE);
+            mActivity.setToolbarScrimAlpha(1f);
+            mPostHeader.setBackground(mHeaderBottomScrimDrawable);
+            mHasImage = true;
+        } else {
+            mPostImageView.setVisibility(View.GONE);
+            mPostImageOverlay.setVisibility(View.GONE);
+            mActivity.setToolbarScrimAlpha(0f);
+            mPostHeader.setBackground(null);
+            mHasImage = false;
+        }
         mPostEditView.setText(post.getMarkdown());
         // FIXME clear doesn't work when fragment is pausing, because it posts to the UI thread
         mPostTagsEditView.clear();
@@ -405,11 +451,43 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     // scroll behaviour
     @Override
-    public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
-        if (scrollY >= mActionBarSize) {
+    public void onScrollChanged(int scrollY, boolean ignored1, boolean ignored2) {
+        if (mTotalCollapseDistance == 0 ||     // erroneous call
+                (scrollY > mTotalCollapseDistance && mPostHeaderCollapsed)) {
+            return;  // we definitely don't need to change anything in this case
+        }
+
+        if (scrollY > mHeightCollapseDistance) {
             collapsePostHeader();
         } else {
             expandPostHeader();
+        }
+
+        if (scrollY > mTotalCollapseDistance) {
+            mActivity.setToolbarBackgroundOpaque(true);
+            mPostHeaderCollapsed = true;
+        } else {
+            mActivity.setToolbarBackgroundOpaque(false);
+            mPostHeaderCollapsed = false;
+        }
+
+        if (mHasImage) {
+            // image parallax
+            mPostImageView.setTranslationY(scrollY / 2f);
+
+            // interpolate transition
+            float fractionCollapsed;
+            if (mTotalCollapseDistance - mHeightCollapseDistance == 0) {
+                // edge case, no space available for smooth transition, so jump from 0 to 1 suddenly
+                fractionCollapsed = (scrollY == 0) ? 0f : 1f;
+            } else {
+                fractionCollapsed = (scrollY - mHeightCollapseDistance) /
+                        (float) (mTotalCollapseDistance - mHeightCollapseDistance);
+                fractionCollapsed = Math.max(0f, Math.min(1f, fractionCollapsed));
+            }
+
+            mPostImageOverlay.setAlpha(mImageOverlayBaseAlpha + (1 - mImageOverlayBaseAlpha) * fractionCollapsed);
+            mActivity.setToolbarScrimAlpha(1f - fractionCollapsed);
         }
     }
 
@@ -424,29 +502,28 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     }
 
     private void collapsePostHeader() {
-        if (mPostHeaderCollapsed) {
+        if (mPostTitleCollapsed) {
             return;
         }
         mPostHeader.animate().alpha(0.0f).setDuration(200);
         getActivity().setTitle(mPost.getTitle());
-        mPostHeaderCollapsed = true;
+        mPostTitleCollapsed = true;
     }
 
     private void expandPostHeader() {
-        if (! mPostHeaderCollapsed) {
+        if (! mPostTitleCollapsed) {
             return;
         }
         mPostHeader.animate().alpha(1.0f).setDuration(200);
         getActivity().setTitle(null);
-        mPostHeaderCollapsed = false;
+        mPostTitleCollapsed = false;
     }
 
     private int getActionBarSize() {
         TypedValue typedValue = new TypedValue();
         int[] textSizeAttr = new int[] { R.attr.actionBarSize };
-        int indexOfAttrTextSize = 0;
         TypedArray a = getActivity().obtainStyledAttributes(typedValue.data, textSizeAttr);
-        int actionBarSize = a.getDimensionPixelSize(indexOfAttrTextSize, -1);
+        int actionBarSize = a.getDimensionPixelSize(0, -1);
         a.recycle();
         return actionBarSize;
     }

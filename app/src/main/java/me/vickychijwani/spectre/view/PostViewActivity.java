@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,7 +16,7 @@ import android.widget.Toast;
 import com.squareup.otto.Subscribe;
 
 import butterknife.Bind;
-import butterknife.ButterKnife;
+import butterknife.BindColor;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
@@ -38,8 +39,11 @@ public class PostViewActivity extends BaseActivity implements
     private static final String TAG_EDIT_FRAGMENT = "tag:edit_fragment";
     private static final String KEY_IS_PREVIEW_VISIBLE = "key:is_preview_visible";
 
-    @Bind(R.id.toolbar)
-    Toolbar mToolbar;
+    @BindColor(R.color.primary)                 int mColorPrimary;
+    @BindColor(android.R.color.transparent)     int mColorTransparent;
+
+    @Bind(R.id.toolbar)                         Toolbar mToolbar;
+    @Bind(R.id.toolbar_scrim)                   View mToolbarScrimView;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
@@ -71,6 +75,9 @@ public class PostViewActivity extends BaseActivity implements
                 Toast.makeText(this, R.string.save_post_failed, Toast.LENGTH_LONG).show();
             }
         };
+
+        mToolbarScrimView.setBackground(AppUtils.makeCubicGradientScrimDrawable(0xaa000000, 2,
+                Gravity.TOP));
 
         mPostViewFragment = addFragment(PostViewFragment.class, R.id.fragment_container, TAG_VIEW_FRAGMENT);
         mPostEditFragment = addFragment(PostEditFragment.class, R.id.fragment_container, TAG_EDIT_FRAGMENT);
@@ -162,6 +169,7 @@ public class PostViewActivity extends BaseActivity implements
     public void onPreviewClicked() {
         mFocussedView = getCurrentFocus();
         AppUtils.defocusAndHideKeyboard(this);
+        setToolbarBackgroundOpaque(true);
         mPostEditFragment.hide();
         mPostViewFragment.show();
         mIsPreviewVisible = true;
@@ -182,6 +190,14 @@ public class PostViewActivity extends BaseActivity implements
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_IS_PREVIEW_VISIBLE, mIsPreviewVisible);
+    }
+
+    public void setToolbarBackgroundOpaque(boolean opaque) {
+        mToolbar.setBackgroundColor(opaque ? mColorPrimary : mColorTransparent);
+    }
+
+    public void setToolbarScrimAlpha(float alpha) {
+        mToolbarScrimView.setAlpha(alpha);
     }
 
     public void setNavigationItem(int iconResId, View.OnClickListener clickListener) {
