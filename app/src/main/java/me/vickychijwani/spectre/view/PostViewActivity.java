@@ -117,16 +117,21 @@ public class PostViewActivity extends BaseActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_view_post:
-                viewPostInBrowser();
+                viewPostInBrowser(true);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void viewPostInBrowser() {
+    public void viewPostInBrowser(boolean saveBeforeViewing) {
         mbPreviewPost = true;
-        Observable<Boolean> waitForNetworkObservable = mPostEditFragment.onSaveClicked();
+        Observable<Boolean> waitForNetworkObservable;
+        if (saveBeforeViewing) {
+            waitForNetworkObservable = mPostEditFragment.onSaveClicked();
+        } else {
+            waitForNetworkObservable = Observable.just(false);
+        }
         waitForNetworkObservable.subscribe(isNetworkCallPending -> {
             if (isNetworkCallPending) {
                 mProgressDialog = new ProgressDialog(this);

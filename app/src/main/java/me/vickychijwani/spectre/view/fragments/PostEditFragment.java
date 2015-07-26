@@ -4,9 +4,13 @@ import android.app.Activity;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -20,7 +24,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
@@ -39,6 +42,7 @@ import butterknife.ButterKnife;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.PostSavedEvent;
+import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Tag;
@@ -57,6 +61,16 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     private static final String TAG = "PostEditFragment";
 
+    private enum SaveType {
+        NONE,
+        PUBLISH,
+        UNPUBLISH,
+        PUBLISHED_AUTO,
+        PUBLISHED_EXPLICIT,
+        DRAFT_AUTO,
+        DRAFT_EXPLICIT
+    };
+
     @Bind(R.id.post_header_container)       ViewGroup mPostHeaderContainer;
     @Bind(R.id.post_header)                 View mPostHeader;
     @Bind(R.id.post_image)                  ImageView mPostImageView;
@@ -71,11 +85,16 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     private Post mLastSavedPost;    // copy of post since it was last saved
     private Post mPost;             // current copy of post in memory
 
+    private Handler mHandler = new Handler(Looper.getMainLooper());
     private String mBlogUrl;
     private Picasso mPicasso;
 
     private OnPreviewClickListener mPreviewClickListener;
     private boolean mbDiscardChanges = false;
+
+    private SaveType mSaveType = SaveType.NONE;
+    private Runnable mSaveTimeoutRunnable;
+    private static final int SAVE_TIMEOUT = 5 * 1000;       // milliseconds
 
     // action mode
     private View.OnClickListener mActionModeCloseClickListener;
@@ -119,6 +138,14 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
         setPost(mActivity.getPost(), true);
 
+        mSaveTimeoutRunnable = () -> {
+            View parent = PostEditFragment.this.getView();
+            if (parent != null) {
+                Snackbar.make(parent, R.string.save_post_timeout, Snackbar.LENGTH_SHORT).show();
+                mSaveType = SaveType.NONE;
+            }
+        };
+
         // action mode manager
         mEditTextActionModeManager = new EditTextActionModeManager(mActivity, this);
         mActionModeCloseClickListener = v -> mEditTextActionModeManager.stopActionMode(true);
@@ -139,6 +166,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         // preview button
         mPreviewBtn.setOnClickListener(v -> mPreviewClickListener.onPreviewClicked());
 
+        // scroll behaviour
         mActionBarSize = getActionBarSize();
         TypedValue alphaValue = new TypedValue();
         getResources().getValue(R.dimen.editor_overlay_base_alpha, alphaValue, true);
@@ -177,6 +205,8 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     @Override
     public void onPause() {
+        // remove pending callbacks
+        mHandler.removeCallbacks(mSaveTimeoutRunnable);
         // stop editing title / tags and discard changes
         mEditTextActionModeManager.stopActionMode(true);
         // persist changes to disk, unless the user opted to discard those changes
@@ -294,6 +324,17 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     }
 
     private boolean saveToServerExplicitly(@Nullable @Post.Status String newStatus) {
+        if (newStatus == null) {
+            if (Post.DRAFT.equals(mPost.getStatus())) {
+                mSaveType = SaveType.DRAFT_EXPLICIT;
+            } else if (Post.PUBLISHED.equals(mPost.getStatus())) {
+                mSaveType = SaveType.PUBLISHED_EXPLICIT;
+            }
+        } else if (Post.DRAFT.equals(newStatus)) {
+            mSaveType = SaveType.UNPUBLISH;
+        } else if (Post.PUBLISHED.equals(newStatus)) {
+            mSaveType = SaveType.PUBLISH;
+        }
         return savePost(true, false, newStatus);
     }
 
@@ -302,6 +343,11 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     }
 
     private boolean saveAutomatically() {
+        if (Post.DRAFT.equals(mPost.getStatus())) {
+            mSaveType = SaveType.DRAFT_AUTO;
+        } else if (Post.PUBLISHED.equals(mPost.getStatus())) {
+            mSaveType = SaveType.PUBLISHED_AUTO;
+        }
         return savePost(true, true, null);
     }
 
@@ -415,7 +461,51 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         if (mPost.getUuid().equals(event.post.getUuid())) {
             mLastSavedPost = new Post(mPost);
         }
-        Toast.makeText(mActivity, "Post saved!", Toast.LENGTH_SHORT).show();
+        if (getView() == null) {
+            return;
+        }
+        if (mSaveType == SaveType.NONE) {
+            Snackbar.make(getView(), R.string.save_post_generic, Snackbar.LENGTH_SHORT).show();
+        } else if (mSaveType == SaveType.PUBLISHED_AUTO) {
+            Snackbar.make(getView(), R.string.save_published_auto, Snackbar.LENGTH_SHORT).show();
+            mSaveType = SaveType.NONE;
+        } else {
+            mHandler.postDelayed(mSaveTimeoutRunnable, SAVE_TIMEOUT);
+        }
+    }
+
+    @Subscribe
+    public void onPostSyncedEvent(PostSyncedEvent event) {
+        SaveType saveType = mSaveType;
+        mSaveType = SaveType.NONE;
+        mHandler.removeCallbacks(mSaveTimeoutRunnable);
+        View parent = getView();
+        if (parent == null) {
+            return;
+        }
+        switch (saveType) {
+            case PUBLISH:
+            case PUBLISHED_EXPLICIT:
+                @StringRes int messageId = (saveType == SaveType.PUBLISH)
+                        ? R.string.save_publish
+                        : R.string.save_published_explicit;
+                Snackbar sn = Snackbar.make(parent, messageId, Snackbar.LENGTH_SHORT);
+                sn.setAction(R.string.save_post_view, v -> mActivity.viewPostInBrowser(false));
+                sn.show();
+                break;
+            case UNPUBLISH:
+                Snackbar.make(parent, R.string.save_unpublish, Snackbar.LENGTH_SHORT).show();
+                break;
+            case DRAFT_AUTO:
+                Snackbar.make(parent, R.string.save_draft_auto, Snackbar.LENGTH_SHORT).show();
+                break;
+            case DRAFT_EXPLICIT:
+                Snackbar.make(parent, R.string.save_draft_explicit, Snackbar.LENGTH_SHORT).show();
+                break;
+            case PUBLISHED_AUTO:
+            case NONE:
+                break;              // already handled
+        }
     }
 
     public void setPost(@NonNull Post post, boolean isOriginal) {

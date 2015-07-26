@@ -30,8 +30,19 @@
     <string name="discard">Discard</string>
     <string name="view_homepage">View homepage</string>
     <string name="view_post_on_blog">View post on blog</string>
+
     <string name="save_post_progress">Saving post…</string>
     <string name="save_post_failed">Couldn\'t save post</string>
+    <string name="save_post_view">View on blog</string>
+    <string name="save_post_generic">Saved</string>
+    <string name="save_post_timeout">Saved on device</string>
+    <string name="save_publish">Post published!</string>
+    <string name="save_unpublish">Post unpublished</string>
+    <string name="save_published_auto">Changes saved on device</string>
+    <string name="save_published_explicit">Changes published</string>
+    <string name="save_draft_auto">Draft saved</string>
+    <string name="save_draft_explicit">Draft saved</string>
+
     <string name="post_title_hint">Give your post a title…</string>
     <string name="post_tags_hint">Add some tags…</string>
     <string name="post_body_hint">Type something here…</string>
