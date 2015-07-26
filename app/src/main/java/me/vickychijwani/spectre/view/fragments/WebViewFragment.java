@@ -33,8 +33,10 @@ public class WebViewFragment extends BaseFragment {
     @Bind(R.id.web_view)
     WebView mWebView;
 
-    private Object mJsInterface;
-    private String mJsInterfaceName;
+    private String mUrl;
+    private Object mJsInterface = null;
+    private String mJsInterfaceName = null;
+    private DefaultWebViewClient mWebViewClient = null;
 
     /**
      * Returns a new WebViewFragment which will load the desired URL.
@@ -57,7 +59,7 @@ public class WebViewFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_web_view, container, false);
         ButterKnife.bind(this, view);
-        String mUrl = getArguments().getString(BundleKeys.URL);
+        mUrl = getArguments().getString(BundleKeys.URL);
         if (TextUtils.isEmpty(mUrl)) {
             throw new IllegalArgumentException("Empty URL passed to WebViewFragment!");
         }
@@ -71,21 +73,7 @@ public class WebViewFragment extends BaseFragment {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
-        mWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return false;
-            }
-
-            @Override
-            public void onReceivedSslError(WebView view, @NonNull SslErrorHandler handler, SslError error) {
-                if (BuildConfig.DEBUG) {
-                    handler.proceed();      // ignore in debug builds
-                } else {
-                    Crashlytics.logException(new RuntimeException("SSL error: " + error.toString()));
-                }
-            }
-        });
+        mWebView.setWebViewClient(new DefaultWebViewClient());
         mWebView.loadUrl(mUrl);
 
         return view;
@@ -95,7 +83,12 @@ public class WebViewFragment extends BaseFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mWebView.addJavascriptInterface(mJsInterface, mJsInterfaceName);
+        if (mJsInterface != null) {
+            mWebView.addJavascriptInterface(mJsInterface, mJsInterfaceName);
+        }
+        if (mWebViewClient != null) {
+            mWebView.setWebViewClient(mWebViewClient);
+        }
     }
 
     @Override
@@ -123,6 +116,26 @@ public class WebViewFragment extends BaseFragment {
     }
 
     // our custom methods
+    @Nullable
+    public String getCurrentUrl() {
+        if (mWebView == null) {
+            return null;
+        }
+        String currentLoadedUrl = mWebView.getOriginalUrl();
+        if (currentLoadedUrl == null) {
+            currentLoadedUrl = mUrl;
+        }
+        return currentLoadedUrl;
+    }
+
+    @Nullable
+    public String getCurrentTitle() {
+        if (mWebView == null) {
+            return null;
+        }
+        return mWebView.getTitle();
+    }
+
     public void evaluateJavascript(@Nullable String javascript) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mWebView.evaluateJavascript(javascript, null);
@@ -141,6 +154,14 @@ public class WebViewFragment extends BaseFragment {
         }
     }
 
+    public <T extends DefaultWebViewClient> void setWebViewClient(@NonNull T webViewClient) {
+        if (mWebView == null) {
+            mWebViewClient = webViewClient;
+        } else {
+            mWebView.setWebViewClient(webViewClient);
+        }
+    }
+
     @Override
     public boolean onBackPressed() {
         if (mWebView.canGoBack()) {
@@ -148,6 +169,22 @@ public class WebViewFragment extends BaseFragment {
             return true;
         }
         return false;
+    }
+
+    public static class DefaultWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            return false;
+        }
+
+        @Override
+        public void onReceivedSslError(WebView view, @NonNull SslErrorHandler handler, SslError error) {
+            if (BuildConfig.DEBUG) {
+                handler.proceed();      // ignore in debug builds
+            } else {
+                Crashlytics.logException(new RuntimeException("SSL error: " + error.toString()));
+            }
+        }
     }
 
 }

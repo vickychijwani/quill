@@ -64,6 +64,8 @@
     <string name="done">Done</string>
     <string name="save">Save</string>
     <string name="refresh">Refresh</string>
+    <string name="share">Share</string>
+    <string name="loading">Loading…</string>
 
     <!-- content descriptions -->
     <string name="user_image">User image</string>
