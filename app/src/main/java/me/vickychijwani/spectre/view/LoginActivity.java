@@ -23,6 +23,7 @@ import com.squareup.otto.Subscribe;
 
 import java.net.ConnectException;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import butterknife.Bind;
@@ -187,11 +188,15 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             errorView.requestFocus();
             errorLayout.setError(Html.fromHtml(apiError.message));
         } catch (Exception ignored) {
+            // errors in url: invalid / unknown hostname or ip
             boolean userNetworkError = error.getKind() == RetrofitError.Kind.NETWORK
                     && (error.getCause() instanceof UnknownHostException
                     || error.getCause() instanceof MalformedURLException);
+            // connection error: timeout, etc
             boolean connectionError = error.getKind() == RetrofitError.Kind.NETWORK
-                    && error.getCause() instanceof ConnectException;
+                    && (error.getCause() instanceof ConnectException
+                    || error.getCause() instanceof SocketTimeoutException);
+            // don't remember when this happens, but it does happen consistently in one error scenario
             boolean conversionError = error.getKind() == RetrofitError.Kind.CONVERSION;
             String blogUrl = mBlogUrlView.getText().toString();
             if (userNetworkError || conversionError) {
@@ -201,6 +206,8 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
                 Toast.makeText(this, String.format(getString(R.string.login_connection_error), blogUrl),
                         Toast.LENGTH_SHORT).show();
             } else {
+                Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during login!");
+                Crashlytics.logException(error);
                 Toast.makeText(this, getString(R.string.login_unexpected_error),
                         Toast.LENGTH_SHORT).show();
             }

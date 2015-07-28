@@ -22,10 +22,13 @@ import java.io.File;
 import java.net.HttpURLConnection;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.TimeUnit;
 
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.network.NetworkService;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class SpectreApplication extends Application {
 
@@ -33,8 +36,9 @@ public class SpectreApplication extends Application {
     private static SpectreApplication sInstance;
 
     private static final String IMAGE_CACHE_PATH = "images";
-    private static final int MIN_DISK_CACHE_SIZE = 5 * 1024 * 1024; // 5MB
-    private static final int MAX_DISK_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
+    private static final int MIN_DISK_CACHE_SIZE = 5 * 1024 * 1024;     // in bytes
+    private static final int MAX_DISK_CACHE_SIZE = 50 * 1024 * 1024;    // in bytes
+    private static final int CONNECTION_TIMEOUT = 10 * 1000;            // in milliseconds
 
     protected OkHttpClient mOkHttpClient = null;
     protected Picasso mPicasso = null;
@@ -64,6 +68,9 @@ public class SpectreApplication extends Application {
         long size = calculateDiskCacheSize(cacheDir);
         Cache cache = new Cache(cacheDir, size);
         mOkHttpClient = new OkHttpClient().setCache(cache);
+        mOkHttpClient.setConnectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
+        mOkHttpClient.setReadTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
+        mOkHttpClient.setWriteTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
     protected void initPicasso() {
@@ -121,8 +128,9 @@ public class SpectreApplication extends Application {
 
     @Subscribe
     public void onApiErrorEvent(ApiErrorEvent event) {
-        if (event.error.getResponse() != null &&
-                event.error.getResponse().getStatus() != HttpURLConnection.HTTP_NOT_MODIFIED) {
+        RetrofitError error = event.error;
+        Response response = error.getResponse();
+        if (response == null || response.getStatus() != HttpURLConnection.HTTP_NOT_MODIFIED) {
             Log.e(TAG, Log.getStackTraceString(event.error));
         }
     }

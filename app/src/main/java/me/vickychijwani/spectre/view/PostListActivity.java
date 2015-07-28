@@ -13,6 +13,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,9 +23,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +39,7 @@ import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
+import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
@@ -50,6 +56,8 @@ import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.widget.SpaceItemDecoration;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class PostListActivity extends BaseActivity {
 
@@ -62,8 +70,10 @@ public class PostListActivity extends BaseActivity {
     private Runnable mRefreshDataRunnable;
     private Runnable mRefreshTimeoutRunnable;
 
-    private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;    // milliseconds
-    private static final int REFRESH_TIMEOUT = 30 * 1000;           // milliseconds
+    private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;    // in milliseconds
+
+    // NOTE: very large timeout is needed for cases like initial sync on a blog with 100s of posts
+    private static final int REFRESH_TIMEOUT = 5 * 60 * 1000;       // in milliseconds
 
     @Bind(R.id.toolbar)                     Toolbar mToolbar;
     @Bind(R.id.toolbar_card)                CardView mToolbarCard;
@@ -124,16 +134,16 @@ public class PostListActivity extends BaseActivity {
         mRefreshDataRunnable = () -> refreshData(false);
         mRefreshTimeoutRunnable = this::refreshTimedOut;
         mSwipeRefreshLayout.setColorSchemeResources(R.color.accent, R.color.primary);
-        mSwipeRefreshLayout.setOnRefreshListener(() -> refreshData(true));
+        mSwipeRefreshLayout.setOnRefreshListener(() -> refreshData(false));
 
         // load cached data immediately
-        refreshData(true, true);
+        refreshData(true);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        refreshData(true);
+        refreshData(false);
     }
 
     @Override
@@ -164,7 +174,7 @@ public class PostListActivity extends BaseActivity {
                 startBrowserActivity(prefs.getString(UserPrefs.Key.BLOG_URL));
                 return true;
             case R.id.action_refresh:
-                refreshData(true);
+                refreshData(false);
                 return true;
             case R.id.action_about:
                 Intent aboutIntent = new Intent(this, AboutActivity.class);
@@ -186,6 +196,23 @@ public class PostListActivity extends BaseActivity {
         mSwipeRefreshLayout.setRefreshing(false);
         cancelRefreshTimeout();
         scheduleDataRefresh();
+
+        RetrofitError error = event.error;
+        if (error != null) {
+            Response response = error.getResponse();
+            //noinspection StatementWithEmptyBody
+            if (response != null && response.getStatus() == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                // this is not really an error!
+            } else if (error.getKind() == RetrofitError.Kind.NETWORK
+                    && (error.getCause() instanceof ConnectException
+                    || error.getCause() instanceof SocketTimeoutException)) {
+                Toast.makeText(this, R.string.network_timeout, Toast.LENGTH_LONG).show();
+            } else {
+                Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during refresh");
+                Crashlytics.logException(error);
+                Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Subscribe
@@ -246,15 +273,9 @@ public class PostListActivity extends BaseActivity {
         cancelRefreshTimeout();
     }
 
-    private void refreshData(boolean isUserInitiated) {
-        refreshData(isUserInitiated, false);
-    }
-
-    private void refreshData(boolean isUserInitiated, boolean loadCachedData) {
-        getBus().post(new RefreshDataEvent(isUserInitiated, loadCachedData));
-        if (isUserInitiated) {
-            mHandler.postDelayed(mRefreshTimeoutRunnable, REFRESH_TIMEOUT);
-        }
+    private void refreshData(boolean loadCachedData) {
+        getBus().post(new RefreshDataEvent(loadCachedData));
+        mHandler.postDelayed(mRefreshTimeoutRunnable, REFRESH_TIMEOUT);
     }
 
     private void cancelRefreshTimeout() {
@@ -262,8 +283,9 @@ public class PostListActivity extends BaseActivity {
     }
 
     private void refreshTimedOut() {
+        getBus().post(new ForceCancelRefreshEvent());
         mSwipeRefreshLayout.setRefreshing(false);
-        Toast.makeText(this, R.string.network_timeout, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
         scheduleDataRefresh();
     }
 

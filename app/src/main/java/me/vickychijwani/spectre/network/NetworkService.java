@@ -30,6 +30,7 @@ import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
+import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
@@ -79,6 +80,7 @@ import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 import rx.Observable;
+import rx.functions.Action1;
 
 public class NetworkService {
 
@@ -93,6 +95,7 @@ public class NetworkService {
     private RequestInterceptor mAuthInterceptor;
 
     private boolean mbAuthRequestOnGoing = false;
+    private RetrofitError mRefreshError = null;
     private ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
     private ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
     private ArrayDeque<Object> mPostUploadQueue = new ArrayDeque<>();
@@ -165,27 +168,35 @@ public class NetworkService {
 
     @Subscribe
     public void onRefreshDataEvent(RefreshDataEvent event) {
-        // do nothing if a refresh is already in progress, unless this one was initiated by the user
-        if (! mRefreshEventsQueue.isEmpty() && ! event.isUserInitiated) {
-            refreshDone(null);
+        // do nothing if a refresh is already in progress
+        if (! mRefreshEventsQueue.isEmpty()) {
+            refreshSucceeded(null);
             return;
         }
 
         mRefreshEventsQueue.clear();
+        mRefreshError = null;           // clear last error if any
         mRefreshEventsQueue.addAll(Arrays.asList(
                 new LoadUserEvent(true),
                 new LoadBlogSettingsEvent(true),
                 new SyncPostsEvent(true)
         ));
 
-        if (event.loadCachedData) {
-            for (ApiCallEvent refreshEvent : mRefreshEventsQueue) {
+        for (ApiCallEvent refreshEvent : mRefreshEventsQueue) {
+            if (event.loadCachedData) {
                 refreshEvent.loadCachedData();
             }
-        }
-
-        for (ApiCallEvent refreshEvent : mRefreshEventsQueue) {
             getBus().post(refreshEvent);
+        }
+    }
+
+    @Subscribe
+    public void onForceCancelRefreshEvent(ForceCancelRefreshEvent event) {
+        // sometimes (rarely) the DataRefreshedEvent is not sent because an ApiCallEvent
+        // doesn't get cleared from the queue, this is to guard against that
+        if (! mRefreshEventsQueue.isEmpty()) {
+            mRefreshEventsQueue.clear();
+            mRefreshError = null;           // clear last error if any
         }
     }
 
@@ -195,7 +206,7 @@ public class NetworkService {
             RealmResults<User> users = mRealm.allObjects(User.class);
             if (users.size() > 0) {
                 getBus().post(new UserLoadedEvent(users.first()));
-                refreshDone(event);
+                refreshSucceeded(event);
                 return;
             }
             // else no users found in db, force a network call!
@@ -207,7 +218,7 @@ public class NetworkService {
             public void success(UserList userList, Response response) {
                 createOrUpdateModel(userList.users);
                 getBus().post(new UserLoadedEvent(userList.users.get(0)));
-                refreshDone(event);
+                refreshSucceeded(event);
             }
 
             @Override
@@ -218,7 +229,7 @@ public class NetworkService {
                 if (users.size() > 0) {
                     getBus().post(new UserLoadedEvent(users.first()));
                 }
-                refreshDone(event);
+                refreshFailed(event, error);
             }
         });
     }
@@ -229,7 +240,7 @@ public class NetworkService {
             RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
             if (settings.size() > 0) {
                 getBus().post(new BlogSettingsLoadedEvent(settings));
-                refreshDone(event);
+                refreshSucceeded(event);
                 return;
             }
             // no settings found in db, force a network call!
@@ -241,7 +252,7 @@ public class NetworkService {
             public void success(SettingsList settingsList, Response response) {
                 createOrUpdateModel(settingsList.settings);
                 getBus().post(new BlogSettingsLoadedEvent(settingsList.settings));
-                refreshDone(event);
+                refreshSucceeded(event);
             }
 
             @Override
@@ -252,7 +263,7 @@ public class NetworkService {
                 if (settings.size() > 0) {
                     getBus().post(new BlogSettingsLoadedEvent(settings));
                 }
-                refreshDone(event);
+                refreshFailed(event, error);
             }
         });
     }
@@ -266,7 +277,7 @@ public class NetworkService {
             // 2. we just haven't fetched any posts from the server yet (Realm returns an empty list in this case too)
             if (posts.size() > 0) {
                 getBus().post(new PostsLoadedEvent(posts));
-                refreshDone(event);
+                refreshSucceeded(event);
                 return;
             }
         }
@@ -311,7 +322,7 @@ public class NetworkService {
                 // now create / update received posts
                 createOrUpdateModel(postList.posts);
                 getBus().post(new PostsLoadedEvent(getPostsSorted()));
-                refreshDone(event);
+                refreshSucceeded(event);
             }
 
             @Override
@@ -319,7 +330,7 @@ public class NetworkService {
                 getBus().post(new ApiErrorEvent(error));
                 // fallback to cached data
                 getBus().post(new PostsLoadedEvent(getPostsSorted()));
-                refreshDone(event);
+                refreshFailed(event, error);
             }
         });
     }
@@ -353,7 +364,7 @@ public class NetworkService {
             LoadPostsEvent loadPostsEvent = new LoadPostsEvent(false);
             mRefreshEventsQueue.add(loadPostsEvent);
             getBus().post(loadPostsEvent);
-            refreshDone(event);
+            refreshSucceeded(event);
             return;
         }
 
@@ -369,14 +380,14 @@ public class NetworkService {
             LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
             mRefreshEventsQueue.add(loadPostsEvent);
             getBus().post(loadPostsEvent);
-            refreshDone(event);
+            refreshSucceeded(event);
             return;
         }
 
         // keep track of new posts uploaded successfully, so the local copies can be deleted
         List<Post> localNewPostsUploaded = new ArrayList<>();
 
-        final Runnable syncFinishedCB = () -> {
+        final Action1<RetrofitError> syncFinishedCB = (retrofitError) -> {
             // delete local copies of only those new posts that were successfully uploaded
             deleteModels(localNewPostsUploaded);
             // if forceNetworkCall is true, first load from the db, AND only then from the network,
@@ -388,11 +399,14 @@ public class NetworkService {
                 mRefreshEventsQueue.add(loadPostsEvent);
                 getBus().post(loadPostsEvent);
             }
-            refreshDone(event);
+            refreshDone(event, retrofitError);
         };
 
         mPostUploadQueue.addAll(localNewPosts);
         mPostUploadQueue.addAll(localEditedPosts);
+
+        // ugly hack (suggested by the IDE) because this must be declared "final"
+        final RetrofitError[] uploadErrorOccurred = {null};
 
         // the loop variable is *local* to the loop block, so it can be captured in a closure easily
         // this is unlike JavaScript, in which the same loop variable is mutated
@@ -408,15 +422,16 @@ public class NetworkService {
                     localNewPostsUploaded.add(localPost);
                     // FIXME this is a new post! how do subscribers know which post changed?
                     getBus().post(new PostReplacedEvent(postList.posts.get(0)));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
+                    uploadErrorOccurred[0] = error;
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new ApiErrorEvent(error));
                     getBus().post(new PostsLoadedEvent(getPostsSorted()));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
                 }
             });
         }
@@ -434,15 +449,16 @@ public class NetworkService {
                     });
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new PostSyncedEvent(localPost.getUuid()));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
+                    uploadErrorOccurred[0] = error;
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new ApiErrorEvent(error));
                     getBus().post(new PostsLoadedEvent(getPostsSorted()));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.run();
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
                 }
             });
         }
@@ -565,10 +581,22 @@ public class NetworkService {
         }
     }
 
-    private void refreshDone(@Nullable ApiCallEvent sourceEvent) {
+    private void refreshSucceeded(@Nullable ApiCallEvent sourceEvent) {
+        refreshDone(sourceEvent, null);
+    }
+
+    private void refreshFailed(@Nullable ApiCallEvent sourceEvent, @NonNull RetrofitError error) {
+        refreshDone(sourceEvent, error);
+    }
+
+    private void refreshDone(@Nullable ApiCallEvent sourceEvent, @Nullable RetrofitError error) {
         mRefreshEventsQueue.removeFirstOccurrence(sourceEvent);
+        if (error != null) {
+            mRefreshError = error;      // turn on error flag if *any* request fails
+        }
         if (mRefreshEventsQueue.isEmpty()) {
-            getBus().post(new DataRefreshedEvent());
+            getBus().post(new DataRefreshedEvent(mRefreshError));
+            mRefreshError = null;       // clear last error if any
         }
     }
 

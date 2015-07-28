@@ -59,6 +59,7 @@
     <!-- network -->
     <string name="no_internet_connection">No Internet connection</string>
     <string name="network_timeout">Connection timed out</string>
+    <string name="refresh_failed">Couldn\'t refresh data</string>
 
     <!-- generic -->
     <string name="done">Done</string>
