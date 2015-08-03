@@ -13,6 +13,13 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -30,9 +37,9 @@ import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
-import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
+import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
@@ -507,7 +514,26 @@ public class NetworkService {
             mApi.revokeAuthToken(reqBody, new ResponseCallback() {
                 @Override
                 public void success(Response response) {
-                    // no-op
+                    try {
+                        InputStream istream = response.getBody().in();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
+                        StringBuilder out = new StringBuilder();
+                        String newLine = System.getProperty("line.separator");
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            out.append(line);
+                            out.append(newLine);
+                        }
+                        JSONObject json = new JSONObject(out.toString());
+                        if (json.has("error")) {
+                            Crashlytics.log(Log.ERROR, TAG, "Failed to revoke "
+                                    + reqBody.tokenTypeHint + ": " + json.getString("error"));
+                        }
+                    } catch (IOException e) {
+                        // no-op
+                    } catch (JSONException e) {
+                        // no-op
+                    }
                 }
 
                 @Override
