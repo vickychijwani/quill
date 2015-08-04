@@ -47,6 +47,9 @@
     <string name="post_tags_hint">Add some tags…</string>
     <string name="post_body_hint">Type something here…</string>
 
+    <string name="insert_image">Insert Image</string>
+    <string name="image_url">Image URL</string>
+
     <!-- about -->
     <string name="about_action">About…</string>
     <string name="about">About</string>
@@ -67,6 +70,7 @@
     <string name="refresh">Refresh</string>
     <string name="share">Share</string>
     <string name="loading">Loading…</string>
+    <string name="insert">Insert</string>
 
     <!-- content descriptions -->
     <string name="user_image">User image</string>

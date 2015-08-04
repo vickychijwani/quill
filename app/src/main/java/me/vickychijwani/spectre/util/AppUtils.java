@@ -18,6 +18,7 @@ import android.os.IBinder;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.Editable;
 import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -80,6 +81,17 @@ public class AppUtils {
             view.clearFocus();
             hideKeyboard(activity, view.getWindowToken());
         }
+    }
+
+    public static int insertTextAtCursorOrEnd(@NonNull EditText editText, @NonNull String textToInsert) {
+        Editable editable = editText.getText();
+        int editableLen = editable.length();
+        int selStart = editText.getSelectionStart(), selEnd = editText.getSelectionEnd();
+        int start = (selStart >= 0) ? selStart : editableLen-1;
+        int end = (selEnd >= 0) ? selEnd : editableLen-1;
+        editable.replace(Math.min(start, end), Math.max(start, end),
+                textToInsert, 0, textToInsert.length());
+        return Math.min(start, end);
     }
 
     /**

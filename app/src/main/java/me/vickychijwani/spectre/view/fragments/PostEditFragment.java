@@ -1,6 +1,7 @@
 package me.vickychijwani.spectre.view.fragments;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -21,9 +22,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
@@ -284,8 +287,10 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
+        boolean isFragmentShown = isShown();
         boolean actionModeActive = mEditTextActionModeManager.isActionModeActive();
         menu.findItem(R.id.action_done).setVisible(actionModeActive);
+        menu.findItem(R.id.action_insert_image).setVisible(isFragmentShown && !actionModeActive);
         menu.findItem(R.id.action_save).setVisible(!actionModeActive);
         menu.findItem(R.id.action_publish).setVisible(!actionModeActive);
         if (Post.PUBLISHED.equals(mPost.getStatus())) {
@@ -304,6 +309,23 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             case R.id.action_done:
                 mEditTextActionModeManager.stopActionMode(false);
                 return true;
+            case R.id.action_insert_image:
+                final boolean isPostEditorFocused = mPostEditView.hasFocus();
+                onInsertImageClicked()
+                        .subscribe((url) -> {
+                            String lhs = "\n\n![", rhs = "](" + url + ")\n\n";
+                            if (isPostEditorFocused) {
+                                int start = AppUtils.insertTextAtCursorOrEnd(mPostEditView,
+                                        lhs + rhs);
+                                // position the cursor between the square brackets: ![|](http://...)
+                                mPostEditView.setSelection(start + lhs.length());
+                            } else {
+                                mPostEditView.getText().append(lhs).append(rhs);
+                                mPostEditView.setSelection(mPostEditView.getText().length() - rhs.length());
+                            }
+                            AppUtils.focusAndShowKeyboard(getActivity(), mPostEditView);
+                        });
+                return true;
             case R.id.action_save:
                 // TODO hate having to do an empty subscribe here
                 onSaveClicked().subscribe(Actions.empty());
@@ -317,6 +339,42 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private Observable<String> onInsertImageClicked() {
+        // ok to pass null here: https://possiblemobile.com/2013/05/layout-inflation-as-intended/
+        final View dialogView = getActivity().getLayoutInflater().inflate(R.layout.dialog_image_insert,
+                null, false);
+        final TextView imageUrlView = (TextView) dialogView.findViewById(R.id.image_url);
+
+        // hack for word wrap with "Done" IME action! see http://stackoverflow.com/a/13563946/504611
+        imageUrlView.setHorizontallyScrolling(false);
+        imageUrlView.setMaxLines(20);
+
+        return Observable.create((subscriber) -> {
+            final AlertDialog insertImageDialog = new AlertDialog.Builder(mActivity)
+                    .setTitle(getString(R.string.insert_image))
+                    .setView(dialogView)
+                    .setCancelable(true)
+                    .setPositiveButton(R.string.insert, (dialog, which) -> {
+                        subscriber.onNext(imageUrlView.getText().toString());
+                        subscriber.onCompleted();
+                    })
+                    .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
+                        dialog.dismiss();
+                        subscriber.onCompleted();
+                    })
+                    .create();
+            imageUrlView.setOnEditorActionListener((view, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    insertImageDialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+                    return true;
+                }
+                return false;
+            });
+            subscriber.add(Subscriptions.create(insertImageDialog::dismiss));
+            insertImageDialog.show();
+        });
     }
 
     private boolean saveToServerExplicitly() {

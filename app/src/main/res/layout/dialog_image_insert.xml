@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/padding_large"
+    android:paddingStart="@dimen/padding_large"
+    android:paddingRight="@dimen/padding_large"
+    android:paddingEnd="@dimen/padding_large"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/image_url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.Medium"
+        android:inputType="text|textUri"
+        android:singleLine="true"
+        android:imeOptions="actionDone"
+        android:hint="@string/image_url"
+        />
+
+</LinearLayout>

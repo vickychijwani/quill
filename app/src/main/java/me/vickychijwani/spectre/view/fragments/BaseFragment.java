@@ -21,6 +21,8 @@ public abstract class BaseFragment extends Fragment {
 
     private static final String TAG = "BaseFragment";
 
+    private boolean mbIsShown = true;
+
     protected Bus getBus() {
         return BusProvider.getBus();
     }
@@ -94,6 +96,7 @@ public abstract class BaseFragment extends Fragment {
     public void hide() {
         if (getView() != null) {
             getView().setVisibility(View.GONE);
+            mbIsShown = false;
             onHide();
         }
     }
@@ -104,6 +107,7 @@ public abstract class BaseFragment extends Fragment {
     public void show() {
         if (getView() != null) {
             onShow();
+            mbIsShown = true;
             getView().setVisibility(View.VISIBLE);
         }
     }
@@ -119,6 +123,13 @@ public abstract class BaseFragment extends Fragment {
      * being brought into view.
      */
     public void onShow() { }
+
+    /**
+     * @return true if the root {@link android.view.View} of this Fragment is visible.
+     */
+    public boolean isShown() {
+        return mbIsShown;
+    }
 
     /**
      * Called by the hosting {@link me.vickychijwani.spectre.view.BaseActivity} to give the Fragment

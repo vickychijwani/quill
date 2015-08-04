@@ -177,6 +177,7 @@ public class PostViewActivity extends BaseActivity implements
         setToolbarBackgroundOpaque(true);
         mPostEditFragment.hide();
         mPostViewFragment.show();
+        supportInvalidateOptionsMenu();
         mIsPreviewVisible = true;
     }
 
@@ -188,6 +189,7 @@ public class PostViewActivity extends BaseActivity implements
             AppUtils.focusAndShowKeyboard(this, mFocussedView);
         }
         mFocussedView = null;
+        supportInvalidateOptionsMenu();
         mIsPreviewVisible = false;
     }
 

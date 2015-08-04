@@ -10,6 +10,13 @@
         />
 
     <item
+        android:id="@+id/action_insert_image"
+        android:icon="@drawable/image_insert"
+        android:title="@string/insert_image"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
         android:id="@+id/action_save"
         android:icon="@drawable/save"
         android:title="@string/save"
