@@ -13,8 +13,20 @@
         android:id="@+id/action_insert_image"
         android:icon="@drawable/image_insert"
         android:title="@string/insert_image"
-        app:showAsAction="ifRoom"
-        />
+        app:showAsAction="ifRoom">
+
+        <menu>
+            <item
+                android:id="@+id/action_insert_image_url"
+                android:title="@string/insert_image_url"
+                />
+            <item
+                android:id="@+id/action_insert_image_upload"
+                android:title="@string/insert_image_upload"
+                />
+        </menu>
+
+    </item>
 
     <item
         android:id="@+id/action_save"

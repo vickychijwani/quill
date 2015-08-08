@@ -13,9 +13,12 @@ import retrofit.ResponseCallback;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Header;
+import retrofit.http.Multipart;
 import retrofit.http.POST;
 import retrofit.http.PUT;
+import retrofit.http.Part;
 import retrofit.http.Path;
+import retrofit.mime.TypedFile;
 
 interface GhostApiService {
 
@@ -46,5 +49,10 @@ interface GhostApiService {
     // settings
     @GET("/settings/?type=blog")
     void getSettings(Callback<SettingsList> cb);
+
+    // file upload
+    @Multipart
+    @POST("/uploads")
+    void uploadFile(@Part("uploadimage") TypedFile file, Callback<String> cb);
 
 }

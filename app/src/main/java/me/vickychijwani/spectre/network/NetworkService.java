@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,6 +40,9 @@ import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
+import me.vickychijwani.spectre.event.FileUploadErrorEvent;
+import me.vickychijwani.spectre.event.FileUploadEvent;
+import me.vickychijwani.spectre.event.FileUploadedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadPostEvent;
@@ -86,6 +90,7 @@ import retrofit.RetrofitError;
 import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
+import retrofit.mime.TypedFile;
 import rx.Observable;
 import rx.functions.Action1;
 
@@ -501,6 +506,22 @@ public class NetworkService {
 
         getBus().post(new PostSavedEvent(post, event.isAutoSave));
         getBus().post(new SyncPostsEvent(false));
+    }
+
+    @Subscribe
+    public void onUploadFileEvent(FileUploadEvent event) {
+        TypedFile typedFile = new TypedFile(event.mimeType, new File(event.path));
+        mApi.uploadFile(typedFile, new Callback<String>() {
+            @Override
+            public void success(String url, Response response) {
+                getBus().post(new FileUploadedEvent(url));
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                getBus().post(new FileUploadErrorEvent(error));
+            }
+        });
     }
 
     @Subscribe

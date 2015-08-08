@@ -1,7 +1,8 @@
 package me.vickychijwani.spectre.view.fragments;
 
 import android.app.Activity;
-import android.content.DialogInterface;
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -22,11 +23,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
@@ -44,6 +44,9 @@ import butterknife.BindDimen;
 import butterknife.ButterKnife;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.event.FileUploadErrorEvent;
+import me.vickychijwani.spectre.event.FileUploadEvent;
+import me.vickychijwani.spectre.event.FileUploadedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
@@ -51,12 +54,18 @@ import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.EditTextSelectionState;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.EditTextActionModeManager;
+import me.vickychijwani.spectre.view.Observables;
 import me.vickychijwani.spectre.view.PostViewActivity;
 import me.vickychijwani.spectre.view.TagsEditText;
 import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.functions.Actions;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
 public class PostEditFragment extends BaseFragment implements ObservableScrollViewCallbacks,
@@ -72,7 +81,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         PUBLISHED_EXPLICIT,
         DRAFT_AUTO,
         DRAFT_EXPLICIT
-    };
+    }
 
     @Bind(R.id.post_header_container)       ViewGroup mPostHeaderContainer;
     @Bind(R.id.post_header)                 View mPostHeader;
@@ -98,6 +107,12 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     private SaveType mSaveType = SaveType.NONE;
     private Runnable mSaveTimeoutRunnable;
     private static final int SAVE_TIMEOUT = 5 * 1000;       // milliseconds
+
+    // image insert / upload
+    private static final int REQUEST_CODE_IMAGE_PICK = 1;
+    private Subscription mUploadSubscription = null;
+    private ProgressDialog mUploadProgress = null;
+    private EditTextSelectionState mMarkdownEditSelectionState;
 
     // action mode
     private View.OnClickListener mActionModeCloseClickListener;
@@ -216,6 +231,16 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         saveAutomatically();
         // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
         super.onPause();
+        // unsubscribe from observable
+        if (mUploadSubscription != null) {
+            mUploadSubscription.unsubscribe();
+            mUploadSubscription = null;
+            Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
+        }
+        if (mUploadProgress != null) {
+            mUploadProgress.dismiss();
+            mUploadProgress = null;
+        }
     }
 
     @Override
@@ -309,22 +334,11 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
             case R.id.action_done:
                 mEditTextActionModeManager.stopActionMode(false);
                 return true;
-            case R.id.action_insert_image:
-                final boolean isPostEditorFocused = mPostEditView.hasFocus();
-                onInsertImageClicked()
-                        .subscribe((url) -> {
-                            String lhs = "\n\n![", rhs = "](" + url + ")\n\n";
-                            if (isPostEditorFocused) {
-                                int start = AppUtils.insertTextAtCursorOrEnd(mPostEditView,
-                                        lhs + rhs);
-                                // position the cursor between the square brackets: ![|](http://...)
-                                mPostEditView.setSelection(start + lhs.length());
-                            } else {
-                                mPostEditView.getText().append(lhs).append(rhs);
-                                mPostEditView.setSelection(mPostEditView.getText().length() - rhs.length());
-                            }
-                            AppUtils.focusAndShowKeyboard(getActivity(), mPostEditView);
-                        });
+            case R.id.action_insert_image_url:
+                onInsertImageUrlClicked();
+                return true;
+            case R.id.action_insert_image_upload:
+                onInsertImageUploadClicked();
                 return true;
             case R.id.action_save:
                 // TODO hate having to do an empty subscribe here
@@ -341,39 +355,73 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         }
     }
 
-    private Observable<String> onInsertImageClicked() {
-        // ok to pass null here: https://possiblemobile.com/2013/05/layout-inflation-as-intended/
-        final View dialogView = getActivity().getLayoutInflater().inflate(R.layout.dialog_image_insert,
-                null, false);
-        final TextView imageUrlView = (TextView) dialogView.findViewById(R.id.image_url);
+    private void onInsertImageUploadClicked() {
+        mMarkdownEditSelectionState = new EditTextSelectionState(mPostEditView);
+        Intent imagePickIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        imagePickIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        imagePickIntent.setType("image/*");
+        if (imagePickIntent.resolveActivity(mActivity.getPackageManager()) != null) {
+            startActivityForResult(imagePickIntent, REQUEST_CODE_IMAGE_PICK);
+        }
+    }
 
-        // hack for word wrap with "Done" IME action! see http://stackoverflow.com/a/13563946/504611
-        imageUrlView.setHorizontallyScrolling(false);
-        imageUrlView.setMaxLines(20);
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent result) {
+        if (result == null || result.getData() == null || resultCode != Activity.RESULT_OK) {
+            return;
+        }
 
-        return Observable.create((subscriber) -> {
-            final AlertDialog insertImageDialog = new AlertDialog.Builder(mActivity)
-                    .setTitle(getString(R.string.insert_image))
-                    .setView(dialogView)
-                    .setCancelable(true)
-                    .setPositiveButton(R.string.insert, (dialog, which) -> {
-                        subscriber.onNext(imageUrlView.getText().toString());
-                        subscriber.onCompleted();
-                    })
-                    .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
-                        dialog.dismiss();
-                        subscriber.onCompleted();
-                    })
-                    .create();
-            imageUrlView.setOnEditorActionListener((view, actionId, event) -> {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    insertImageDialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
-                    return true;
-                }
-                return false;
-            });
-            subscriber.add(Subscriptions.create(insertImageDialog::dismiss));
-            insertImageDialog.show();
+        if (mUploadSubscription != null) {
+            mUploadSubscription.unsubscribe();
+            mUploadSubscription = null;
+        }
+
+        mUploadProgress = ProgressDialog.show(mActivity, null,
+                mActivity.getString(R.string.uploading), true, false);
+
+        mUploadSubscription = Observables
+                .getBitmapFromUri(mActivity.getContentResolver(), result.getData())
+                .map(Observables.Funcs.copyBitmapToJpegFile())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((imagePath) -> {
+                    getBus().post(new FileUploadEvent(imagePath, "image/jpeg"));
+                }, (error) -> {
+                    Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
+                    mUploadProgress.dismiss();
+                    mUploadProgress = null;
+                }, () -> {      // onComplete
+                    //noinspection Convert2MethodRef
+                    mUploadSubscription = null;
+                });
+    }
+
+    @Subscribe
+    public void onFileUploadedEvent(FileUploadedEvent event) {
+        Action1<String> insertMarkdownAction = Observables.Actions
+                .insertImageMarkdown(mActivity, mMarkdownEditSelectionState);
+        Observable.just(event.relativeUrl).subscribe((url) -> {
+            mUploadProgress.dismiss();
+            mUploadProgress = null;
+            insertMarkdownAction.call(url);
+            mMarkdownEditSelectionState = null;
+        });
+    }
+
+    @Subscribe
+    public void onFileUploadErrorEvent(FileUploadErrorEvent event) {
+        Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
+        mUploadProgress.dismiss();
+        mUploadProgress = null;
+    }
+
+    private void onInsertImageUrlClicked() {
+        mMarkdownEditSelectionState = new EditTextSelectionState(mPostEditView);
+        Action1<String> insertMarkdownAction = Observables.Actions
+                .insertImageMarkdown(mActivity, mMarkdownEditSelectionState);
+        Observables.getImageUrlDialog(mActivity).subscribe((url) -> {
+            insertMarkdownAction.call(url);
+            mMarkdownEditSelectionState = null;
         });
     }
 
@@ -466,6 +514,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
                         subscriber.onCompleted();
                     })
                     .create();
+            // dismiss the dialog automatically if this subscriber unsubscribes
             subscriber.add(Subscriptions.create(alertDialog::dismiss));
             alertDialog.show();
         });

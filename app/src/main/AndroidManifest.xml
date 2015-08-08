@@ -3,8 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     package="me.vickychijwani.spectre">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- for picking images from Dropbox, Google Photos, etc -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name=".SpectreApplication"

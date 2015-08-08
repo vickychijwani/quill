@@ -47,8 +47,13 @@
     <string name="post_tags_hint">Add some tags…</string>
     <string name="post_body_hint">Type something here…</string>
 
+    <!-- image insert / upload -->
     <string name="insert_image">Insert Image</string>
+    <string name="insert_image_url">Insert URL</string>
     <string name="image_url">Image URL</string>
+    <string name="insert_image_upload">Upload Image</string>
+    <string name="uploading">Uploading…</string>
+    <string name="image_upload_failed">Couldn\'t upload image</string>
 
     <!-- about -->
     <string name="about_action">About…</string>

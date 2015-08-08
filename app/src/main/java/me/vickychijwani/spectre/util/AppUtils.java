@@ -83,10 +83,13 @@ public class AppUtils {
         }
     }
 
-    public static int insertTextAtCursorOrEnd(@NonNull EditText editText, @NonNull String textToInsert) {
+    public static int insertTextAtCursorOrEnd(@NonNull EditTextSelectionState selectionState,
+                                              @NonNull String textToInsert) {
+        EditText editText = selectionState.getEditText();
         Editable editable = editText.getText();
         int editableLen = editable.length();
-        int selStart = editText.getSelectionStart(), selEnd = editText.getSelectionEnd();
+        int selStart = selectionState.getSelectionStart();
+        int selEnd = selectionState.getSelectionEnd();
         int start = (selStart >= 0) ? selStart : editableLen-1;
         int end = (selEnd >= 0) ? selEnd : editableLen-1;
         editable.replace(Math.min(start, end), Math.max(start, end),
