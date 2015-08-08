@@ -38,6 +38,7 @@ import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
+import me.vickychijwani.spectre.event.ConfigurationLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.FileUploadErrorEvent;
@@ -45,6 +46,7 @@ import me.vickychijwani.spectre.event.FileUploadEvent;
 import me.vickychijwani.spectre.event.FileUploadedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
+import me.vickychijwani.spectre.event.LoadConfigurationEvent;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
@@ -65,6 +67,8 @@ import me.vickychijwani.spectre.event.SyncPostsEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.AuthReqBody;
 import me.vickychijwani.spectre.model.AuthToken;
+import me.vickychijwani.spectre.model.ConfigurationList;
+import me.vickychijwani.spectre.model.ConfigurationParam;
 import me.vickychijwani.spectre.model.ETag;
 import me.vickychijwani.spectre.model.PendingAction;
 import me.vickychijwani.spectre.model.Post;
@@ -191,6 +195,7 @@ public class NetworkService {
         mRefreshEventsQueue.addAll(Arrays.asList(
                 new LoadUserEvent(true),
                 new LoadBlogSettingsEvent(true),
+                new LoadConfigurationEvent(true),
                 new SyncPostsEvent(true)
         ));
 
@@ -274,6 +279,40 @@ public class NetworkService {
                 RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
                 if (settings.size() > 0) {
                     getBus().post(new BlogSettingsLoadedEvent(settings));
+                }
+                refreshFailed(event, error);
+            }
+        });
+    }
+
+    @Subscribe
+    public void onLoadConfigurationEvent(final LoadConfigurationEvent event) {
+        if (event.loadCachedData || ! event.forceNetworkCall) {
+            RealmResults<ConfigurationParam> params = mRealm.allObjects(ConfigurationParam.class);
+            if (params.size() > 0) {
+                getBus().post(new ConfigurationLoadedEvent(params));
+                refreshSucceeded(event);
+                return;
+            }
+            // no configuration params found in db, force a network call!
+        }
+
+        if (! validateAccessToken(event)) return;
+        mApi.getConfiguration(new Callback<ConfigurationList>() {
+            @Override
+            public void success(ConfigurationList configurationList, Response response) {
+                createOrUpdateModel(configurationList.configuration);
+                getBus().post(new ConfigurationLoadedEvent(configurationList.configuration));
+                refreshSucceeded(event);
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                getBus().post(new ApiErrorEvent(error));
+                // fallback to cached data
+                RealmResults<ConfigurationParam> params = mRealm.allObjects(ConfigurationParam.class);
+                if (params.size() > 0) {
+                    getBus().post(new ConfigurationLoadedEvent(params));
                 }
                 refreshFailed(event, error);
             }

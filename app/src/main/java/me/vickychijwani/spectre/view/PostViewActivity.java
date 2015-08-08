@@ -79,8 +79,26 @@ public class PostViewActivity extends BaseActivity implements
         mToolbarScrimView.setBackground(AppUtils.makeCubicGradientScrimDrawable(0xaa000000, 2,
                 Gravity.TOP));
 
-        mPostViewFragment = addFragment(PostViewFragment.class, R.id.fragment_container, TAG_VIEW_FRAGMENT);
-        mPostEditFragment = addFragment(PostEditFragment.class, R.id.fragment_container, TAG_EDIT_FRAGMENT);
+        mPostViewFragment = (PostViewFragment) getSupportFragmentManager()
+                .findFragmentByTag(TAG_VIEW_FRAGMENT);
+        if (mPostViewFragment == null) {
+            mPostViewFragment = PostViewFragment.newInstance();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragment_container, mPostViewFragment, TAG_VIEW_FRAGMENT)
+                    .commit();
+        }
+
+        mPostEditFragment = (PostEditFragment) getSupportFragmentManager()
+                .findFragmentByTag(TAG_EDIT_FRAGMENT);
+        if (mPostEditFragment == null) {
+            boolean fileStorageEnabled = getIntent().getExtras().getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
+            mPostEditFragment = PostEditFragment.newInstance(fileStorageEnabled);
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragment_container, mPostEditFragment, TAG_EDIT_FRAGMENT)
+                    .commit();
+        }
     }
 
     @Override

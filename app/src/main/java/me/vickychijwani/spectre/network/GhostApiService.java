@@ -2,6 +2,7 @@ package me.vickychijwani.spectre.network;
 
 import me.vickychijwani.spectre.model.AuthReqBody;
 import me.vickychijwani.spectre.model.AuthToken;
+import me.vickychijwani.spectre.model.ConfigurationList;
 import me.vickychijwani.spectre.model.PostList;
 import me.vickychijwani.spectre.model.PostStubList;
 import me.vickychijwani.spectre.model.RefreshReqBody;
@@ -46,9 +47,12 @@ interface GhostApiService {
     @PUT("/posts/{id}/?include=tags")
     void updatePost(@Path("id") int id, @Body PostStubList posts, Callback<PostList> cb);
 
-    // settings
+    // settings / configuration
     @GET("/settings/?type=blog")
     void getSettings(Callback<SettingsList> cb);
+
+    @GET("/configuration")
+    void getConfiguration(Callback<ConfigurationList> cb);
 
     // file upload
     @Multipart

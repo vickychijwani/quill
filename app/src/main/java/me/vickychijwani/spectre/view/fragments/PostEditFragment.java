@@ -56,6 +56,7 @@ import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
 import me.vickychijwani.spectre.util.PostUtils;
+import me.vickychijwani.spectre.view.BundleKeys;
 import me.vickychijwani.spectre.view.EditTextActionModeManager;
 import me.vickychijwani.spectre.view.Observables;
 import me.vickychijwani.spectre.view.PostViewActivity;
@@ -113,6 +114,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     private Subscription mUploadSubscription = null;
     private ProgressDialog mUploadProgress = null;
     private EditTextSelectionState mMarkdownEditSelectionState;
+    private boolean mFileStorageEnabled = true;
 
     // action mode
     private View.OnClickListener mActionModeCloseClickListener;
@@ -137,8 +139,12 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
 
     @SuppressWarnings("unused")
-    public static PostEditFragment newInstance() {
-        return new PostEditFragment();
+    public static PostEditFragment newInstance(boolean fileStorageEnabled) {
+        PostEditFragment fragment = new PostEditFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(BundleKeys.FILE_STORAGE_ENABLED, fileStorageEnabled);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Nullable
@@ -153,6 +159,8 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         mPicasso = getPicasso();
         mHeaderBottomScrimDrawable = AppUtils.makeCubicGradientScrimDrawable(0xaa000000, 8,
                 Gravity.BOTTOM);
+        mFileStorageEnabled = getArguments().getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
+                mFileStorageEnabled);
 
         setPost(mActivity.getPost(), true);
 
@@ -307,7 +315,11 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.post_edit, menu);
+        if (mFileStorageEnabled) {
+            inflater.inflate(R.menu.post_edit_file_storage_enabled, menu);
+        } else {
+            inflater.inflate(R.menu.post_edit_file_storage_disabled, menu);
+        }
     }
 
     @Override
@@ -315,7 +327,6 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         boolean isFragmentShown = isShown();
         boolean actionModeActive = mEditTextActionModeManager.isActionModeActive();
         menu.findItem(R.id.action_done).setVisible(actionModeActive);
-        menu.findItem(R.id.action_insert_image).setVisible(isFragmentShown && !actionModeActive);
         menu.findItem(R.id.action_save).setVisible(!actionModeActive);
         menu.findItem(R.id.action_publish).setVisible(!actionModeActive);
         if (Post.PUBLISHED.equals(mPost.getStatus())) {
@@ -326,6 +337,13 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
 //         saveToMemory();   // make sure user changes are stored in mPost before computing diff
 //         boolean isPostDirty = PostUtils.isDirty(mOriginalPost, mPost);
 //         menu.findItem(R.id.action_discard).setVisible(isPostDirty && !actionModeActive);
+
+        if (menu.findItem(R.id.action_insert_image) != null) {
+            menu.findItem(R.id.action_insert_image).setVisible(isFragmentShown && !actionModeActive);
+        }
+        if (menu.findItem(R.id.action_insert_image_url) != null) {
+            menu.findItem(R.id.action_insert_image_url).setVisible(isFragmentShown && !actionModeActive);
+        }
     }
 
     @Override

@@ -39,14 +39,16 @@ import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
-import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
+import me.vickychijwani.spectre.event.ConfigurationLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
+import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
+import me.vickychijwani.spectre.model.ConfigurationParam;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Setting;
 import me.vickychijwani.spectre.model.Tag;
@@ -69,6 +71,10 @@ public class PostListActivity extends BaseActivity {
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mRefreshDataRunnable;
     private Runnable mRefreshTimeoutRunnable;
+
+    // blog configuration
+    private List<ConfigurationParam> mBlogConfiguration = new ArrayList<>();
+    private boolean mFileStorageEnabled = true;
 
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;    // in milliseconds
 
@@ -110,6 +116,7 @@ public class PostListActivity extends BaseActivity {
             Post post = mPostAdapter.getItem(pos);
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
             intent.putExtra(BundleKeys.POST_UUID, post.getUuid());
+            intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
             startActivity(intent);
         });
         mPostList.setAdapter(mPostAdapter);
@@ -239,6 +246,16 @@ public class PostListActivity extends BaseActivity {
     }
 
     @Subscribe
+    public void onConfigurationLoadedEvent(ConfigurationLoadedEvent event) {
+        mBlogConfiguration = event.params;
+        for (ConfigurationParam param : event.params) {
+            if (param.getKey().equals("fileStorage")) {
+                mFileStorageEnabled = Boolean.valueOf(param.getValue());
+            }
+        }
+    }
+
+    @Subscribe
     public void onPostsLoadedEvent(PostsLoadedEvent event) {
         mPosts.clear();
         mPosts.addAll(event.posts);
@@ -254,6 +271,7 @@ public class PostListActivity extends BaseActivity {
     public void onPostCreatedEvent(PostCreatedEvent event) {
         Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
         intent.putExtra(BundleKeys.POST_UUID, event.newPost.getUuid());
+        intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
         startActivity(intent);
     }
 

@@ -3,8 +3,6 @@ package me.vickychijwani.spectre.view;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -140,43 +138,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         Intent browserIntent = new Intent(this, BrowserActivity.class);
         browserIntent.putExtra(BundleKeys.URL, url);
         startActivity(browserIntent);
-    }
-
-    /**
-     * Add a {@link android.support.v4.app.Fragment} of the given type {@link T}. NOTE: this method
-     * is only designed to work with Fragments that have a zero-argument static factory method named
-     * newInstance().
-     *
-     * @param type      the class of the Fragment to add
-     * @param container the ID of the view container in which to add this Fragment's view root
-     * @param tag       the tag to assign to this Fragment, used for retrieval later
-     * @param <T>       the type of the Fragment
-     * @return a non-null instance of type {@link T} (could be a new instance or one already
-     *                  attached to the activity)
-     */
-    @SuppressWarnings("unchecked")
-    @NonNull
-    public <T extends Fragment> T addFragment(Class<T> type, @IdRes int container, String tag) {
-        T fragment = (T) getSupportFragmentManager().findFragmentByTag(tag);
-        if (fragment == null) {
-            //noinspection TryWithIdenticalCatches
-            try {
-                fragment = type.newInstance();
-            } catch (InstantiationException e) {
-                throw new IllegalArgumentException("Given Fragment class does not have a zero-" +
-                        "argument static factory method named newInstance(), as required by this" +
-                        "method");
-            } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("Given Fragment class does not have a zero-" +
-                        "argument static factory method named newInstance(), as required by this" +
-                        "method");
-            }
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(container, fragment, tag)
-                    .commit();
-        }
-        return fragment;
     }
 
 
