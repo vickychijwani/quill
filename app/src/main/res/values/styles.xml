@@ -15,9 +15,13 @@
         <item name="android:stateListAnimator" tools:targetApi="lollipop">@anim/lift_up</item>
     </style>
 
+    <!-- this by itself will only work correctly if the FAB is a child of a CoordinatorLayout -->
+    <!-- if not, you will have to likely override layout_marginBottom to 0dp -->
     <style name="MyFloatingActionButton" parent="Widget.Design.FloatingActionButton">
-        <!-- design support library already adds padding (for shadow) -->
-        <item name="android:layout_margin">0dp</item>
+        <item name="android:layout_marginTop">@dimen/padding_large</item>
+        <item name="android:layout_marginBottom">@dimen/padding_large</item>
+        <item name="android:layout_marginLeft">@dimen/padding_large</item>
+        <item name="android:layout_marginRight">@dimen/padding_large</item>
     </style>
 
     <!-- Text styles -->

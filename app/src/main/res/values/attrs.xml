@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <!-- colors -->
-    <attr name="colorFab" format="reference|color" />
-    <attr name="colorFabPressed" format="reference|color" />
-    <attr name="colorFabRipple" format="reference|color" />
-
-</resources>

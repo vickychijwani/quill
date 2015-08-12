@@ -2,12 +2,13 @@ package me.vickychijwani.spectre.view;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -82,11 +84,11 @@ public class PostListActivity extends BaseActivity {
     private static final int REFRESH_TIMEOUT = 5 * 60 * 1000;       // in milliseconds
 
     @Bind(R.id.toolbar)                     Toolbar mToolbar;
-    @Bind(R.id.toolbar_card)                CardView mToolbarCard;
     @Bind(R.id.app_bar_bg)                  View mAppBarBg;
     @Bind(R.id.user_image)                  ImageView mUserImageView;
     @Bind(R.id.user_blog_title)             TextView mBlogTitleView;
     @Bind(R.id.swipe_refresh_layout)        SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.post_list_container)         FrameLayout mPostListContainer;
     @Bind(R.id.post_list)                   RecyclerView mPostList;
 
     @Override
@@ -126,15 +128,19 @@ public class PostListActivity extends BaseActivity {
         int vSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_v);
         mPostList.addItemDecoration(new SpaceItemDecoration(hSpace, vSpace));
 
-        final int toolbarElevation = getResources()
-                .getDimensionPixelOffset(R.dimen.toolbar_elevation);
+        final Drawable appbarShadowDrawable;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            appbarShadowDrawable = getResources().getDrawable(R.drawable.appbar_shadow, getTheme());
+        } else {
+            appbarShadowDrawable = getResources().getDrawable(R.drawable.appbar_shadow);
+        }
         mPostList.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 int scrollY = mPostList.computeVerticalScrollOffset();
                 mAppBarBg.setTranslationY(-scrollY);
-                mToolbarCard.setCardElevation(scrollY <= 0 ? 0 : toolbarElevation);
+                mPostListContainer.setForeground(scrollY <= 0 ? null : appbarShadowDrawable);
             }
         });
 
