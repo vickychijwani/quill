@@ -35,6 +35,7 @@ import me.vickychijwani.spectre.model.ApiError;
 import me.vickychijwani.spectre.model.ApiErrorList;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.KeyboardUtils;
 import retrofit.RetrofitError;
 
 
@@ -147,6 +148,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
+            KeyboardUtils.defocusAndHideKeyboard(this);
             sendLoginRequest();
         }
     }

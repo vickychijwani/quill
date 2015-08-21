@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
+import me.vickychijwani.spectre.util.KeyboardUtils;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -111,7 +112,7 @@ public class Observables {
                     // position the cursor between the square brackets: ![|](http://...)
                     editText.setSelection(editText.getText().length() - rhs.length());
                 }
-                AppUtils.focusAndShowKeyboard(activity, editText);
+                KeyboardUtils.focusAndShowKeyboard(activity, editText);
             };
         }
 

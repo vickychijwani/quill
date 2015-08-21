@@ -55,6 +55,7 @@ import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
+import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.BundleKeys;
 import me.vickychijwani.spectre.view.EditTextActionModeManager;
@@ -297,7 +298,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
         } else {
             saveToMemory();
         }
-        AppUtils.hideKeyboard(mActivity);
+        KeyboardUtils.hideKeyboard(mActivity);
         mActivity.setTitle(null);
         mActivity.supportInvalidateOptionsMenu();
         mActivity.resetNavigationItem();

@@ -1,9 +1,10 @@
 package me.vickychijwani.spectre.util;
 
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
@@ -14,14 +15,11 @@ import android.graphics.drawable.shapes.RectShape;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.IBinder;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.view.Gravity;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.crashlytics.android.Crashlytics;
@@ -33,54 +31,12 @@ public class AppUtils {
         return Uri.withAppendedPath(Uri.parse(basePath), relativePath).toString();
     }
 
-    /**
-     * Show the soft keyboard.
-     * @param activity the current activity
-     */
-    public static void showKeyboard(@Nullable Activity activity) {
-        if (activity == null) return;
-        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+    public static float dpToPx(final float dp) {
+        return dp * Resources.getSystem().getDisplayMetrics().density;
     }
 
-    /**
-     * Hide the soft keyboard.
-     * @param activity the current activity
-     */
-    public static void hideKeyboard(@Nullable Activity activity) {
-        if (activity == null) return;
-        View view = activity.getCurrentFocus();
-        if (view != null) {
-            hideKeyboard(activity, view.getWindowToken());
-        }
-    }
-
-    /**
-     * Focus the given view and show the soft keyboard.
-     * @param activity the current activity
-     * @param view the view to focus
-     */
-    public static void focusAndShowKeyboard(@Nullable Activity activity, @NonNull View view) {
-        if (activity == null) return;
-        if (view.isFocusable()) {
-            view.requestFocus();
-        }
-        if (view instanceof EditText) {
-            showKeyboard(activity);
-        }
-    }
-
-    /**
-     * Clear focus from the current view and hide the soft keyboard.
-     * @param activity the current activity
-     */
-    public static void defocusAndHideKeyboard(@Nullable Activity activity) {
-        if (activity == null) return;
-        View view = activity.getCurrentFocus();
-        if (view != null) {
-            view.clearFocus();
-            hideKeyboard(activity, view.getWindowToken());
-        }
+    public static float pxToDp(final float px) {
+        return px / Resources.getSystem().getDisplayMetrics().density;
     }
 
     public static int insertTextAtCursorOrEnd(@NonNull EditTextSelectionState selectionState,
@@ -111,6 +67,8 @@ public class AppUtils {
      * Creates an approximated cubic gradient using a multi-stop linear gradient. See
      * https://plus.google.com/+RomanNurik/posts/2QvHVFWrHZf for more details.
      */
+    @SuppressWarnings("OverlyLongMethod")
+    @SuppressLint("RtlHardcoded")
     public static Drawable makeCubicGradientScrimDrawable(@ColorInt int baseColor, int numStops,
                                                           int gravity) {
         numStops = Math.max(numStops, 2);
@@ -158,14 +116,13 @@ public class AppUtils {
         paintDrawable.setShaderFactory(new ShapeDrawable.ShaderFactory() {
             @Override
             public Shader resize(int width, int height) {
-                LinearGradient linearGradient = new LinearGradient(
+                return new LinearGradient(
                         width * x0,
                         height * y0,
                         width * x1,
                         height * y1,
                         stopColors, null,
                         Shader.TileMode.CLAMP);
-                return linearGradient;
             }
         });
 
@@ -183,14 +140,6 @@ public class AppUtils {
             Crashlytics.logException(e);
             return null;
         }
-    }
-
-
-    // private methods
-    private static void hideKeyboard(@Nullable Activity activity, @Nullable IBinder windowToken) {
-        if (activity == null) return;
-        InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.hideSoftInputFromWindow(windowToken, InputMethodManager.HIDE_NOT_ALWAYS);
     }
 
 }

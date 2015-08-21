@@ -24,6 +24,7 @@ import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
@@ -50,8 +51,9 @@ public class PostViewActivity extends BaseActivity implements
     private PostEditFragment mPostEditFragment;
     private View.OnClickListener mUpClickListener;
 
-    private boolean mIsPreviewVisible = false;
-    private View mFocussedView = null;
+    private boolean mbIsPreviewVisible = false;
+    private boolean mbIsKeyboardVisible = false;
+    private boolean mbWasKeyboardVisibleInEditor = false;
 
     private boolean mbPreviewPost = false;
     private ProgressDialog mProgressDialog;
@@ -78,6 +80,10 @@ public class PostViewActivity extends BaseActivity implements
 
         mToolbarScrimView.setBackground(AppUtils.makeCubicGradientScrimDrawable(0xaa000000, 2,
                 Gravity.TOP));
+
+        KeyboardUtils.addKeyboardVisibilityChangedListener(visible -> {
+            mbIsKeyboardVisible = visible;
+        }, this);
 
         mPostViewFragment = (PostViewFragment) getSupportFragmentManager()
                 .findFragmentByTag(TAG_VIEW_FRAGMENT);
@@ -190,31 +196,32 @@ public class PostViewActivity extends BaseActivity implements
 
     @Override
     public void onPreviewClicked() {
-        mFocussedView = getCurrentFocus();
-        AppUtils.defocusAndHideKeyboard(this);
+        if (mbIsKeyboardVisible) {
+            mbWasKeyboardVisibleInEditor = mbIsKeyboardVisible;
+            KeyboardUtils.hideKeyboard(this);
+        }
         setToolbarBackgroundOpaque(true);
         mPostEditFragment.hide();
         mPostViewFragment.show();
         supportInvalidateOptionsMenu();
-        mIsPreviewVisible = true;
+        mbIsPreviewVisible = true;
     }
 
     @Override
     public void onEditClicked() {
         mPostViewFragment.hide();
         mPostEditFragment.show();
-        if (mFocussedView != null) {
-            AppUtils.focusAndShowKeyboard(this, mFocussedView);
+        if (mbWasKeyboardVisibleInEditor) {
+            KeyboardUtils.showKeyboard(this);
         }
-        mFocussedView = null;
         supportInvalidateOptionsMenu();
-        mIsPreviewVisible = false;
+        mbIsPreviewVisible = false;
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(KEY_IS_PREVIEW_VISIBLE, mIsPreviewVisible);
+        outState.putBoolean(KEY_IS_PREVIEW_VISIBLE, mbIsPreviewVisible);
     }
 
     public void setToolbarBackgroundOpaque(boolean opaque) {
