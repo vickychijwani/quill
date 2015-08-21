@@ -419,12 +419,10 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     public void onFileUploadedEvent(FileUploadedEvent event) {
         Action1<String> insertMarkdownAction = Observables.Actions
                 .insertImageMarkdown(mActivity, mMarkdownEditSelectionState);
-        Observable.just(event.relativeUrl).subscribe((url) -> {
-            mUploadProgress.dismiss();
-            mUploadProgress = null;
-            insertMarkdownAction.call(url);
-            mMarkdownEditSelectionState = null;
-        });
+        mUploadProgress.dismiss();
+        mUploadProgress = null;
+        insertMarkdownAction.call(event.relativeUrl);
+        mMarkdownEditSelectionState = null;
     }
 
     @Subscribe

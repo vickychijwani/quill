@@ -19,36 +19,36 @@
         android:orientation="vertical"
         tools:context=".PostListActivity">
 
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/MyToolbar">
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/MyToolbar">
 
-                <ImageView
-                    android:id="@+id/user_image"
-                    android:layout_width="@dimen/toolbar_height"
-                    android:layout_height="@dimen/toolbar_height"
-                    android:contentDescription="@string/user_image"
-                    android:padding="@dimen/padding_default"
-                    tools:src="@drawable/ic_launcher"
-                    />
+            <ImageView
+                android:id="@+id/user_image"
+                android:layout_width="@dimen/toolbar_height"
+                android:layout_height="@dimen/toolbar_height"
+                android:contentDescription="@string/user_image"
+                android:padding="@dimen/padding_default"
+                tools:src="@drawable/ic_launcher"
+                />
 
-                <TextView
-                    android:id="@+id/user_blog_title"
-                    style="@style/TextAppearance.Large.Light.Inverse"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:paddingLeft="@dimen/padding_default"
-                    android:paddingRight="@dimen/padding_default"
-                    android:singleLine="true"
-                    android:text="@string/app_name"
-                    tools:text="My Awesome Blog Title"
-                    />
+            <TextView
+                android:id="@+id/user_blog_title"
+                style="@style/TextAppearance.Large.Light.Inverse"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingLeft="@dimen/padding_default"
+                android:paddingRight="@dimen/padding_default"
+                android:singleLine="true"
+                android:text="@string/app_name"
+                tools:text="My Awesome Blog Title"
+                />
 
-            </android.support.v7.widget.Toolbar>
+        </android.support.v7.widget.Toolbar>
 
         <FrameLayout
             android:id="@+id/post_list_container"
@@ -58,35 +58,35 @@
 
             <!-- CoordinatorLayout needed to ensure the FAB gets correct margins -->
             <android.support.design.widget.CoordinatorLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <android.support.v4.widget.SwipeRefreshLayout
-                android:id="@+id/swipe_refresh_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/post_list"
+                <android.support.v4.widget.SwipeRefreshLayout
+                    android:id="@+id/swipe_refresh_layout"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:paddingBottom="@dimen/padding_fab_normal"
-                    android:scrollbarStyle="outsideOverlay"
-                    android:scrollbars="vertical"
-                    tools:listitem="@layout/post_list_item"
+                    android:layout_height="match_parent">
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/post_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:paddingBottom="@dimen/padding_fab_normal"
+                        android:scrollbarStyle="outsideOverlay"
+                        android:scrollbars="vertical"
+                        tools:listitem="@layout/post_list_item"
+                        />
+
+                </android.support.v4.widget.SwipeRefreshLayout>
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/new_post_btn"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:src="@drawable/create"
+                    style="@style/MyFloatingActionButton"
                     />
-
-            </android.support.v4.widget.SwipeRefreshLayout>
-
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/new_post_btn"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:src="@drawable/create"
-                style="@style/MyFloatingActionButton"
-                />
 
             </android.support.design.widget.CoordinatorLayout>
 

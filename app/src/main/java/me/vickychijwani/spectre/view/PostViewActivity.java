@@ -29,6 +29,7 @@ import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 import rx.Observable;
+import rx.functions.Action1;
 
 public class PostViewActivity extends BaseActivity implements
         PostViewFragment.OnEditClickListener,
@@ -156,7 +157,7 @@ public class PostViewActivity extends BaseActivity implements
         } else {
             waitForNetworkObservable = Observable.just(false);
         }
-        waitForNetworkObservable.subscribe(isNetworkCallPending -> {
+        Action1<Boolean> waitForNetworkAction = isNetworkCallPending -> {
             if (isNetworkCallPending) {
                 mProgressDialog = new ProgressDialog(this);
                 mProgressDialog.setIndeterminate(true);
@@ -168,7 +169,10 @@ public class PostViewActivity extends BaseActivity implements
                 mbPreviewPost = false;
                 startBrowserActivity(PostUtils.getPostUrl(mPost));
             }
-        });
+        };
+        waitForNetworkObservable
+                .compose(bindToLifecycle())         // ensure unsubscription on activity pause
+                .subscribe(waitForNetworkAction);
     }
 
     @Subscribe
