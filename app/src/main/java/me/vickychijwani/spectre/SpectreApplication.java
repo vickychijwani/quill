@@ -17,6 +17,7 @@ import com.squareup.otto.DeadEvent;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.OkHttpDownloader;
 import com.squareup.picasso.Picasso;
+import com.tsengvn.typekit.Typekit;
 
 import java.io.File;
 import java.net.HttpURLConnection;
@@ -51,9 +52,18 @@ public class SpectreApplication extends Application {
         BusProvider.getBus().register(this);
         sInstance = this;
 
+        setupFonts();
         initOkHttpClient();
         initPicasso();
         new NetworkService().start(this, mOkHttpClient);
+    }
+
+    private void setupFonts() {
+        Typekit.getInstance()
+                .addNormal(Typekit.createFromAsset(this, "fonts/OpenSans-Regular.ttf"))
+                .addItalic(Typekit.createFromAsset(this, "fonts/OpenSans-Italic.ttf"))
+                .addBold(Typekit.createFromAsset(this, "fonts/OpenSans-Bold.ttf"))
+                .addBoldItalic(Typekit.createFromAsset(this, "fonts/OpenSans-BoldItalic.ttf"));
     }
 
     public static SpectreApplication getInstance() {

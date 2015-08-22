@@ -1,3 +1,31 @@
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../fonts/OpenSans-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../fonts/OpenSans-Italic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../fonts/OpenSans-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../fonts/OpenSans-BoldItalic.ttf') format('truetype');
+    font-weight: bold;
+    font-style: italic;
+}
+
 /* ==========================================================================
    0. Normalize.css v2.1.3 | MIT License | git.io/normalize | (minified)
    ========================================================================== */
@@ -10,7 +38,7 @@ audio, canvas, video { display: inline-block; margin: 0 0 2rem 0; }
 audio:not([controls]) { display: none; height: 0; }
 [hidden], template { display: none; }
 html {
-   font-family: sans-serif-light;
+   font-family: 'Open Sans';
    -ms-text-size-adjust: 100%;
    -webkit-text-size-adjust: 100%;
 }
@@ -75,16 +103,6 @@ input::-moz-focus-inner { border: 0; padding: 0; }
 textarea { overflow: auto; vertical-align: top; }
 table { border-collapse: collapse; border-spacing: 0; }
 
-/*
-TYPEPLATE
-URL ........... http://typeplate.com
-VERSION ....... 1.1.4
-Github ........ https://github.com/typeplate/bower
-AUTHORS ....... Dennis Gaebel (@gryghostvisuals) & Zachary Kain (@zakkain)
-LICENSE ....... Creative Commmons Attribution 3.0 (http://creativecommons.org/licenses/by/3.0)
-LICENSE URL ... https://github.com/typeplate/bower/blob/master/license.txt*/
-@font-face{font-family:Ampersand;src:local("Georgia"),local("Garamond"),local("Palatino"),local("Book Antiqua");unicode-range:U+0026}@font-face{font-family:Ampersand;src:local("Georgia");unicode-range:U+270C}.ampersand{font-family:Ampersand,Verdana,sans-serif}.breakword{word-wrap:break-word}.normal-wrap{word-wrap:normal}.inherit-wrap{word-wrap:auto}.drop-cap:first-letter{float:left;margin:auto .25em auto auto;padding:inherit;font-size:4em;font-family:inherit;line-height:1;text-indent:0;background:0 0;color:inherit}p+.drop-cap{text-indent:0;margin-top:0}html{/*font:400 112.5%/1.65 serif*/}body{-webkit-hyphens:auto;-moz-hyphens:auto;-ms-hyphens:auto;-o-hyphens:auto;hyphens:auto;word-wrap:break-word;color:  #444}small{font-size:65%}h1,h2,h3,h4,h5,h6{line-height:1;margin-top:0;text-rendering:optimizeLegibility;color:  #222}.tera{font-size:117px;font-size:6.5rem;margin-bottom:.25385rem}.giga{font-size:90px;font-size:5rem;margin-bottom:.33rem}.mega{font-size:72px;font-size:4rem;margin-bottom:.4125rem}.alpha,h1{font-size:60px;font-size:3.33333rem;margin-bottom:.495rem}.beta,h2{font-size:48px;font-size:2.6667rem;margin-bottom:.61875rem}.gamma,h3{font-size:36px;font-size:2rem;margin-bottom:.825rem}.delta,h4{font-size:24px;font-size:1.3333333333333333rem;margin-bottom:1.2375rem}.epsilon,h5{font-size:21px;font-size:1.16667rem;margin-bottom:1.41429rem}.zeta,h6{font-size:18px;font-size:1rem;margin-bottom:1.65rem}p{margin:auto auto 1.5em}abbr,acronym,blockquote,code,dir,kbd,listing,plaintext,q,samp,tt,var,xmp{-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;-o-hyphens:none;hyphens:none}pre code{word-wrap:normal;white-space:-moz-pre-wrap;white-space:pre-wrap}pre{white-space:pre}code{white-space:pre;font-family:monospace}abbr{font-variant:small-caps;font-weight:600;text-transform:lowercase;color:gray}abbr[title]:hover{cursor:help}.lining dd,.lining dt{display:inline;margin:0}.lining dd+dt:before,.lining dt+dt:before{content:"\A";white-space:pre}.lining dd+dd:before{content:", "}.lining dd:before{content:": ";margin-left:-.2em}.dictionary-style dt{display:inline;counter-reset:definitions}.dictionary-style dt+dt:before{content:", ";margin-left:-.2em}.dictionary-style dd{display:block;counter-increment:definitions}.dictionary-style dd:before{content:counter(definitions,decimal) ". "}.blockquote p:last-of-type{margin-bottom:-.825em}.blockquote+figcaption{display:block;font-size:inherit;text-align:right}.blockquote+figcaption:before{content:"-"}.pull-quote{position:relative;padding:1em}.pull-quote:after,.pull-quote:before{height:1em;opacity:.15;position:absolute;font-size:4em;color:  #dc976e}.pull-quote:before{content:'“';top:0;left:0}.pull-quote:after{content:'”';bottom:0;right:0}
-
 
 
 
@@ -99,7 +117,7 @@ html {
 }
 
 body {
-    font-family: sans-serif-light;
+    font-family: 'Open Sans';
     color: #333;
     font-size:21px;
     background: #fdfdfd;
@@ -127,7 +145,7 @@ main-nav a,
 .site-footer,
 .pagination,
 .back-button, .subscribe-button {
-    font-family: sans-serif;
+    font-family: 'Open Sans';
 }
 
 h3, h4, h5, h6,
@@ -281,7 +299,7 @@ blockquote {
 blockquote p {
   margin: 0;
   font-style: italic;
-  font-family: sans-serif;
+  font-family: 'Open Sans';
 }
 
 blockquote small {
@@ -381,7 +399,7 @@ table {
   width: 100%;
   max-width: 100%;
   background-color: transparent;
-  font-family: sans-serif;
+  font-family: 'Open Sans';
 }
 
 table th,
@@ -497,7 +515,7 @@ margin on the iframe, cause it breaks stuff. */
   font-style: italic;
   border-left: none;
   color:slategray;
-  font-family: sans-serif;
+  font-family: 'Open Sans';
 }
 
 .pullquote--pulled:before, .pull:before{
@@ -511,7 +529,7 @@ margin on the iframe, cause it breaks stuff. */
 }
 
 aside {
-  font-family: sans-serif;
+  font-family: 'Open Sans';
   width: 40%;
   float:right;
   line-height: 1.4;
@@ -548,7 +566,7 @@ aside.note:before{
   text-indent: 0;
   font-size:1em;
   text-decoration: none;
-  font-family: sans-serif;
+  font-family: 'Open Sans';
   text-transform: uppercase;
   margin:.5em auto !important;
   display: inline-block;
@@ -586,15 +604,7 @@ aside.note:before{
 }
 
 .amp {
-  font-family: sans-serif;
-}
-
-@font-face {
-  font-family: 'Ampersand';
-  src: url(data:application/x-font-woff;charset=utf-8;base64,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) format('woff'),
-    url('calendas_plus_italic-webfont.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+  font-family: 'Open Sans';
 }
 
 
@@ -633,7 +643,7 @@ aside.note:before{
 
 .header-right {
     float: right;
-    font-family: sans-serif;
+    font-family: 'Open Sans';
     font-weight: 600;
     letter-spacing: 0.04em;
 }
@@ -701,7 +711,7 @@ aside.note:before{
   text-align: center;
   font-weight: 400;
   letter-spacing: 0 !important;
-  font-family: sans-serif;
+  font-family: 'Open Sans';
 }
 
 .page-description {
@@ -779,7 +789,7 @@ aside.note:before{
 }
 
 .post-meta {
-  font-family: sans-serif;
+  font-family: 'Open Sans';
   display: block;
   margin: .5em 0 0 0;
   color: #9EABB3;
