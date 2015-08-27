@@ -27,6 +27,8 @@ import com.crashlytics.android.Crashlytics;
 public class AppUtils {
 
     public static String pathJoin(String basePath, String relativePath) {
+        // handling for protocol-relative URLs
+        if (relativePath.startsWith("//")) relativePath = "http:" + relativePath;
         if (relativePath.startsWith("http")) return relativePath;
         return Uri.withAppendedPath(Uri.parse(basePath), relativePath).toString();
     }

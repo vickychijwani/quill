@@ -134,6 +134,7 @@ public class PostListActivity extends BaseActivity {
         } else {
             appbarShadowDrawable = getResources().getDrawable(R.drawable.appbar_shadow);
         }
+        mPostListContainer.setForeground(null);     // hide the shadow initially
         mPostList.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
