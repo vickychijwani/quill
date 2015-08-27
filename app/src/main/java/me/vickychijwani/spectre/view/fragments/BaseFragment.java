@@ -21,8 +21,6 @@ public abstract class BaseFragment extends RxFragment {
 
     private static final String TAG = "BaseFragment";
 
-    private boolean mbIsShown = true;
-
     protected Bus getBus() {
         return BusProvider.getBus();
     }
@@ -88,47 +86,6 @@ public abstract class BaseFragment extends RxFragment {
     public void onDestroy() {
         super.onDestroy();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDestroy()");
-    }
-
-    /**
-     * Hide the root {@link android.view.View} of this Fragment.
-     */
-    public void hide() {
-        if (getView() != null) {
-            getView().setVisibility(View.GONE);
-            mbIsShown = false;
-            onHide();
-        }
-    }
-
-    /**
-     * Show the root {@link android.view.View} of this Fragment.
-     */
-    public void show() {
-        if (getView() != null) {
-            onShow();
-            mbIsShown = true;
-            getView().setVisibility(View.VISIBLE);
-        }
-    }
-
-    /**
-     * Called by the hosting {@link me.vickychijwani.spectre.view.BaseActivity} when the fragment is
-     * being hidden from view.
-     */
-    public void onHide() { }
-
-    /**
-     * Called by the hosting {@link me.vickychijwani.spectre.view.BaseActivity} when the fragment is
-     * being brought into view.
-     */
-    public void onShow() { }
-
-    /**
-     * @return true if the root {@link android.view.View} of this Fragment is visible.
-     */
-    public boolean isShown() {
-        return mbIsShown;
     }
 
     /**

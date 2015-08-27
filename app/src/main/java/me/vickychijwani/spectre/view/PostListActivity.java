@@ -74,8 +74,6 @@ public class PostListActivity extends BaseActivity {
     private Runnable mRefreshDataRunnable;
     private Runnable mRefreshTimeoutRunnable;
 
-    // blog configuration
-    private List<ConfigurationParam> mBlogConfiguration = new ArrayList<>();
     private boolean mFileStorageEnabled = true;
 
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;    // in milliseconds
@@ -254,7 +252,6 @@ public class PostListActivity extends BaseActivity {
 
     @Subscribe
     public void onConfigurationLoadedEvent(ConfigurationLoadedEvent event) {
-        mBlogConfiguration = event.params;
         for (ConfigurationParam param : event.params) {
             if (param.getKey().equals("fileStorage")) {
                 mFileStorageEnabled = Boolean.valueOf(param.getValue());

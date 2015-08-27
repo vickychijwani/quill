@@ -4,57 +4,42 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NavUtils;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
 
 import butterknife.Bind;
-import butterknife.BindColor;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.model.Post;
-import me.vickychijwani.spectre.util.AppUtils;
-import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 import rx.Observable;
 import rx.functions.Action1;
 
-public class PostViewActivity extends BaseActivity implements
-        PostViewFragment.OnEditClickListener,
-        PostEditFragment.OnPreviewClickListener {
+public class PostViewActivity extends BaseActivity implements ViewPager.OnPageChangeListener,
+        PostViewFragmentPagerAdapter.OnFragmentsInitializedListener {
 
     private static final String TAG = "PostViewActivity";
 
-    private static final String TAG_VIEW_FRAGMENT = "tag:view_fragment";
-    private static final String TAG_EDIT_FRAGMENT = "tag:edit_fragment";
-    private static final String KEY_IS_PREVIEW_VISIBLE = "key:is_preview_visible";
-
-    @BindColor(R.color.primary)                 int mColorPrimary;
-    @BindColor(android.R.color.transparent)     int mColorTransparent;
-
     @Bind(R.id.toolbar)                         Toolbar mToolbar;
-    @Bind(R.id.toolbar_scrim)                   View mToolbarScrimView;
+    @Bind(R.id.toolbar_title)                   TextView mToolbarTitle;
+    @Bind(R.id.tabbar)                          TabLayout mTabLayout;
+    @Bind(R.id.view_pager)                      ViewPager mViewPager;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
     private PostEditFragment mPostEditFragment;
-    private View.OnClickListener mUpClickListener;
-
-    private boolean mbIsPreviewVisible = false;
-    private boolean mbIsKeyboardVisible = false;
-    private boolean mbWasKeyboardVisibleInEditor = false;
 
     private boolean mbPreviewPost = false;
     private ProgressDialog mProgressDialog;
@@ -64,13 +49,14 @@ public class PostViewActivity extends BaseActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setLayout(R.layout.activity_post_edit);
+        setLayout(R.layout.activity_post_view);
         setSupportActionBar(mToolbar);
+        //noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         getBus().post(new LoadPostEvent(getIntent().getExtras().getString(BundleKeys.POST_UUID)));
 
-        mUpClickListener = v -> NavUtils.navigateUpFromSameTask(PostViewActivity.this);
         mSaveTimeoutRunnable = () -> {
             if (mbPreviewPost) {
                 mProgressDialog.dismiss();
@@ -79,41 +65,17 @@ public class PostViewActivity extends BaseActivity implements
             }
         };
 
-        mToolbarScrimView.setBackground(AppUtils.makeCubicGradientScrimDrawable(0xaa000000, 2,
-                Gravity.TOP));
-
-        KeyboardUtils.addKeyboardVisibilityChangedListener(visible -> {
-            mbIsKeyboardVisible = visible;
-        }, this);
-
-        mPostViewFragment = (PostViewFragment) getSupportFragmentManager()
-                .findFragmentByTag(TAG_VIEW_FRAGMENT);
-        if (mPostViewFragment == null) {
-            mPostViewFragment = PostViewFragment.newInstance();
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragment_container, mPostViewFragment, TAG_VIEW_FRAGMENT)
-                    .commit();
-        }
-
-        mPostEditFragment = (PostEditFragment) getSupportFragmentManager()
-                .findFragmentByTag(TAG_EDIT_FRAGMENT);
-        if (mPostEditFragment == null) {
-            boolean fileStorageEnabled = getIntent().getExtras().getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
-            mPostEditFragment = PostEditFragment.newInstance(fileStorageEnabled);
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragment_container, mPostEditFragment, TAG_EDIT_FRAGMENT)
-                    .commit();
-        }
+        // wait for the post to load, then initialize fragments, etc.
     }
 
     @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState.getBoolean(KEY_IS_PREVIEW_VISIBLE, false)) {
-            onPreviewClicked();
-        }
+    public void onPostViewFragmentInitialized(PostViewFragment postViewFragment) {
+        mPostViewFragment = postViewFragment;
+    }
+
+    @Override
+    public void onPostEditFragmentInitialized(PostEditFragment postEditFragment) {
+        mPostEditFragment = postEditFragment;
     }
 
     @Override
@@ -188,6 +150,12 @@ public class PostViewActivity extends BaseActivity implements
     @Subscribe
     public void onPostLoadedEvent(PostLoadedEvent event) {
         mPost = event.post;
+        boolean fileStorageEnabled = getIntent().getExtras()
+                .getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
+        mViewPager.setAdapter(new PostViewFragmentPagerAdapter(getSupportFragmentManager(),
+                fileStorageEnabled, this));
+        mViewPager.addOnPageChangeListener(this);
+        mTabLayout.setupWithViewPager(mViewPager);
     }
 
     @Subscribe
@@ -199,51 +167,45 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     @Override
-    public void onPreviewClicked() {
-        if (mbIsKeyboardVisible) {
-            mbWasKeyboardVisibleInEditor = mbIsKeyboardVisible;
-            KeyboardUtils.hideKeyboard(this);
+    public void onPageSelected(int position) {
+        PostViewFragmentPagerAdapter pagerAdapter = (PostViewFragmentPagerAdapter)
+                mViewPager.getAdapter();
+        Class fragmentType = pagerAdapter.getFragmentType(position);
+        if (fragmentType == PostViewFragment.class) {
+            onShowPreview();
+        } else if (fragmentType == PostEditFragment.class) {
+            onShowEditor();
         }
-        setToolbarBackgroundOpaque(true);
-        mPostEditFragment.hide();
-        mPostViewFragment.show();
-        supportInvalidateOptionsMenu();
-        mbIsPreviewVisible = true;
     }
 
     @Override
-    public void onEditClicked() {
-        mPostViewFragment.hide();
-        mPostEditFragment.show();
-        if (mbWasKeyboardVisibleInEditor) {
-            KeyboardUtils.showKeyboard(this);
-        }
-        supportInvalidateOptionsMenu();
-        mbIsPreviewVisible = false;
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+        // no-op
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(KEY_IS_PREVIEW_VISIBLE, mbIsPreviewVisible);
+    public void onPageScrollStateChanged(int state) {
+        // no-op
     }
 
-    public void setToolbarBackgroundOpaque(boolean opaque) {
-        mToolbar.setBackgroundColor(opaque ? mColorPrimary : mColorTransparent);
+    private void onShowPreview() {
+        mPostEditFragment.saveToMemory();
+        mPostViewFragment.updatePreview();
+        supportInvalidateOptionsMenu();
     }
 
-    public void setToolbarScrimAlpha(float alpha) {
-        mToolbarScrimView.setAlpha(alpha);
+    private void onShowEditor() {
+        supportInvalidateOptionsMenu();
     }
 
-    public void setNavigationItem(int iconResId, View.OnClickListener clickListener) {
-        mToolbar.setNavigationIcon(iconResId);
-        mToolbar.setNavigationOnClickListener(clickListener);
+    @Override
+    public void setTitle(CharSequence title) {
+        mToolbarTitle.setText(title);
     }
 
-    public void resetNavigationItem() {
-        mToolbar.setNavigationIcon(R.drawable.arrow_left);
-        mToolbar.setNavigationOnClickListener(mUpClickListener);
+    @Override
+    public void setTitle(int titleId) {
+        mToolbarTitle.setText(titleId);
     }
 
     public Post getPost() {

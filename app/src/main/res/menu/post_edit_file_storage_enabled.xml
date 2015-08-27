@@ -3,13 +3,6 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_done"
-        android:icon="@drawable/check"
-        android:title="@string/done"
-        app:showAsAction="ifRoom"
-        />
-
-    <item
         android:id="@+id/action_insert_image"
         android:icon="@drawable/image_insert"
         android:title="@string/insert_image"
