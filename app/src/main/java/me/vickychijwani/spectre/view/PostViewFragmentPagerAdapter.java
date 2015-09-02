@@ -9,7 +9,7 @@ import me.vickychijwani.spectre.view.fragments.BaseFragment;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 
-public class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
+class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
 
     public interface OnFragmentsInitializedListener {
         void onPostViewFragmentInitialized(PostViewFragment postViewFragment);
