@@ -2,9 +2,9 @@ package me.vickychijwani.spectre.pref;
 
 abstract class BaseKey {
 
-    private String mStr;
-    private Class mType;
-    private Object mDefaultValue;
+    private final String mStr;
+    private final Class mType;
+    private final Object mDefaultValue;
 
     protected <T> BaseKey(String str, Class<T> type, T defaultValue) {
         mStr = str;

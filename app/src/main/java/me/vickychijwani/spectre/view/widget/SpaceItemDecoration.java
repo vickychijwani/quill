@@ -6,8 +6,8 @@ import android.view.View;
 
 public class SpaceItemDecoration extends RecyclerView.ItemDecoration {
 
-    private int horizontal;
-    private int vertical;
+    private final int horizontal;
+    private final int vertical;
 
     public SpaceItemDecoration(int horizontal, int vertical) {
         this.horizontal = horizontal;

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 // dummy wrapper class needed for Retrofit
+@SuppressWarnings("unused")
 public class UserList {
 
     public List<User> users;

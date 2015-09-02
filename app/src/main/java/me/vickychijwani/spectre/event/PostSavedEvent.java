@@ -5,11 +5,9 @@ import me.vickychijwani.spectre.model.Post;
 public class PostSavedEvent {
 
     public final Post post;
-    public final boolean wasAutoSaved;
 
-    public PostSavedEvent(Post post, boolean wasAutoSaved) {
+    public PostSavedEvent(Post post) {
         this.post = post;
-        this.wasAutoSaved = wasAutoSaved;
     }
 
 }

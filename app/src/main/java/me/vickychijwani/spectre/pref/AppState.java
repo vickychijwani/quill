@@ -23,7 +23,7 @@ public class AppState extends Prefs<AppState.Key> {
 
     }
 
-    AppState(@NonNull Context context) {
+    private AppState(@NonNull Context context) {
         super(context.getApplicationContext(), PREFS_FILE_NAME);
     }
 

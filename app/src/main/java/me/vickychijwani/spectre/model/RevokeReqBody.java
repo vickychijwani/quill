@@ -5,6 +5,7 @@ import android.support.annotation.StringDef;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class RevokeReqBody {
 
     public static final String TOKEN_TYPE_ACCESS = "access_token";

@@ -29,14 +29,14 @@ import me.vickychijwani.spectre.view.fragments.BaseFragment;
 
 public abstract class BaseActivity extends RxAppCompatActivity {
 
-    public static final String TAG = "BaseActivity";
+    private static final String TAG = "BaseActivity";
     private PasswordChangedEventHandler mPasswordChangedEventHandler = null;
 
-    public Bus getBus() {
+    protected Bus getBus() {
         return BusProvider.getBus();
     }
 
-    public Picasso getPicasso() {
+    protected Picasso getPicasso() {
         return SpectreApplication.getInstance().getPicasso();
     }
 
@@ -47,7 +47,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         getBus().register(this);
     }
 
-    public void setLayout(int layoutResID) {
+    protected void setLayout(int layoutResID) {
         super.setContentView(layoutResID);
         ButterKnife.bind(this);
         if (BuildConfig.DEBUG) {

@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class PostStub {
 
     public final String title;

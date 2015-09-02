@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 // dummy wrapper class needed for Retrofit
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class PostStubList {
 
     public List<PostStub> posts;

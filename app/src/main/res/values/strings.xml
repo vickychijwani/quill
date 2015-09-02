@@ -80,5 +80,6 @@
     <!-- content descriptions -->
     <string name="user_image">User image</string>
     <string name="cdesc_post_image">Post image</string>
+    <string name="cdesc_about_icon">About icon</string>
 
 </resources>

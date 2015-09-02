@@ -100,21 +100,21 @@ import rx.functions.Action1;
 
 public class NetworkService {
 
-    public static final String TAG = "NetworkService";
+    private static final String TAG = "NetworkService";
 
     private Context mAppContext = null;     // Application context, not Activity context!
     private Realm mRealm = null;
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
     private OkHttpClient mOkHttpClient = null;
-    private GsonConverter mGsonConverter;
-    private RequestInterceptor mAuthInterceptor;
+    private final GsonConverter mGsonConverter;
+    private final RequestInterceptor mAuthInterceptor;
 
     private boolean mbAuthRequestOnGoing = false;
     private RetrofitError mRefreshError = null;
-    private ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
-    private ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
-    private ArrayDeque<Object> mPostUploadQueue = new ArrayDeque<>();
+    private final ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
+    private final ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
+    private final ArrayDeque<Object> mPostUploadQueue = new ArrayDeque<>();
 
     public NetworkService() {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
@@ -170,7 +170,7 @@ public class NetworkService {
                 mbAuthRequestOnGoing = false;
                 // if the response is 401 Unauthorized, we can recover from it by asking for the
                 // password again
-                if (! event.initiatedByUser && error.getResponse() != null &&
+                if (!event.initiatedByUser && error.getResponse() != null &&
                         error.getResponse().getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                     clearSavedPassword();
                     getBus().post(new PasswordChangedEvent());
@@ -543,7 +543,7 @@ public class NetworkService {
         post.setUpdatedAt(new Date());              // mark as updated, to promote in sorted order
         createOrUpdateModel(post);                  // save the local post to db
 
-        getBus().post(new PostSavedEvent(post, event.isAutoSave));
+        getBus().post(new PostSavedEvent(post));
         getBus().post(new SyncPostsEvent(false));
     }
 
@@ -621,7 +621,9 @@ public class NetworkService {
     }
 
     private void refreshAccessToken(@Nullable final ApiCallEvent eventToDefer) {
-        mApiEventQueue.addLast(eventToDefer);
+        if (eventToDefer != null) {
+            mApiEventQueue.addLast(eventToDefer);
+        }
         if (mbAuthRequestOnGoing) return;
 
         // don't waste bandwidth by trying to use an expired refresh token
@@ -752,7 +754,7 @@ public class NetworkService {
      * you'll get the same id twice!</b>
      */
     @NonNull
-    public <T extends RealmObject> String getTempUniqueId(Class<T> clazz) {
+    private <T extends RealmObject> String getTempUniqueId(Class<T> clazz) {
         int tempId = Integer.MAX_VALUE;
         while (mRealm.where(clazz).equalTo("uuid", String.valueOf(tempId)).findAll().size() > 0) {
             --tempId;

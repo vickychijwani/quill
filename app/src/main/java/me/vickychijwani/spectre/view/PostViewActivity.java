@@ -58,7 +58,7 @@ public class PostViewActivity extends BaseActivity implements
 
     private boolean mbPreviewPost = false;
     private ProgressDialog mProgressDialog;
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mSaveTimeoutRunnable;
 
     @Override

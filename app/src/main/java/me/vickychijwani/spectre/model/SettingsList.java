@@ -3,6 +3,7 @@ package me.vickychijwani.spectre.model;
 import java.util.Arrays;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class SettingsList {
 
     public List<Setting> settings;

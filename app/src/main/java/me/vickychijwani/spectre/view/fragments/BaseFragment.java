@@ -27,6 +27,7 @@ public abstract class BaseFragment extends RxFragment {
         return BusProvider.getBus();
     }
 
+    @SuppressWarnings("unused")
     protected Picasso getPicasso() {
         return SpectreApplication.getInstance().getPicasso();
     }

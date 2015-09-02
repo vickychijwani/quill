@@ -33,7 +33,7 @@ import retrofit.client.Response;
 
 public class SpectreApplication extends Application {
 
-    public static final String TAG = "SpectreApplication";
+    private static final String TAG = "SpectreApplication";
     private static SpectreApplication sInstance;
 
     private static final String IMAGE_CACHE_PATH = "images";
@@ -83,6 +83,7 @@ public class SpectreApplication extends Application {
         mOkHttpClient.setWriteTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected void initPicasso() {
         if (mPicasso != null) {
             return;
@@ -170,9 +171,10 @@ public class SpectreApplication extends Application {
     }
 
     private static class ComponentCallbacksAdjustmentTool {
-        static ComponentCallbacksAdjustmentTool INSTANCE = new ComponentCallbacksAdjustmentTool();
+        static final ComponentCallbacksAdjustmentTool INSTANCE = new ComponentCallbacksAdjustmentTool();
 
-        private WeakHashMap<ComponentCallbacks, ApplicationErrorReport.CrashInfo> mCallbacks = new WeakHashMap<>();
+        private final WeakHashMap<ComponentCallbacks, ApplicationErrorReport.CrashInfo> mCallbacks
+                = new WeakHashMap<>();
         private boolean mSuspended = false;
 
         public void onComponentCallbacksRegistered(ComponentCallbacks callback) {

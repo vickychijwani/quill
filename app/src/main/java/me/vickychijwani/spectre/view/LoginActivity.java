@@ -93,7 +93,8 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
      * (invalid email, missing fields, etc.), the errors are presented and no actual login attempt
      * is made.
      */
-    public void attemptLogin() {
+    @SuppressWarnings("OverlyLongMethod")
+    private void attemptLogin() {
         if (! AppUtils.isNetworkConnected(this)) {
             Toast.makeText(this, R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
             return;
@@ -153,7 +154,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         }
     }
 
-    public void sendLoginRequest() {
+    private void sendLoginRequest() {
         String blogUrl = mBlogUrlView.getText().toString();
         String username = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
@@ -227,7 +228,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     /**
      * Shows the progress UI and hides the login form.
      */
-    public void showProgress(final boolean show) {
+    private void showProgress(final boolean show) {
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
         mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);

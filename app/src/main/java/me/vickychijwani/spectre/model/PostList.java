@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 // dummy wrapper class needed for Retrofit
+@SuppressWarnings("unused")
 public class PostList {
 
     public List<Post> posts;

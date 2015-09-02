@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class DateDeserializer implements JsonDeserializer<Date> {
+class DateDeserializer implements JsonDeserializer<Date> {
 
     private static final String TAG = "DateDeserializer";
 

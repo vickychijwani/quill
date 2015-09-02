@@ -7,7 +7,6 @@
     <dimen name="padding_default_card_v">4dp</dimen> <!-- card view already has 4dp vertical for shadow -->
     <dimen name="padding_large">16dp</dimen>
     <dimen name="padding_fab_normal">88dp</dimen>  <!-- fab_size_normal + 2 * padding_large -->
-    <dimen name="padding_fab_mini">72dp</dimen>    <!-- fab_size_mini + 2 * padding_large -->
 
     <!-- text sizes -->
     <dimen name="text_size_xsmall">12sp</dimen>

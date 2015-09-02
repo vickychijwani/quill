@@ -3,6 +3,7 @@ package me.vickychijwani.spectre.model;
 import java.util.Arrays;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class ApiErrorList {
 
     public List<ApiError> errors;

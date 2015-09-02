@@ -67,10 +67,10 @@ public class PostListActivity extends BaseActivity {
 
     private static final String TAG = "PostListActivity";
 
-    private List<Post> mPosts = new ArrayList<>();
+    private final List<Post> mPosts = new ArrayList<>();
     private PostAdapter mPostAdapter;
 
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mRefreshDataRunnable;
     private Runnable mRefreshTimeoutRunnable;
 

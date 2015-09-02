@@ -2,6 +2,7 @@ package me.vickychijwani.spectre.model;
 
 import com.google.gson.annotations.SerializedName;
 
+@SuppressWarnings("unused")
 public class ApiError {
 
     public String message;          // meant for humans

@@ -99,7 +99,7 @@ public class PostEditFragment extends BaseFragment implements ObservableScrollVi
     private Post mLastSavedPost;    // copy of post since it was last saved
     private Post mPost;             // current copy of post in memory
 
-    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
     private String mBlogUrl;
     private Picasso mPicasso;
 

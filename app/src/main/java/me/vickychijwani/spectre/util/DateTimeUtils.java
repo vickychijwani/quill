@@ -11,7 +11,7 @@ public class DateTimeUtils {
     // 2114380800 seconds in epoch time == 01/01/2037 @ 12:00am (UTC)
     public static final Date FAR_FUTURE = new Date(2114380800L * 1000);
 
-    private static PrettyTime prettyTime = new PrettyTime();
+    private static final PrettyTime prettyTime = new PrettyTime();
 
     public static long getEpochSeconds() {
         return System.currentTimeMillis() / 1000l;
