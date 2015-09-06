@@ -28,6 +28,7 @@
     <string name="discard">Discard</string>
     <string name="view_homepage">View homepage</string>
     <string name="view_post_on_blog">View post on blog</string>
+    <string name="post_settings">Post Settings</string>
 
     <string name="save_post_progress">Saving post…</string>
     <string name="save_post_failed">Couldn\'t save post</string>

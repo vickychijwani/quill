@@ -54,6 +54,8 @@ public class PostUtils {
             return true;
         if (! original.getMarkdown().equals(current.getMarkdown()))
             return true;
+        if (! original.getImage().equals(current.getImage()))
+            return true;
         if (original.getTags().size() != current.getTags().size())
             return true;
         if (! tagListsMatch(original.getTags(), current.getTags()))

@@ -85,10 +85,10 @@ dependencies {
     compile 'com.squareup:otto:1.3.6'
 
     // UI
-    compile 'com.android.support:appcompat-v7:23.0.0'
-    compile 'com.android.support:cardview-v7:23.0.0'
-    compile 'com.android.support:recyclerview-v7:23.0.0'
-    compile 'com.android.support:design:23.0.0'
+    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:cardview-v7:23.0.1'
+    compile 'com.android.support:recyclerview-v7:23.0.1'
+    compile 'com.android.support:design:23.0.1'
     compile 'com.splitwise:tokenautocomplete:1.3.3@aar'
     compile 'org.ocpsoft.prettytime:prettytime:4.0.0.Final'
     compile 'com.tsengvn:Typekit:1.0.0'

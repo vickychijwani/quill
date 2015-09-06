@@ -1,5 +1,7 @@
 package me.vickychijwani.spectre.view.fragments;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -48,7 +50,7 @@ public class PostViewFragment extends BaseFragment
     @Override
     public void onWebViewCreated() {
         UserPrefs prefs = UserPrefs.getInstance(getActivity());
-        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
+        final String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
         mWebViewFragment.setJSInterface(new Object() {
             @JavascriptInterface
             public String getTitle() {
@@ -66,6 +68,15 @@ public class PostViewFragment extends BaseFragment
             @Override
             public void onPageFinished(WebView view, String url) {
                 updatePreview();
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // launch links in external browser
+                url = AppUtils.pathJoin(blogUrl, url);
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+                return true;
             }
         });
     }

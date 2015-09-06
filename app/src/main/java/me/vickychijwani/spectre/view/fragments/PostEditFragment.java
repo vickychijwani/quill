@@ -12,6 +12,7 @@ import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -86,6 +87,7 @@ public class PostEditFragment extends BaseFragment {
     private ProgressDialog mUploadProgress = null;
     private EditTextSelectionState mMarkdownEditSelectionState;
     private boolean mbFileStorageEnabled = true;
+    private Action1<String> mImageUploadDoneAction = null;
 
 
     @SuppressWarnings("unused")
@@ -159,6 +161,8 @@ public class PostEditFragment extends BaseFragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         if (mbFileStorageEnabled) {
             inflater.inflate(R.menu.post_edit_file_storage_enabled, menu);
+            MenuItem insertImageItem = menu.findItem(R.id.action_insert_image);
+            inflater.inflate(R.menu.insert_image_file_storage_enabled, insertImageItem.getSubMenu());
         } else {
             inflater.inflate(R.menu.post_edit_file_storage_disabled, menu);
         }
@@ -180,10 +184,15 @@ public class PostEditFragment extends BaseFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_insert_image_url:
-                onInsertImageUrlClicked();
-                return true;
             case R.id.action_insert_image_upload:
-                onInsertImageUploadClicked();
+                mMarkdownEditSelectionState = new EditTextSelectionState(mPostEditView);
+                Action1<String> insertMarkdownAction = Observables.Actions
+                        .insertImageMarkdown(mActivity, mMarkdownEditSelectionState);
+                if (item.getItemId() == R.id.action_insert_image_url) {
+                    onInsertImageUrlClicked(insertMarkdownAction);
+                } else {
+                    onInsertImageUploadClicked(insertMarkdownAction);
+                }
                 return true;
             case R.id.action_save:
                 // TODO hate having to do an empty subscribe here
@@ -200,8 +209,8 @@ public class PostEditFragment extends BaseFragment {
         }
     }
 
-    private void onInsertImageUploadClicked() {
-        mMarkdownEditSelectionState = new EditTextSelectionState(mPostEditView);
+    public void onInsertImageUploadClicked(Action1<String> uploadDoneAction) {
+        mImageUploadDoneAction = uploadDoneAction;
         Intent imagePickIntent = new Intent(Intent.ACTION_GET_CONTENT);
         imagePickIntent.addCategory(Intent.CATEGORY_OPENABLE);
         imagePickIntent.setType("image/*");
@@ -243,12 +252,15 @@ public class PostEditFragment extends BaseFragment {
 
     @Subscribe
     public void onFileUploadedEvent(FileUploadedEvent event) {
-        Action1<String> insertMarkdownAction = Observables.Actions
-                .insertImageMarkdown(mActivity, mMarkdownEditSelectionState);
         mUploadProgress.dismiss();
         mUploadProgress = null;
-        insertMarkdownAction.call(event.relativeUrl);
         mMarkdownEditSelectionState = null;
+        if (mImageUploadDoneAction == null) {
+            Crashlytics.log(Log.ERROR, TAG, "No 'image upload done action' found!");
+            return;
+        }
+        mImageUploadDoneAction.call(event.relativeUrl);
+        mImageUploadDoneAction = null;
     }
 
     @Subscribe
@@ -258,12 +270,9 @@ public class PostEditFragment extends BaseFragment {
         mUploadProgress = null;
     }
 
-    private void onInsertImageUrlClicked() {
-        mMarkdownEditSelectionState = new EditTextSelectionState(mPostEditView);
-        Action1<String> insertMarkdownAction = Observables.Actions
-                .insertImageMarkdown(mActivity, mMarkdownEditSelectionState);
+    public void onInsertImageUrlClicked(Action1<String> resultAction) {
         Observables.getImageUrlDialog(mActivity).subscribe((url) -> {
-            insertMarkdownAction.call(url);
+            resultAction.call(url);
             mMarkdownEditSelectionState = null;
         });
     }
@@ -298,6 +307,11 @@ public class PostEditFragment extends BaseFragment {
             mSaveType = SaveType.PUBLISHED_AUTO;
         }
         return savePost(true, true, null);
+    }
+
+    public boolean saveAutomaticallyWithImage(@NonNull String imageUrl) {
+        mPost.setImage(imageUrl);
+        return saveAutomatically();
     }
 
     // returns true if a network call is pending, false otherwise

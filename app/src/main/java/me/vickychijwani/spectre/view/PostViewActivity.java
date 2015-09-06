@@ -4,23 +4,35 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
+import com.squareup.picasso.Callback;
 
 import butterknife.Bind;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
+import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.pref.UserPrefs;
+import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
@@ -28,7 +40,7 @@ import rx.Observable;
 import rx.functions.Action1;
 
 public class PostViewActivity extends BaseActivity implements ViewPager.OnPageChangeListener,
-        PostViewFragmentPagerAdapter.OnFragmentsInitializedListener {
+        PostViewFragmentPagerAdapter.OnFragmentsInitializedListener, View.OnClickListener {
 
     private static final String TAG = "PostViewActivity";
 
@@ -36,6 +48,11 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     @Bind(R.id.toolbar_title)                   TextView mToolbarTitle;
     @Bind(R.id.tabbar)                          TabLayout mTabLayout;
     @Bind(R.id.view_pager)                      ViewPager mViewPager;
+    @Bind(R.id.drawer_layout)                   DrawerLayout mDrawerLayout;
+    @Bind(R.id.nav_view)                        NavigationView mNavView;
+    @Bind(R.id.post_image)                      ImageView mPostImageView;
+    @Bind(R.id.post_image_edit_layout)          ViewGroup mPostImageEditLayout;
+    @Bind(R.id.post_image_loading)              ProgressBar mPostImageProgressBar;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
@@ -45,6 +62,8 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     private ProgressDialog mProgressDialog;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mSaveTimeoutRunnable;
+    private String mBlogUrl;
+    private boolean mFileStorageEnabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +74,7 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        getBus().post(new LoadPostEvent(getIntent().getExtras().getString(BundleKeys.POST_UUID)));
+        mBlogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
 
         mSaveTimeoutRunnable = () -> {
             if (mbPreviewPost) {
@@ -65,6 +84,7 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
             }
         };
 
+        getBus().post(new LoadPostEvent(getIntent().getExtras().getString(BundleKeys.POST_UUID)));
         // wait for the post to load, then initialize fragments, etc.
     }
 
@@ -76,6 +96,16 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     @Override
     public void onPostEditFragmentInitialized(PostEditFragment postEditFragment) {
         mPostEditFragment = postEditFragment;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Always cancel the request here, this is safe to call even if the image has been loaded.
+        // This ensures that the anonymous callback we have does not prevent the activity from
+        // being garbage collected. It also prevents our callback from getting invoked after the
+        // activity is destroyed.
+        getPicasso().cancelRequest(mPostImageView);
     }
 
     @Override
@@ -105,6 +135,9 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
         switch (item.getItemId()) {
             case R.id.action_view_post:
                 viewPostInBrowser(true);
+                return true;
+            case R.id.action_post_settings:
+                mDrawerLayout.openDrawer(mNavView);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -150,12 +183,14 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     @Subscribe
     public void onPostLoadedEvent(PostLoadedEvent event) {
         mPost = event.post;
-        boolean fileStorageEnabled = getIntent().getExtras()
+        mFileStorageEnabled = getIntent().getExtras()
                 .getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
         mViewPager.setAdapter(new PostViewFragmentPagerAdapter(getSupportFragmentManager(),
-                fileStorageEnabled, this));
+                mFileStorageEnabled, this));
         mViewPager.addOnPageChangeListener(this);
         mTabLayout.setupWithViewPager(mViewPager);
+        updatePostImage();
+        mPostImageEditLayout.setOnClickListener(this);
     }
 
     @Subscribe
@@ -164,6 +199,76 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
         mPost = event.newPost;
         mPostViewFragment.setPost(mPost);
         mPostEditFragment.setPost(mPost, true);
+        updatePostImage();
+    }
+
+    @Subscribe
+    public void onPostSavedEvent(PostSavedEvent event) {
+        if (! mPost.getUuid().equals(event.post.getUuid())) {
+            return;
+        }
+        mPost = event.post;
+        mPostViewFragment.setPost(mPost);
+        mPostEditFragment.setPost(mPost, true);
+        updatePostImage();
+    }
+
+    private void updatePostImage() {
+        String imageUrl = mPost.getImage();
+        if (!TextUtils.isEmpty(imageUrl)) {
+            mPostImageProgressBar.setVisibility(View.VISIBLE);
+            mPostImageView.setVisibility(View.INVISIBLE);
+            imageUrl = AppUtils.pathJoin(mBlogUrl, imageUrl);
+            getPicasso()
+                    .load(imageUrl)
+                    .fit().centerCrop()
+                    .into(mPostImageView, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            mPostImageProgressBar.setVisibility(View.GONE);
+                            mPostImageView.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onError() {
+                            mPostImageProgressBar.setVisibility(View.GONE);
+                            mPostImageView.setVisibility(View.VISIBLE);
+                            mPostImageView.setImageResource(R.drawable.image_placeholder);
+                            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                        }
+                    });
+            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else {
+            mPostImageView.setImageResource(R.drawable.image_placeholder);   // clear the image
+            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            mPostImageProgressBar.setVisibility(View.GONE);
+            mPostImageView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onClick(View view) {
+        PopupMenu popupMenu = new PopupMenu(this, mPostImageView);
+        if (mFileStorageEnabled) {
+            popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
+        } else {
+            popupMenu.inflate(R.menu.insert_image_file_storage_disabled);
+        }
+        popupMenu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_insert_image_url) {
+                mPostEditFragment.onInsertImageUrlClicked(getInsertImageDoneAction());
+            } else {
+                mPostEditFragment.onInsertImageUploadClicked(getInsertImageDoneAction());
+            }
+            return true;
+        });
+        popupMenu.show();
+    }
+
+    private Action1<String> getInsertImageDoneAction() {
+        return (url) -> {
+            mPostEditFragment.saveAutomaticallyWithImage(url);
+        };
     }
 
     @Override

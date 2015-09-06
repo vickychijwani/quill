@@ -34,8 +34,8 @@ import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.model.ApiError;
 import me.vickychijwani.spectre.model.ApiErrorList;
 import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.KeyboardUtils;
+import me.vickychijwani.spectre.util.NetworkUtils;
 import retrofit.RetrofitError;
 
 
@@ -94,7 +94,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
      * is made.
      */
     public void attemptLogin() {
-        if (! AppUtils.isNetworkConnected(this)) {
+        if (! NetworkUtils.isConnected(this)) {
             Toast.makeText(this, R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
             return;
         }

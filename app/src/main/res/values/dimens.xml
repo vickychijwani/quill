@@ -22,10 +22,11 @@
     <dimen name="toolbar_height">56dp</dimen>
     <dimen name="toolbar_container_height">96dp</dimen>
     <dimen name="toolbar_elevation">4dp</dimen>
-    <dimen name="post_header_image_height">256dp</dimen>
+    <dimen name="tabbar_height">48dp</dimen>
+    <dimen name="post_view_appbar_height">104dp</dimen>   <!-- toolbar_height + tabbar_height -->
+    <dimen name="post_image_height">192dp</dimen>
 
     <!-- misc numbers -->
     <integer name="animation_duration">200</integer>
-    <item name="editor_overlay_base_alpha" type="dimen" format="float">0.5</item>
 
 </resources>
