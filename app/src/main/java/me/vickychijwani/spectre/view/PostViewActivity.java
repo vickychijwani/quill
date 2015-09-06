@@ -4,73 +4,78 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NavUtils;
+import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.otto.Subscribe;
+import com.squareup.picasso.Callback;
 
 import butterknife.Bind;
-import butterknife.BindColor;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
+import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
-import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 import rx.Observable;
 import rx.functions.Action1;
 
-public class PostViewActivity extends BaseActivity implements
-        PostViewFragment.OnEditClickListener,
-        PostEditFragment.OnPreviewClickListener {
+public class PostViewActivity extends BaseActivity implements ViewPager.OnPageChangeListener,
+        PostViewFragmentPagerAdapter.OnFragmentsInitializedListener, View.OnClickListener {
 
     private static final String TAG = "PostViewActivity";
 
-    private static final String TAG_VIEW_FRAGMENT = "tag:view_fragment";
-    private static final String TAG_EDIT_FRAGMENT = "tag:edit_fragment";
-    private static final String KEY_IS_PREVIEW_VISIBLE = "key:is_preview_visible";
-
-    @BindColor(R.color.primary)                 int mColorPrimary;
-    @BindColor(android.R.color.transparent)     int mColorTransparent;
-
     @Bind(R.id.toolbar)                         Toolbar mToolbar;
-    @Bind(R.id.toolbar_scrim)                   View mToolbarScrimView;
+    @Bind(R.id.toolbar_title)                   TextView mToolbarTitle;
+    @Bind(R.id.tabbar)                          TabLayout mTabLayout;
+    @Bind(R.id.view_pager)                      ViewPager mViewPager;
+    @Bind(R.id.drawer_layout)                   DrawerLayout mDrawerLayout;
+    @Bind(R.id.nav_view)                        NavigationView mNavView;
+    @Bind(R.id.post_image)                      ImageView mPostImageView;
+    @Bind(R.id.post_image_edit_layout)          ViewGroup mPostImageEditLayout;
+    @Bind(R.id.post_image_loading)              ProgressBar mPostImageProgressBar;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
     private PostEditFragment mPostEditFragment;
-    private View.OnClickListener mUpClickListener;
-
-    private boolean mbIsPreviewVisible = false;
-    private boolean mbIsKeyboardVisible = false;
-    private boolean mbWasKeyboardVisibleInEditor = false;
 
     private boolean mbPreviewPost = false;
     private ProgressDialog mProgressDialog;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mSaveTimeoutRunnable;
+    private String mBlogUrl;
+    private boolean mFileStorageEnabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setLayout(R.layout.activity_post_edit);
+        setLayout(R.layout.activity_post_view);
         setSupportActionBar(mToolbar);
+        //noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        getBus().post(new LoadPostEvent(getIntent().getExtras().getString(BundleKeys.POST_UUID)));
+        mBlogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
 
-        mUpClickListener = v -> NavUtils.navigateUpFromSameTask(PostViewActivity.this);
         mSaveTimeoutRunnable = () -> {
             if (mbPreviewPost) {
                 mProgressDialog.dismiss();
@@ -79,41 +84,28 @@ public class PostViewActivity extends BaseActivity implements
             }
         };
 
-        mToolbarScrimView.setBackground(AppUtils.makeCubicGradientScrimDrawable(0xaa000000, 2,
-                Gravity.TOP));
-
-        KeyboardUtils.addKeyboardVisibilityChangedListener(visible -> {
-            mbIsKeyboardVisible = visible;
-        }, this);
-
-        mPostViewFragment = (PostViewFragment) getSupportFragmentManager()
-                .findFragmentByTag(TAG_VIEW_FRAGMENT);
-        if (mPostViewFragment == null) {
-            mPostViewFragment = PostViewFragment.newInstance();
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragment_container, mPostViewFragment, TAG_VIEW_FRAGMENT)
-                    .commit();
-        }
-
-        mPostEditFragment = (PostEditFragment) getSupportFragmentManager()
-                .findFragmentByTag(TAG_EDIT_FRAGMENT);
-        if (mPostEditFragment == null) {
-            boolean fileStorageEnabled = getIntent().getExtras().getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
-            mPostEditFragment = PostEditFragment.newInstance(fileStorageEnabled);
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.fragment_container, mPostEditFragment, TAG_EDIT_FRAGMENT)
-                    .commit();
-        }
+        getBus().post(new LoadPostEvent(getIntent().getExtras().getString(BundleKeys.POST_UUID)));
+        // wait for the post to load, then initialize fragments, etc.
     }
 
     @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState.getBoolean(KEY_IS_PREVIEW_VISIBLE, false)) {
-            onPreviewClicked();
-        }
+    public void onPostViewFragmentInitialized(PostViewFragment postViewFragment) {
+        mPostViewFragment = postViewFragment;
+    }
+
+    @Override
+    public void onPostEditFragmentInitialized(PostEditFragment postEditFragment) {
+        mPostEditFragment = postEditFragment;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Always cancel the request here, this is safe to call even if the image has been loaded.
+        // This ensures that the anonymous callback we have does not prevent the activity from
+        // being garbage collected. It also prevents our callback from getting invoked after the
+        // activity is destroyed.
+        getPicasso().cancelRequest(mPostImageView);
     }
 
     @Override
@@ -143,6 +135,9 @@ public class PostViewActivity extends BaseActivity implements
         switch (item.getItemId()) {
             case R.id.action_view_post:
                 viewPostInBrowser(true);
+                return true;
+            case R.id.action_post_settings:
+                mDrawerLayout.openDrawer(mNavView);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -188,6 +183,14 @@ public class PostViewActivity extends BaseActivity implements
     @Subscribe
     public void onPostLoadedEvent(PostLoadedEvent event) {
         mPost = event.post;
+        mFileStorageEnabled = getIntent().getExtras()
+                .getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
+        mViewPager.setAdapter(new PostViewFragmentPagerAdapter(getSupportFragmentManager(),
+                mFileStorageEnabled, this));
+        mViewPager.addOnPageChangeListener(this);
+        mTabLayout.setupWithViewPager(mViewPager);
+        updatePostImage();
+        mPostImageEditLayout.setOnClickListener(this);
     }
 
     @Subscribe
@@ -196,54 +199,118 @@ public class PostViewActivity extends BaseActivity implements
         mPost = event.newPost;
         mPostViewFragment.setPost(mPost);
         mPostEditFragment.setPost(mPost, true);
+        updatePostImage();
     }
 
-    @Override
-    public void onPreviewClicked() {
-        if (mbIsKeyboardVisible) {
-            mbWasKeyboardVisibleInEditor = mbIsKeyboardVisible;
-            KeyboardUtils.hideKeyboard(this);
+    @Subscribe
+    public void onPostSavedEvent(PostSavedEvent event) {
+        if (! mPost.getUuid().equals(event.post.getUuid())) {
+            return;
         }
-        setToolbarBackgroundOpaque(true);
-        mPostEditFragment.hide();
-        mPostViewFragment.show();
-        supportInvalidateOptionsMenu();
-        mbIsPreviewVisible = true;
+        mPost = event.post;
+        mPostViewFragment.setPost(mPost);
+        mPostEditFragment.setPost(mPost, true);
+        updatePostImage();
     }
 
-    @Override
-    public void onEditClicked() {
-        mPostViewFragment.hide();
-        mPostEditFragment.show();
-        if (mbWasKeyboardVisibleInEditor) {
-            KeyboardUtils.showKeyboard(this);
+    private void updatePostImage() {
+        String imageUrl = mPost.getImage();
+        if (!TextUtils.isEmpty(imageUrl)) {
+            mPostImageProgressBar.setVisibility(View.VISIBLE);
+            mPostImageView.setVisibility(View.INVISIBLE);
+            imageUrl = AppUtils.pathJoin(mBlogUrl, imageUrl);
+            getPicasso()
+                    .load(imageUrl)
+                    .fit().centerCrop()
+                    .into(mPostImageView, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            mPostImageProgressBar.setVisibility(View.GONE);
+                            mPostImageView.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onError() {
+                            mPostImageProgressBar.setVisibility(View.GONE);
+                            mPostImageView.setVisibility(View.VISIBLE);
+                            mPostImageView.setImageResource(R.drawable.image_placeholder);
+                            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                        }
+                    });
+            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else {
+            mPostImageView.setImageResource(R.drawable.image_placeholder);   // clear the image
+            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            mPostImageProgressBar.setVisibility(View.GONE);
+            mPostImageView.setVisibility(View.VISIBLE);
         }
-        supportInvalidateOptionsMenu();
-        mbIsPreviewVisible = false;
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(KEY_IS_PREVIEW_VISIBLE, mbIsPreviewVisible);
+    public void onClick(View view) {
+        PopupMenu popupMenu = new PopupMenu(this, mPostImageView);
+        if (mFileStorageEnabled) {
+            popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
+        } else {
+            popupMenu.inflate(R.menu.insert_image_file_storage_disabled);
+        }
+        popupMenu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_insert_image_url) {
+                mPostEditFragment.onInsertImageUrlClicked(getInsertImageDoneAction());
+            } else {
+                mPostEditFragment.onInsertImageUploadClicked(getInsertImageDoneAction());
+            }
+            return true;
+        });
+        popupMenu.show();
     }
 
-    public void setToolbarBackgroundOpaque(boolean opaque) {
-        mToolbar.setBackgroundColor(opaque ? mColorPrimary : mColorTransparent);
+    private Action1<String> getInsertImageDoneAction() {
+        return (url) -> {
+            mPostEditFragment.saveAutomaticallyWithImage(url);
+        };
     }
 
-    public void setToolbarScrimAlpha(float alpha) {
-        mToolbarScrimView.setAlpha(alpha);
+    @Override
+    public void onPageSelected(int position) {
+        PostViewFragmentPagerAdapter pagerAdapter = (PostViewFragmentPagerAdapter)
+                mViewPager.getAdapter();
+        Class fragmentType = pagerAdapter.getFragmentType(position);
+        if (fragmentType == PostViewFragment.class) {
+            onShowPreview();
+        } else if (fragmentType == PostEditFragment.class) {
+            onShowEditor();
+        }
     }
 
-    public void setNavigationItem(int iconResId, View.OnClickListener clickListener) {
-        mToolbar.setNavigationIcon(iconResId);
-        mToolbar.setNavigationOnClickListener(clickListener);
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+        // no-op
     }
 
-    public void resetNavigationItem() {
-        mToolbar.setNavigationIcon(R.drawable.arrow_left);
-        mToolbar.setNavigationOnClickListener(mUpClickListener);
+    @Override
+    public void onPageScrollStateChanged(int state) {
+        // no-op
+    }
+
+    private void onShowPreview() {
+        mPostEditFragment.saveToMemory();
+        mPostViewFragment.updatePreview();
+        supportInvalidateOptionsMenu();
+    }
+
+    private void onShowEditor() {
+        supportInvalidateOptionsMenu();
+    }
+
+    @Override
+    public void setTitle(CharSequence title) {
+        mToolbarTitle.setText(title);
+    }
+
+    @Override
+    public void setTitle(int titleId) {
+        mToolbarTitle.setText(titleId);
     }
 
     public Post getPost() {

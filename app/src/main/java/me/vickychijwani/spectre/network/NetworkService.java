@@ -85,6 +85,7 @@ import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.DateTimeUtils;
+import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import retrofit.Callback;
 import retrofit.RequestInterceptor;
@@ -185,10 +186,12 @@ public class NetworkService {
     @Subscribe
     public void onRefreshDataEvent(RefreshDataEvent event) {
         // do nothing if a refresh is already in progress
-        if (! mRefreshEventsQueue.isEmpty()) {
-            refreshSucceeded(null);
-            return;
-        }
+        // optimization disabled because sometimes (rarely) the queue doesn't get emptied correctly
+        // e.g., logout followed by login
+//        if (! mRefreshEventsQueue.isEmpty()) {
+//            refreshSucceeded(null);
+//            return;
+//        }
 
         mRefreshEventsQueue.clear();
         mRefreshError = null;           // clear last error if any
@@ -240,13 +243,17 @@ public class NetworkService {
 
             @Override
             public void failure(RetrofitError error) {
-                getBus().post(new ApiErrorEvent(error));
                 // fallback to cached data
                 RealmResults<User> users = mRealm.allObjects(User.class);
                 if (users.size() > 0) {
                     getBus().post(new UserLoadedEvent(users.first()));
                 }
-                refreshFailed(event, error);
+                if (NetworkUtils.isRealError(error)) {
+                    getBus().post(new ApiErrorEvent(error));
+                    refreshFailed(event, error);
+                } else {
+                    refreshSucceeded(event);
+                }
             }
         });
     }
@@ -274,13 +281,17 @@ public class NetworkService {
 
             @Override
             public void failure(RetrofitError error) {
-                getBus().post(new ApiErrorEvent(error));
                 // fallback to cached data
                 RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
                 if (settings.size() > 0) {
                     getBus().post(new BlogSettingsLoadedEvent(settings));
                 }
-                refreshFailed(event, error);
+                if (NetworkUtils.isRealError(error)) {
+                    getBus().post(new ApiErrorEvent(error));
+                    refreshFailed(event, error);
+                } else {
+                    refreshSucceeded(event);
+                }
             }
         });
     }
@@ -308,13 +319,17 @@ public class NetworkService {
 
             @Override
             public void failure(RetrofitError error) {
-                getBus().post(new ApiErrorEvent(error));
                 // fallback to cached data
                 RealmResults<ConfigurationParam> params = mRealm.allObjects(ConfigurationParam.class);
                 if (params.size() > 0) {
                     getBus().post(new ConfigurationLoadedEvent(params));
                 }
-                refreshFailed(event, error);
+                if (NetworkUtils.isRealError(error)) {
+                    getBus().post(new ApiErrorEvent(error));
+                    refreshFailed(event, error);
+                } else {
+                    refreshSucceeded(event);
+                }
             }
         });
     }
@@ -378,10 +393,14 @@ public class NetworkService {
 
             @Override
             public void failure(RetrofitError error) {
-                getBus().post(new ApiErrorEvent(error));
                 // fallback to cached data
                 getBus().post(new PostsLoadedEvent(getPostsSorted()));
-                refreshFailed(event, error);
+                if (NetworkUtils.isRealError(error)) {
+                    getBus().post(new ApiErrorEvent(error));
+                    refreshFailed(event, error);
+                } else {
+                    refreshSucceeded(event);
+                }
             }
         });
     }
@@ -548,7 +567,8 @@ public class NetworkService {
     }
 
     @Subscribe
-    public void onUploadFileEvent(FileUploadEvent event) {
+    public void onFileUploadEvent(FileUploadEvent event) {
+        if (! validateAccessToken(event)) return;
         TypedFile typedFile = new TypedFile(event.mimeType, new File(event.path));
         mApi.uploadFile(typedFile, new Callback<String>() {
             @Override
@@ -608,6 +628,11 @@ public class NetworkService {
         mRealm = Realm.getInstance(mAppContext);
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, false);
+        // reset state, to be sure
+        mApiEventQueue.clear();
+        mRefreshEventsQueue.clear();
+        mbAuthRequestOnGoing = false;
+        mRefreshError = null;
     }
 
 

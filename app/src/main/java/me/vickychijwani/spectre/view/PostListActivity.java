@@ -30,7 +30,6 @@ import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
 import java.net.ConnectException;
-import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +37,7 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
@@ -54,14 +54,16 @@ import me.vickychijwani.spectre.model.ConfigurationParam;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Setting;
 import me.vickychijwani.spectre.model.Tag;
-import me.vickychijwani.spectre.network.BorderedCircleTransformation;
 import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
+import me.vickychijwani.spectre.view.image.BorderedCircleTransformation;
 import me.vickychijwani.spectre.view.widget.SpaceItemDecoration;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import retrofit.mime.TypedByteArray;
 
 public class PostListActivity extends BaseActivity {
 
@@ -74,8 +76,6 @@ public class PostListActivity extends BaseActivity {
     private Runnable mRefreshDataRunnable;
     private Runnable mRefreshTimeoutRunnable;
 
-    // blog configuration
-    private List<ConfigurationParam> mBlogConfiguration = new ArrayList<>();
     private boolean mFileStorageEnabled = true;
 
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;    // in milliseconds
@@ -104,6 +104,9 @@ public class PostListActivity extends BaseActivity {
 
         setLayout(R.layout.activity_post_list);
         setSupportActionBar(mToolbar);
+        if (BuildConfig.DEBUG) {
+            SpectreApplication.getInstance().addDebugDrawer(this);
+        }
 
         // get rid of the default action bar confetti
         //noinspection ConstantConditions
@@ -212,20 +215,23 @@ public class PostListActivity extends BaseActivity {
         scheduleDataRefresh();
 
         RetrofitError error = event.error;
-        if (error != null) {
-            Response response = error.getResponse();
-            //noinspection StatementWithEmptyBody
-            if (response != null && response.getStatus() == HttpURLConnection.HTTP_NOT_MODIFIED) {
-                // this is not really an error!
-            } else if (error.getKind() == RetrofitError.Kind.NETWORK
-                    && (error.getCause() instanceof ConnectException
-                    || error.getCause() instanceof SocketTimeoutException)) {
-                Toast.makeText(this, R.string.network_timeout, Toast.LENGTH_LONG).show();
-            } else {
-                Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during refresh");
-                Crashlytics.logException(error);
-                Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
+        if (error == null || ! NetworkUtils.isRealError(error)) {
+            return;
+        }
+
+        Response response = error.getResponse();
+        if (error.getKind() == RetrofitError.Kind.NETWORK
+                && (error.getCause() instanceof ConnectException
+                || error.getCause() instanceof SocketTimeoutException)) {
+            Toast.makeText(this, R.string.network_timeout, Toast.LENGTH_LONG).show();
+        } else {
+            Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during refresh");
+            if (response != null) {
+                Crashlytics.log(Log.ERROR, TAG, "response: " +
+                        new String(((TypedByteArray) response.getBody()).getBytes()));
             }
+            Crashlytics.logException(error);
+            Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -254,7 +260,6 @@ public class PostListActivity extends BaseActivity {
 
     @Subscribe
     public void onConfigurationLoadedEvent(ConfigurationLoadedEvent event) {
-        mBlogConfiguration = event.params;
         for (ConfigurationParam param : event.params) {
             if (param.getKey().equals("fileStorage")) {
                 mFileStorageEnabled = Boolean.valueOf(param.getValue());
@@ -362,9 +367,12 @@ public class PostListActivity extends BaseActivity {
             if (! TextUtils.isEmpty(post.getImage())) {
                 String imageUrl = AppUtils.pathJoin(mBlogUrl, post.getImage());
                 viewHolder.image.setVisibility(View.VISIBLE);
-                mPicasso.load(imageUrl).into(viewHolder.image);
+                mPicasso.load(imageUrl)
+                        .fit().centerCrop()
+                        .into(viewHolder.image);
             } else {
                 viewHolder.image.setVisibility(View.GONE);
+                viewHolder.image.setImageResource(android.R.color.transparent);
             }
             viewHolder.published.setText(PostUtils.getStatusString(post, mContext));
             viewHolder.published.setTextColor(PostUtils.getStatusColor(post, mContext));

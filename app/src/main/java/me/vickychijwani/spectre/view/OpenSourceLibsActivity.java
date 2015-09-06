@@ -25,7 +25,6 @@ import me.vickychijwani.spectre.view.widget.DividerItemDecoration;
 public class OpenSourceLibsActivity extends BaseActivity {
 
     private static final List<Library> LIBRARIES = Arrays.asList(
-            new Library("Android-ObservableScrollView", "Soichiro Kashima", "https://github.com/ksoichiro/Android-ObservableScrollView"),
             new Library("ButterKnife", "Jake Wharton", "http://jakewharton.github.io/butterknife/"),
             new Library("Crashlytics", "Crashlytics", "https://crashlytics.com"),
             new Library("DebugDrawer", "Mantas Palaima", "https://github.com/palaima/DebugDrawer"),

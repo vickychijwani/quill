@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+
+    <FrameLayout
+        android:id="@+id/post_image_edit_layout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/post_image_height"
+        android:foreground="?attr/selectableItemBackground">
+
+        <ImageView
+            android:id="@+id/post_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerInside"
+            android:contentDescription="@string/cdesc_post_image"
+            android:src="@drawable/image_placeholder"
+            android:background="#eee"
+            />
+
+        <ProgressBar
+            android:id="@+id/post_image_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            />
+
+    </FrameLayout>
+
+</LinearLayout>

@@ -20,7 +20,6 @@ import com.tsengvn.typekit.TypekitContextWrapper;
 import java.util.List;
 
 import butterknife.ButterKnife;
-import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BusProvider;
@@ -50,9 +49,6 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     protected void setLayout(int layoutResID) {
         super.setContentView(layoutResID);
         ButterKnife.bind(this);
-        if (BuildConfig.DEBUG) {
-            SpectreApplication.getInstance().addDebugDrawer(this);
-        }
     }
 
     @Override

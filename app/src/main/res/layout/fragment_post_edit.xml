@@ -1,65 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<android.support.v4.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/post_markdown_scroll_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".view.PostViewActivity">
 
-    <com.github.ksoichiro.android.observablescrollview.ObservableScrollView
-        android:id="@+id/observable_scroll_view"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:overScrollMode="never"
-        android:fillViewport="true"
-        >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <include
-                layout="@layout/post_header"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
-            <ScrollView
-                android:id="@+id/post_markdown_scroll_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <EditText
-                    android:id="@+id/post_markdown"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingLeft="@dimen/padding_large"
-                    android:paddingRight="@dimen/padding_large"
-                    android:paddingTop="@dimen/padding_large"
-                    android:paddingBottom="@dimen/padding_fab_normal"
-                    android:gravity="top"
-                    android:inputType="text|textMultiLine|textLongMessage|textCapSentences"
-                    android:background="@android:color/transparent"
-                    android:textAppearance="@style/TextAppearance.Medium.Light"
-                    android:hint="@string/post_body_hint"
-                    android:textColorHint="@color/text_secondary"
-                    tools:text="@string/lorem_ipsum"
-                    />
-
-            </ScrollView>
-
-        </LinearLayout>
-
-    </com.github.ksoichiro.android.observablescrollview.ObservableScrollView>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/preview_btn"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:src="@drawable/preview"
-        style="@style/MyFloatingActionButton"
-        />
+        android:orientation="vertical">
 
-</android.support.design.widget.CoordinatorLayout>
+        <!-- prevent the EditText from automatically gaining focus -->
+        <requestFocus />
+
+        <EditText
+            android:id="@+id/post_title_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/padding_large"
+            android:background="@null"
+            android:hint="@string/post_title_hint"
+            android:imeOptions="actionDone"
+            android:inputType="text|textCapSentences"
+            android:textAppearance="@style/TextAppearance.Large.Light"
+            tools:text="My awesome post title"
+            />
+
+        <View style="@style/MyDivider" />
+
+        <EditText
+            android:id="@+id/post_markdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:gravity="top"
+            android:hint="@string/post_body_hint"
+            android:inputType="text|textMultiLine|textLongMessage|textCapSentences"
+            android:padding="@dimen/padding_large"
+            android:textAppearance="@style/TextAppearance.Medium.Light"
+            android:textColorHint="@color/text_secondary"
+            tools:text="@string/lorem_ipsum"
+            />
+
+    </LinearLayout>
+
+</android.support.v4.widget.NestedScrollView>
+

@@ -30,13 +30,13 @@ import me.vickychijwani.spectre.view.BundleKeys;
  */
 public class WebViewFragment extends BaseFragment {
 
-    @Bind(R.id.web_view)
-    WebView mWebView;
+    public interface OnWebViewCreatedListener {
+        void onWebViewCreated();
+    }
 
+    @Bind(R.id.web_view) WebView mWebView;
     private String mUrl;
-    private Object mJsInterface = null;
-    private String mJsInterfaceName = null;
-    private DefaultWebViewClient mWebViewClient = null;
+    private OnWebViewCreatedListener mOnWebViewCreatedListener = null;
 
     /**
      * Returns a new WebViewFragment which will load the desired URL.
@@ -79,15 +79,16 @@ public class WebViewFragment extends BaseFragment {
         return view;
     }
 
+    public void setOnWebViewCreatedListener(OnWebViewCreatedListener listener) {
+        mOnWebViewCreatedListener = listener;
+    }
+
     @SuppressLint({"JavascriptInterface", "AddJavascriptInterface"})
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (mJsInterface != null) {
-            mWebView.addJavascriptInterface(mJsInterface, mJsInterfaceName);
-        }
-        if (mWebViewClient != null) {
-            mWebView.setWebViewClient(mWebViewClient);
+        if (mOnWebViewCreatedListener != null) {
+            mOnWebViewCreatedListener.onWebViewCreated();
         }
     }
 
@@ -105,6 +106,9 @@ public class WebViewFragment extends BaseFragment {
 
     @Override
     public void onDestroyView() {
+        // don't hold on to the listener (which could potentially be an Activity)
+        mOnWebViewCreatedListener = null;
+        // destroy the WebView completely
         if (mWebView != null) {
             mWebView.destroy();
             mWebView = null;
@@ -145,21 +149,12 @@ public class WebViewFragment extends BaseFragment {
     }
 
     @SuppressLint({"JavascriptInterface", "AddJavascriptInterface"})
-    public void setJSInterface(@Nullable Object jsInterface, @Nullable String name) {
-        if (mWebView == null) {
-            mJsInterface = jsInterface;
-            mJsInterfaceName = name;
-        } else {
-            mWebView.addJavascriptInterface(jsInterface, name);
-        }
+    public void setJSInterface(Object jsInterface, String name) {
+        mWebView.addJavascriptInterface(jsInterface, name);
     }
 
     public <T extends DefaultWebViewClient> void setWebViewClient(@NonNull T webViewClient) {
-        if (mWebView == null) {
-            mWebViewClient = webViewClient;
-        } else {
-            mWebView.setWebViewClient(webViewClient);
-        }
+        mWebView.setWebViewClient(webViewClient);
     }
 
     @Override

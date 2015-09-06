@@ -13,6 +13,7 @@ public final class PostStub {
     public final String status;
     public final String markdown;
     public final List<TagStub> tags;
+    public final String image;
 
     public PostStub(@NonNull Post post) {
         this.title = post.getTitle();
@@ -23,6 +24,7 @@ public final class PostStub {
         for (Tag tag : post.getTags()) {
             this.tags.add(new TagStub(tag));
         }
+        this.image = post.getImage();
     }
 
 }

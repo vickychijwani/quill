@@ -9,11 +9,6 @@
 
     <link rel="stylesheet" href="file:///android_asset/css/main.css" />
     <link rel="stylesheet" href="file:///android_asset/css/defer.css" />
-    <style type="text/css">
-        body {
-            padding-bottom: 88px;   // == @dimen/padding_fab_normal, to ensure the FAB does not hide content
-        }
-    </style>
 
     <script type="text/javascript" src="file:///android_asset/showdown-ghost/showdown.js"></script>
     <script type="text/javascript" src="file:///android_asset/showdown-ghost/extensions/ghostgfm.js"></script>
@@ -31,10 +26,18 @@
             ]
         });
 
-        var content = undefined;
+        var content = undefined, title = undefined;
         window.addEventListener('load', function () {
             content = document.getElementsByClassName('post-content')[0];
+            title = document.getElementsByClassName('post-title')[0];
         });
+
+        function updateTitle() {
+            if (! title) {
+                return;         // DOM not ready yet
+            }
+            title.innerHTML = POST.getTitle();
+        }
 
         function preview() {
             if (! content) {
@@ -48,11 +51,19 @@
 </head>
 
 <body>
-    <main class="content">
+    <main class="content" style="overflow-x: hidden;">
         <article class="post">
+
+            <header>
+                <h1 class="post-title">
+                    <!-- post title goes here -->
+                </h1>
+            </header>
+
             <section class="post-content">
                 <!-- post preview content goes here -->
             </section>
+
         </article>
     </main>
 </body>

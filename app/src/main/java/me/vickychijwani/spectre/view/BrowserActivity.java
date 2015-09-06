@@ -12,7 +12,7 @@ import butterknife.Bind;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.view.fragments.WebViewFragment;
 
-public class BrowserActivity extends BaseActivity {
+public class BrowserActivity extends BaseActivity implements WebViewFragment.OnWebViewCreatedListener {
 
     @Bind(R.id.toolbar) Toolbar mToolbar;
     private WebViewFragment mWebViewFragment;
@@ -23,20 +23,26 @@ public class BrowserActivity extends BaseActivity {
         setLayout(R.layout.activity_browser);
         setSupportActionBar(mToolbar);
         setTitle(R.string.loading);
+        //noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         String url = getIntent().getStringExtra(BundleKeys.URL);
         mWebViewFragment = WebViewFragment.newInstance(url);
+        mWebViewFragment.setOnWebViewCreatedListener(this);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.web_view_container, mWebViewFragment)
+                .commit();
+    }
+
+    @Override
+    public void onWebViewCreated() {
         mWebViewFragment.setWebViewClient(new WebViewFragment.DefaultWebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
                 BrowserActivity.this.setTitle(view.getTitle());
             }
         });
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.web_view_container, mWebViewFragment)
-                .commit();
     }
 
     @Override

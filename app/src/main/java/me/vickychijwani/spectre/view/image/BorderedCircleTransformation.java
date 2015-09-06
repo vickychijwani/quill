@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-package me.vickychijwani.spectre.network;
+package me.vickychijwani.spectre.view.image;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
