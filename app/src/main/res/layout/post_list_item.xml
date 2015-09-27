@@ -46,10 +46,10 @@
             android:paddingLeft="@dimen/padding_large"
             android:paddingRight="@dimen/padding_large"
             android:paddingBottom="@dimen/padding_large"
-            android:singleLine="true"
+            android:maxLines="2"
             android:textAppearance="@style/TextAppearance.Small.Dim"
             android:textColor="@color/published"
-            tools:text="Published 2015-01-04 13:45"
+            tools:text="Published 5 days ago"
             />
 
         <TextView
@@ -58,7 +58,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/post_title"
             android:layout_alignRight="@id/post_title"
-            android:paddingLeft="@dimen/padding_large"
             android:paddingRight="@dimen/padding_large"
             android:paddingBottom="@dimen/padding_large"
             android:maxLines="1"
