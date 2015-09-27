@@ -537,6 +537,14 @@ public class NetworkService {
     @Subscribe
     public void onSavePostEvent(SavePostEvent event) {
         Post post = event.post;
+
+        // TODO bug in edge-case:
+        // TODO 1. user publishes draft, offline => pending actions = { EDIT }
+        // TODO 2. then makes some edits offline which are auto-saved => pending actions = { EDIT_LOCAL }
+        // TODO the post will not actually be published now!
+        // TODO to resolve this we would require some notion of pending actions associated with
+        // TODO specific fields of a post rather than the entire post
+
         //noinspection StatementWithEmptyBody
         if (PostUtils.hasPendingAction(post, PendingAction.CREATE)) {
             // no-op; if the post is yet to be created, we DO NOT change the PendingAction on it

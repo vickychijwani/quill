@@ -50,6 +50,8 @@ public class PostUtils {
     public static boolean isDirty(@NonNull Post original, @NonNull Post current) {
         if (! original.getTitle().equals(current.getTitle()))
             return true;
+        if (! original.getStatus().equals(current.getStatus()))
+            return true;
         if (! original.getSlug().equals(current.getSlug()))
             return true;
         if (! original.getMarkdown().equals(current.getMarkdown()))

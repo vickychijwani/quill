@@ -6,24 +6,12 @@
         android:id="@+id/action_insert_image"
         android:icon="@drawable/image_insert"
         android:title="@string/insert_image"
-        app:showAsAction="ifRoom">
+        android:orderInCategory="50"
+        app:showAsAction="always">
 
         <menu><!-- submenu is inflated here --></menu>
 
     </item>
-
-    <item
-        android:id="@+id/action_save"
-        android:icon="@drawable/save"
-        android:title="@string/save"
-        app:showAsAction="ifRoom"
-        />
-
-    <item
-        android:id="@+id/action_publish"
-        android:title="@string/publish"
-        app:showAsAction="never"
-        />
 
     <!--<item-->
         <!--android:id="@+id/action_discard"-->

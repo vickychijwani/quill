@@ -11,7 +11,9 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,6 +39,7 @@ import me.vickychijwani.spectre.event.FileUploadedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
+import me.vickychijwani.spectre.model.PendingAction;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
 import me.vickychijwani.spectre.util.PostUtils;
@@ -80,6 +83,9 @@ public class PostEditFragment extends BaseFragment {
     private SaveType mSaveType = SaveType.NONE;
     private Runnable mSaveTimeoutRunnable;
     private static final int SAVE_TIMEOUT = 5 * 1000;       // milliseconds
+
+    private boolean mPostTitleOrBodyTextChanged = false;
+    PostTextWatcher mPostTextWatcher = null;
 
     // image insert / upload
     private static final int REQUEST_CODE_IMAGE_PICK = 1;
@@ -170,14 +176,36 @@ public class PostEditFragment extends BaseFragment {
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        if (Post.PUBLISHED.equals(mPost.getStatus())) {
-            menu.findItem(R.id.action_publish).setTitle(R.string.unpublish);
-        } else {
-            menu.findItem(R.id.action_publish).setTitle(R.string.publish);
-        }
 //         saveToMemory();   // make sure user changes are stored in mPost before computing diff
 //         boolean isPostDirty = PostUtils.isDirty(mOriginalPost, mPost);
 //         menu.findItem(R.id.action_discard).setVisible(isPostDirty);
+    }
+
+    // TODO consider moving this and other logic out into a View-Model
+    public boolean shouldShowPublishAction() {
+        // show the publish action for drafts and for locally-edited published posts
+        if (Post.DRAFT.equals(mPost.getStatus())
+                || PostUtils.hasPendingAction(mPost, PendingAction.EDIT_LOCAL)
+                || mPostTitleOrBodyTextChanged) {
+            if (mPostTextWatcher != null) {
+                mPostTitleEditView.removeTextChangedListener(mPostTextWatcher);
+                mPostEditView.removeTextChangedListener(mPostTextWatcher);
+                mPostTextWatcher = null;
+            }
+            return true;
+        } else {
+            // published post with no auto-saved edits (may have unsynced published edits though)
+            if (mPostTextWatcher == null) {
+                mPostTextWatcher = new PostTextWatcher();
+                mPostTitleEditView.addTextChangedListener(mPostTextWatcher);
+                mPostEditView.addTextChangedListener(mPostTextWatcher);
+            }
+            return false;
+        }
+    }
+
+    public boolean shouldShowUnpublishAction() {
+        return Post.PUBLISHED.equals(mPost.getStatus());
     }
 
     @Override
@@ -193,13 +221,6 @@ public class PostEditFragment extends BaseFragment {
                 } else {
                     onInsertImageUploadClicked(insertMarkdownAction);
                 }
-                return true;
-            case R.id.action_save:
-                // TODO hate having to do an empty subscribe here
-                onSaveClicked().subscribe(Actions.empty());
-                return true;
-            case R.id.action_publish:
-                onPublishUnpublishClicked();
                 return true;
 //            case R.id.action_discard:
 //                onDiscardChangesClicked();
@@ -342,6 +363,16 @@ public class PostEditFragment extends BaseFragment {
         return false;
     }
 
+    public void onPublishClicked() {
+        if (Post.DRAFT.equals(mPost.getStatus())) {
+            // case (1): publishing a draft
+            onPublishUnpublishClicked();
+        } else {
+            // case (2): saving edits to a published post
+            onSaveClicked().subscribe(Actions.empty());
+        }
+    }
+
     public Observable<Boolean> onSaveClicked() {
         // can't use cleverness like !PostUtils.isDirty(mLastSavedPost, mPost) here
         // consider: edit published post => hit back to auto-save => open again and hit "Save"
@@ -371,7 +402,7 @@ public class PostEditFragment extends BaseFragment {
         });
     }
 
-    private void onPublishUnpublishClicked() {
+    public void onPublishUnpublishClicked() {
         int msg = R.string.alert_publish;
         String targetStatus = Post.PUBLISHED;
         if (Post.PUBLISHED.equals(mPost.getStatus())) {
@@ -419,6 +450,11 @@ public class PostEditFragment extends BaseFragment {
         if (mPost.getUuid().equals(event.post.getUuid())) {
             mLastSavedPost = new Post(mPost);
         }
+
+        // hide the Publish / Unpublish actions if appropriate
+        mPostTitleOrBodyTextChanged = false;
+        mActivity.supportInvalidateOptionsMenu();
+
         if (getView() == null) {
             return;
         }
@@ -474,6 +510,24 @@ public class PostEditFragment extends BaseFragment {
         }
         mPostTitleEditView.setText(post.getTitle());
         mPostEditView.setText(post.getMarkdown());
+    }
+
+    private class PostTextWatcher implements TextWatcher {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            // count == after indicates high probability of no change
+            if (count != after) {
+                mPostTitleOrBodyTextChanged = true;
+                mActivity.supportInvalidateOptionsMenu();
+                // the TextWatcher is removed later, can't remove it here because it crashes
+            }
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+        @Override
+        public void afterTextChanged(Editable s) {}
     }
 
 }

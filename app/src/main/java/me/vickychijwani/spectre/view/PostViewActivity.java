@@ -63,7 +63,7 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mSaveTimeoutRunnable;
     private String mBlogUrl;
-    private boolean mFileStorageEnabled = false;
+    private boolean mbFileStorageEnabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,9 +124,8 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean isDraftOrPublished = Post.PUBLISHED.equals(mPost.getStatus())
-                || Post.DRAFT.equals(mPost.getStatus());
-        menu.findItem(R.id.action_view_post).setVisible(isDraftOrPublished);
+        menu.findItem(R.id.action_publish).setVisible(mPostEditFragment.shouldShowPublishAction());
+        menu.findItem(R.id.action_unpublish).setVisible(mPostEditFragment.shouldShowUnpublishAction());
         return true;
     }
 
@@ -136,8 +135,14 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
             case R.id.action_view_post:
                 viewPostInBrowser(true);
                 return true;
+            case R.id.action_publish:
+                mPostEditFragment.onPublishClicked();
+                return true;
             case R.id.action_post_settings:
                 mDrawerLayout.openDrawer(mNavView);
+                return true;
+            case R.id.action_unpublish:
+                mPostEditFragment.onPublishUnpublishClicked();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -175,7 +180,9 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
         if (event.uuid.equals(mPost.getUuid()) && mbPreviewPost) {
             mHandler.removeCallbacks(mSaveTimeoutRunnable);
             startBrowserActivity(PostUtils.getPostUrl(mPost));
-            mProgressDialog.dismiss();
+            if (mProgressDialog != null) {
+                mProgressDialog.dismiss();
+            }
             mbPreviewPost = false;
         }
     }
@@ -183,10 +190,10 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     @Subscribe
     public void onPostLoadedEvent(PostLoadedEvent event) {
         mPost = event.post;
-        mFileStorageEnabled = getIntent().getExtras()
+        mbFileStorageEnabled = getIntent().getExtras()
                 .getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
         mViewPager.setAdapter(new PostViewFragmentPagerAdapter(getSupportFragmentManager(),
-                mFileStorageEnabled, this));
+                mbFileStorageEnabled, this));
         mViewPager.addOnPageChangeListener(this);
         mTabLayout.setupWithViewPager(mViewPager);
         updatePostImage();
@@ -194,7 +201,7 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     }
 
     @Subscribe
-    public void onPostChangedEvent(PostReplacedEvent event) {
+    public void onPostReplacedEvent(PostReplacedEvent event) {
         // FIXME check which post changed before blindly assigning to mPost!
         mPost = event.newPost;
         mPostViewFragment.setPost(mPost);
@@ -249,7 +256,7 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     @Override
     public void onClick(View view) {
         PopupMenu popupMenu = new PopupMenu(this, mPostImageView);
-        if (mFileStorageEnabled) {
+        if (mbFileStorageEnabled) {
             popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
         } else {
             popupMenu.inflate(R.menu.insert_image_file_storage_disabled);

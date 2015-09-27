@@ -6,15 +6,30 @@
     tools:context=".view.PostViewActivity">
 
     <item
+        android:id="@+id/action_publish"
+        android:icon="@drawable/upload"
+        android:title="@string/publish"
+        android:orderInCategory="1"
+        app:showAsAction="always"
+        />
+
+    <item
         android:id="@+id/action_post_settings"
         android:title="@string/post_settings"
         android:icon="@drawable/settings"
-        app:showAsAction="ifRoom"
+        android:orderInCategory="99"
+        app:showAsAction="always"
         />
 
     <item
         android:id="@+id/action_view_post"
         android:title="@string/view_post_on_blog"
+        app:showAsAction="never"
+        />
+
+    <item
+        android:id="@+id/action_unpublish"
+        android:title="@string/unpublish"
         app:showAsAction="never"
         />
 
