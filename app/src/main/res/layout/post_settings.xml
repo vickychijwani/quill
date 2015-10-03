@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+    android:theme="@style/ThemeOverlay.AppCompat">
 
     <FrameLayout
         android:id="@+id/post_image_edit_layout"
@@ -32,5 +31,20 @@
             />
 
     </FrameLayout>
+
+    <me.vickychijwani.spectre.view.widget.ChipsEditText
+        android:id="@+id/post_tags_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_large"
+        android:layout_marginLeft="@dimen/padding_large"
+        android:layout_marginRight="@dimen/padding_large"
+        android:textAppearance="@style/TextAppearance.Medium"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:scrollHorizontally="false"
+        android:hint="@string/post_tags_hint"
+        android:imeOptions="actionDone"
+        />
 
 </LinearLayout>

@@ -49,6 +49,7 @@ import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadConfigurationEvent;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
+import me.vickychijwani.spectre.event.LoadTagsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
@@ -64,6 +65,7 @@ import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.event.SyncPostsEvent;
+import me.vickychijwani.spectre.event.TagsLoadedEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.AuthReqBody;
 import me.vickychijwani.spectre.model.AuthToken;
@@ -589,6 +591,16 @@ public class NetworkService {
                 getBus().post(new FileUploadErrorEvent(error));
             }
         });
+    }
+
+    @Subscribe
+    public void onLoadTagsEvent(LoadTagsEvent event) {
+        RealmResults<Tag> tags = mRealm.where(Tag.class).findAllSorted("name");
+        List<Tag> tagsCopy = new ArrayList<>(tags.size());
+        for (Tag tag : tags) {
+            tagsCopy.add(new Tag(tag.getName()));
+            }
+        getBus().post(new TagsLoadedEvent(tagsCopy));
     }
 
     @Subscribe

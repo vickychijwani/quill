@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -23,24 +24,37 @@ import android.widget.Toast;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Callback;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import butterknife.Bind;
+import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.LoadPostEvent;
+import me.vickychijwani.spectre.event.LoadTagsEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
+import me.vickychijwani.spectre.event.TagsLoadedEvent;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
+import me.vickychijwani.spectre.view.widget.ChipsEditText;
 import rx.Observable;
 import rx.functions.Action1;
 
-public class PostViewActivity extends BaseActivity implements ViewPager.OnPageChangeListener,
-        PostViewFragmentPagerAdapter.OnFragmentsInitializedListener, View.OnClickListener {
+public class PostViewActivity extends BaseActivity implements
+        ViewPager.OnPageChangeListener,
+        PostViewFragmentPagerAdapter.OnFragmentsInitializedListener,
+        View.OnClickListener,
+        PostEditFragment.PostTagsManager
+{
 
     private static final String TAG = "PostViewActivity";
 
@@ -53,6 +67,7 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
     @Bind(R.id.post_image)                      ImageView mPostImageView;
     @Bind(R.id.post_image_edit_layout)          ViewGroup mPostImageEditLayout;
     @Bind(R.id.post_image_loading)              ProgressBar mPostImageProgressBar;
+    @Bind(R.id.post_tags_edit)                  ChipsEditText mPostTagsEditText;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
@@ -76,6 +91,13 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
 
         mBlogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
 
+        ArrayAdapter<String> tagSuggestionsAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, Collections.emptyList());
+        mPostTagsEditText.setAdapter(tagSuggestionsAdapter);
+        mPostTagsEditText.setTokenizer(new ChipsEditText.SpaceTokenizer());
+        mPostTagsEditText.setChipBackgroundColor(getResources().getColor(R.color.accent));
+        mPostTagsEditText.setChipTextColor(getResources().getColor(R.color.text_primary_inverted));
+
         mSaveTimeoutRunnable = () -> {
             if (mbPreviewPost) {
                 mProgressDialog.dismiss();
@@ -85,6 +107,7 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
         };
 
         getBus().post(new LoadPostEvent(getIntent().getExtras().getString(BundleKeys.POST_UUID)));
+        getBus().post(new LoadTagsEvent());
         // wait for the post to load, then initialize fragments, etc.
     }
 
@@ -196,8 +219,23 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
                 mbFileStorageEnabled, this));
         mViewPager.addOnPageChangeListener(this);
         mTabLayout.setupWithViewPager(mViewPager);
-        updatePostImage();
+        updatePostSettings();
         mPostImageEditLayout.setOnClickListener(this);
+    }
+
+    @Subscribe
+    public void onTagsLoadedEvent(TagsLoadedEvent event) {
+        List<String> allTags = new ArrayList<>(event.tags.size());
+        for (Tag tag : event.tags) {
+            String tagName = tag.getName();
+            if (! allTags.contains(tagName)) {
+                allTags.add(tagName);
+            }
+        }
+        // notifyDataSetChanged doesn't work for some reason
+        ArrayAdapter<String> tagSuggestionsAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, allTags);
+        mPostTagsEditText.setAdapter(tagSuggestionsAdapter);
     }
 
     @Subscribe
@@ -206,7 +244,7 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
         mPost = event.newPost;
         mPostViewFragment.setPost(mPost);
         mPostEditFragment.setPost(mPost, true);
-        updatePostImage();
+        updatePostSettings();
     }
 
     @Subscribe
@@ -217,10 +255,10 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
         mPost = event.post;
         mPostViewFragment.setPost(mPost);
         mPostEditFragment.setPost(mPost, true);
-        updatePostImage();
+        updatePostSettings();
     }
 
-    private void updatePostImage() {
+    private void updatePostSettings() {
         String imageUrl = mPost.getImage();
         if (!TextUtils.isEmpty(imageUrl)) {
             mPostImageProgressBar.setVisibility(View.VISIBLE);
@@ -251,6 +289,11 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
             mPostImageProgressBar.setVisibility(View.GONE);
             mPostImageView.setVisibility(View.VISIBLE);
         }
+        List<String> tagStrs = new ArrayList<>();
+        for (Tag tag : mPost.getTags()) {
+            tagStrs.add(tag.getName());
+        }
+        mPostTagsEditText.setTokens(tagStrs);
     }
 
     @Override
@@ -276,6 +319,16 @@ public class PostViewActivity extends BaseActivity implements ViewPager.OnPageCh
         return (url) -> {
             mPostEditFragment.saveAutomaticallyWithImage(url);
         };
+    }
+
+    @Override
+    public RealmList<Tag> getTags() {
+        RealmList<Tag> tags = new RealmList<>();
+        List<String> tagStrs = mPostTagsEditText.getTokens();
+        for (String tagStr : tagStrs) {
+            tags.add(new Tag(tagStr));
+        }
+        return tags;
     }
 
     @Override

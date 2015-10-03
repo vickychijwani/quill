@@ -41,7 +41,6 @@ public class OpenSourceLibsActivity extends BaseActivity {
             new Library("Showdown", "ShowdownJS and Hannah Wolfe", "https://github.com/ErisDS/showdown/"),
             new Library("Slugify", "Danny Trunk", "https://github.com/slugify/slugify"),
             new Library("Stetho", "Facebook Inc.", "http://facebook.github.io/stetho/"),
-            new Library("TokenAutoComplete", "Splitwise Inc.", "https://github.com/splitwise/TokenAutoComplete"),
             new Library("Typekit", "Hien Ngo", "https://github.com/tsengvn/typekit")
     );
 

@@ -32,6 +32,7 @@ import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.FileUploadErrorEvent;
 import me.vickychijwani.spectre.event.FileUploadEvent;
@@ -41,6 +42,7 @@ import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.model.PendingAction;
 import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.BundleKeys;
@@ -72,6 +74,7 @@ public class PostEditFragment extends BaseFragment {
     @Bind(R.id.post_markdown)               EditText mPostEditView;
 
     private PostViewActivity mActivity;
+    private PostTagsManager mPostTagsManager;
 
     private Post mOriginalPost;     // copy of post since the time it was opened for editing
     private Post mLastSavedPost;    // copy of post since it was last saved
@@ -113,6 +116,7 @@ public class PostEditFragment extends BaseFragment {
         ButterKnife.bind(this, view);
 
         mActivity = ((PostViewActivity) getActivity());
+        mPostTagsManager = mActivity;
         mbFileStorageEnabled = getArguments().getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
                 mbFileStorageEnabled);
 
@@ -341,6 +345,7 @@ public class PostEditFragment extends BaseFragment {
         mPost.setTitle(mPostTitleEditView.getText().toString());
         mPost.setMarkdown(mPostEditView.getText().toString());
         mPost.setHtml(null);   // omit stale HTML from request body
+        mPost.setTags(mPostTagsManager.getTags());
         if (newStatus != null) {
             mPost.setStatus(newStatus);
         }
@@ -528,6 +533,10 @@ public class PostEditFragment extends BaseFragment {
 
         @Override
         public void afterTextChanged(Editable s) {}
+    }
+
+    public interface PostTagsManager {
+        RealmList<Tag> getTags();
     }
 
 }
