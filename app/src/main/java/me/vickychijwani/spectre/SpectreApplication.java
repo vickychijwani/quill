@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
+import io.fabric.sdk.android.Fabric;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.network.NetworkService;
@@ -47,7 +48,7 @@ public class SpectreApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Crashlytics.start(this);
+        Fabric.with(this, new Crashlytics());
         Crashlytics.log(Log.DEBUG, TAG, "APP LAUNCHED");
         BusProvider.getBus().register(this);
         sInstance = this;
