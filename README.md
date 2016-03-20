@@ -6,12 +6,12 @@ Quill: the beautiful Android app for your Ghost blog.
 
 Home screen:
 
-![post list](http://i.imgur.com/F9wn6i7.png?1)
+![post list](https://dl.dropboxusercontent.com/u/3037831/quill-screenshots/quill-post-list.png)
 
 Post editor (edit mode):
 
-![post editor](http://i.imgur.com/r26p3br.png)
+![post editor](https://dl.dropboxusercontent.com/u/3037831/quill-screenshots/quill-post-edit.png)
 
 Post editor (preview mode):
 
-![post preview](http://i.imgur.com/VGANTd7.png)
+![post preview](https://dl.dropboxusercontent.com/u/3037831/quill-screenshots/quill-post-preview.png)
