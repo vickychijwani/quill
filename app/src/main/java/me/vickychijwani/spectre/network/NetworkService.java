@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
@@ -97,6 +99,7 @@ import retrofit.RetrofitError;
 import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
+import retrofit.mime.TypedByteArray;
 import retrofit.mime.TypedFile;
 import rx.Observable;
 import rx.functions.Action1;
@@ -157,10 +160,36 @@ public class NetworkService {
     @Subscribe
     public void onLoginStartEvent(final LoginStartEvent event) {
         if (mbAuthRequestOnGoing) return;
-
-        AuthReqBody credentials = new AuthReqBody(event.username, event.password);
-        mApi = buildApiService(event.blogUrl);
         mbAuthRequestOnGoing = true;
+        mApi = buildApiService(event.blogUrl);
+
+        // get dynamic client secret, if the blog supports it
+        mApi.getLoginPage(new ResponseCallback() {
+            @Override
+            public void success(Response response) {
+                String html = new String(((TypedByteArray) response.getBody()).getBytes());
+                Pattern clientSecretPattern = Pattern.compile("^.*<meta[ ]+name=['\"]env-clientSecret['\"][ ]+content=['\"]([^'\"]+)['\"].*$", Pattern.DOTALL);
+                Matcher matcher = clientSecretPattern.matcher(html);
+                if (matcher.matches()) {
+                    String clientSecret = matcher.group(1);
+                    doLogin(event, clientSecret);
+                } else {
+                    Log.w(TAG, "No client secret found, assuming old Ghost version without client secret support");
+                    doLogin(event, null);
+                }
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(TAG, "No client secret found, assuming old Ghost version without client secret support");
+                Log.e(TAG, Log.getStackTraceString(error));
+                doLogin(event, null);
+            }
+        });
+    }
+
+    private void doLogin(@NonNull LoginStartEvent event, @Nullable String clientSecret) {
+        AuthReqBody credentials = new AuthReqBody(event.username, event.password, clientSecret);
         mApi.getAuthToken(credentials, new Callback<AuthToken>() {
             @Override
             public void success(AuthToken authToken, Response response) {

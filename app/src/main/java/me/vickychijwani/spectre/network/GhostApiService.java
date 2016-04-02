@@ -11,6 +11,7 @@ import me.vickychijwani.spectre.model.SettingsList;
 import me.vickychijwani.spectre.model.UserList;
 import retrofit.Callback;
 import retrofit.ResponseCallback;
+import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.Header;
@@ -24,6 +25,9 @@ import retrofit.mime.TypedFile;
 interface GhostApiService {
 
     // auth
+    @GET("/ghost")
+    void getLoginPage(Callback<Response> cb);
+
     @POST("/authentication/token")
     void getAuthToken(@Body AuthReqBody credentials, Callback<AuthToken> cb);
 
