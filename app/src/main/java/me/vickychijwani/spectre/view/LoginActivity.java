@@ -105,9 +105,9 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         mPasswordLayout.setError(null);
 
         // Store values at the time of the login attempt.
-        String blogUrl = mBlogUrlView.getText().toString();
-        String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
+        String blogUrl = mBlogUrlView.getText().toString().trim();
+        String email = mEmailView.getText().toString().trim();
+        String password = mPasswordView.getText().toString().trim();
 
         boolean cancel = false;
         View focusView = null;
@@ -150,14 +150,11 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             // perform the user login attempt.
             showProgress(true);
             KeyboardUtils.defocusAndHideKeyboard(this);
-            sendLoginRequest();
+            sendLoginRequest(blogUrl, email, password);
         }
     }
 
-    private void sendLoginRequest() {
-        String blogUrl = mBlogUrlView.getText().toString();
-        String username = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
+    private void sendLoginRequest(String blogUrl, String username, String password) {
         getBus().post(new LoginStartEvent(blogUrl, username, password, true));
     }
 
