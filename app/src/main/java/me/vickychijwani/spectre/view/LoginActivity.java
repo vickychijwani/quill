@@ -105,7 +105,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         mPasswordLayout.setError(null);
 
         // Store values at the time of the login attempt.
-        String blogUrl = mBlogUrlView.getText().toString().trim();
+        String blogUrl = mBlogUrlView.getText().toString().trim().replace("/ghost", "");
         String email = mEmailView.getText().toString().trim();
         String password = mPasswordView.getText().toString().trim();
 
@@ -119,7 +119,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             cancel = true;
         }
 
-        // Check for a valid password, if the user entered one.
+        // check for a valid password
         if (TextUtils.isEmpty(password)) {
             mPasswordLayout.setError(getString(R.string.error_field_required));
             focusView = mPasswordView;
@@ -130,7 +130,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
             cancel = true;
         }
 
-        // Check for a valid email address.
+        // check for a valid email address
         if (TextUtils.isEmpty(email)) {
             mEmailLayout.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
