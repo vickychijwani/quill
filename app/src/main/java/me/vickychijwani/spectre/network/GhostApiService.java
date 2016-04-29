@@ -39,7 +39,7 @@ interface GhostApiService {
 
     // users
     @GET("/users/me/?include=roles&status=all")
-    void getCurrentUser(Callback<UserList> cb);
+    void getCurrentUser(@Header("If-None-Match") String etag, Callback<UserList> cb);
 
     // posts
     // FIXME (issue #81) only allowing 30 posts right now to avoid too much data transfer
@@ -54,10 +54,10 @@ interface GhostApiService {
 
     // settings / configuration
     @GET("/settings/?type=blog")
-    void getSettings(Callback<SettingsList> cb);
+    void getSettings(@Header("If-None-Match") String etag, Callback<SettingsList> cb);
 
     @GET("/configuration")
-    void getConfiguration(Callback<ConfigurationList> cb);
+    void getConfiguration(@Header("If-None-Match") String etag, Callback<ConfigurationList> cb);
 
     // file upload
     @Multipart

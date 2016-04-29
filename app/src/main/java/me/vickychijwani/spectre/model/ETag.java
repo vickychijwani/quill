@@ -1,5 +1,10 @@
 package me.vickychijwani.spectre.model;
 
+import android.support.annotation.StringDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
@@ -7,14 +12,24 @@ import io.realm.annotations.RealmClass;
 @RealmClass
 public class ETag extends RealmObject {
 
+    @Retention(RetentionPolicy.SOURCE)
+    @StringDef({ TYPE_ALL_POSTS, TYPE_CURRENT_USER, TYPE_BLOG_SETTINGS, TYPE_CONFIGURATION })
+    public @interface Type {}
+
+    public static final String TYPE_ALL_POSTS = "all_posts";
+    public static final String TYPE_CURRENT_USER = "current_user";
+    public static final String TYPE_BLOG_SETTINGS = "blog_settings";
+    public static final String TYPE_CONFIGURATION = "configuration";
+
     @PrimaryKey
-    private String type = "all_posts";
+    private String type;
     private String tag;
 
     @SuppressWarnings("unused")
     public ETag() {}
 
-    public ETag(String tag) {
+    public ETag(@Type String type, String tag) {
+        this.type = type;
         this.tag = tag;
     }
 

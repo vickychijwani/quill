@@ -96,6 +96,7 @@ import retrofit.RequestInterceptor;
 import retrofit.ResponseCallback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
+import retrofit.client.Header;
 import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
@@ -264,9 +265,10 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getCurrentUser(new Callback<UserList>() {
+        mApi.getCurrentUser(loadEtag(ETag.TYPE_CURRENT_USER), new Callback<UserList>() {
             @Override
             public void success(UserList userList, Response response) {
+                storeEtag(response.getHeaders(), ETag.TYPE_CURRENT_USER);
                 createOrUpdateModel(userList.users);
                 getBus().post(new UserLoadedEvent(userList.users.get(0)));
                 refreshSucceeded(event);
@@ -302,9 +304,10 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getSettings(new Callback<SettingsList>() {
+        mApi.getSettings(loadEtag(ETag.TYPE_BLOG_SETTINGS), new Callback<SettingsList>() {
             @Override
             public void success(SettingsList settingsList, Response response) {
+                storeEtag(response.getHeaders(), ETag.TYPE_BLOG_SETTINGS);
                 createOrUpdateModel(settingsList.settings);
                 getBus().post(new BlogSettingsLoadedEvent(settingsList.settings));
                 refreshSucceeded(event);
@@ -340,9 +343,10 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getConfiguration(new Callback<ConfigurationList>() {
+        mApi.getConfiguration(loadEtag(ETag.TYPE_CONFIGURATION), new Callback<ConfigurationList>() {
             @Override
             public void success(ConfigurationList configurationList, Response response) {
+                storeEtag(response.getHeaders(), ETag.TYPE_CONFIGURATION);
                 createOrUpdateModel(configurationList.configuration);
                 getBus().post(new ConfigurationLoadedEvent(configurationList.configuration));
                 refreshSucceeded(event);
@@ -380,19 +384,10 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        RealmResults<ETag> etags = mRealm.allObjects(ETag.class);
-        String etagStr = "";
-        if (etags.size() > 0) {
-            etagStr = etags.first().getTag();
-            if (etagStr == null) etagStr = "";
-        }
-        mApi.getPosts(etagStr, new Callback<PostList>() {
+        mApi.getPosts(loadEtag(ETag.TYPE_ALL_POSTS), new Callback<PostList>() {
             @Override
             public void success(PostList postList, Response response) {
-                // update the stored etag
-                Observable.from(response.getHeaders())
-                        .takeFirst(h -> "ETag".equals(h.getName()))
-                        .forEach(h -> createOrUpdateModel(new ETag(h.getValue())));
+                storeEtag(response.getHeaders(), ETag.TYPE_ALL_POSTS);
 
                 // delete posts that are no longer present on the server
                 // this assumes that postList.posts is a list of ALL posts on the server
@@ -820,6 +815,20 @@ public class NetworkService {
         List<Post> postsCopy = new ArrayList<>(posts);
         Collections.sort(postsCopy, PostUtils.COMPARATOR_MAIN_LIST);
         return postsCopy;
+    }
+
+    private void storeEtag(List<Header> headers, @ETag.Type String etagType) {
+        for (Header header : headers) {
+            if ("ETag".equals(header.getName())) {
+                ETag etag = new ETag(etagType, header.getValue());
+                createOrUpdateModel(etag);
+            }
+        }
+    }
+
+    private String loadEtag(@ETag.Type String etagType) {
+        ETag etag = mRealm.where(ETag.class).equalTo("type", etagType).findFirst();
+        return (etag != null) ? etag.getTag() : "";
     }
 
     /**
