@@ -42,7 +42,8 @@ interface GhostApiService {
     void getCurrentUser(Callback<UserList> cb);
 
     // posts
-    @GET("/posts/?status=all&staticPages=all&limit=all&include=tags")
+    // FIXME (issue #81) only allowing 30 posts right now to avoid too much data transfer
+    @GET("/posts/?status=all&staticPages=all&limit=30&include=tags")
     void getPosts(@Header("If-None-Match") String etag, Callback<PostList> cb);
 
     @POST("/posts/?include=tags")
