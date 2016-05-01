@@ -64,10 +64,11 @@ public class PostViewActivity extends BaseActivity implements
     @Bind(R.id.view_pager)                      ViewPager mViewPager;
     @Bind(R.id.drawer_layout)                   DrawerLayout mDrawerLayout;
     @Bind(R.id.nav_view)                        NavigationView mNavView;
-    @Bind(R.id.post_image)                      ImageView mPostImageView;
-    @Bind(R.id.post_image_edit_layout)          ViewGroup mPostImageEditLayout;
-    @Bind(R.id.post_image_loading)              ProgressBar mPostImageProgressBar;
-    @Bind(R.id.post_tags_edit)                  ChipsEditText mPostTagsEditText;
+
+    ImageView mPostImageView;
+    ViewGroup mPostImageEditLayout;
+    ProgressBar mPostImageProgressBar;
+    ChipsEditText mPostTagsEditText;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
@@ -84,6 +85,15 @@ public class PostViewActivity extends BaseActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setLayout(R.layout.activity_post_view);
+
+        // ButterKnife doesn't work with the NavigationView's header because it isn't
+        // exposed via findViewById: https://code.google.com/p/android/issues/detail?id=190226
+        ViewGroup headerView = (ViewGroup) mNavView.getHeaderView(0);
+        mPostImageView = (ImageView) headerView.findViewById(R.id.post_image);
+        mPostImageEditLayout = (ViewGroup) headerView.findViewById(R.id.post_image_edit_layout);
+        mPostImageProgressBar = (ProgressBar) headerView.findViewById(R.id.post_image_loading);
+        mPostTagsEditText = (ChipsEditText) headerView.findViewById(R.id.post_tags_edit);
+
         setSupportActionBar(mToolbar);
         //noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
