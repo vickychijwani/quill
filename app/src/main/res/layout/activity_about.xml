@@ -111,6 +111,16 @@
                 android:textAppearance="@style/TextAppearance.Small"
                 />
 
+            <TextView
+                android:id="@+id/about_login_bg_credits"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding_large"
+                android:gravity="center_horizontal"
+                android:text="@string/about_login_bg_credits"
+                android:textAppearance="@style/TextAppearance.Small"
+                />
+
         </LinearLayout>
 
     </ScrollView>
