@@ -18,8 +18,9 @@
 
         <activity
             android:name=".view.LoginActivity"
-            android:windowSoftInputMode="adjustResize|stateVisible"
-            android:launchMode="singleTop">
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.Login">
         </activity>
 
         <activity

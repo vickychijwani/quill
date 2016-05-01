@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">Quill</string>
+    <string name="app_name" translatable="false">Quill</string>
 
     <!-- login -->
     <string name="no_such_blog">There is no Ghost blog at %s/ghost.</string>
@@ -14,7 +14,7 @@
     <string name="draft">Draft</string>
     <string name="offline_changes">Saved on device, waiting to go online…</string>
     <string name="published_auto_saved">Changes auto-saved, not published yet</string>
-    <string name="lorem_ipsum">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages.\n\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source.</string>
+    <string name="lorem_ipsum" translatable="false">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages.\n\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source.</string>
     <string name="publish">Publish</string>
     <string name="unpublish">Unpublish</string>
     <string name="alert_publish">Publish draft?</string>
@@ -69,6 +69,7 @@
     <string name="refresh_failed">Couldn\'t refresh data</string>
 
     <!-- generic -->
+    <string name="ghost" translatable="false">ghost</string>
     <string name="done">Done</string>
     <string name="save">Save</string>
     <string name="refresh">Refresh</string>

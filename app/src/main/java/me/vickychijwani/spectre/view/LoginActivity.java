@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
-import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
@@ -14,6 +13,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,13 +47,13 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     private final String TAG = "LoginActivity";
 
     // UI references
-    @Bind(R.id.toolbar)         Toolbar mToolbar;
     @Bind(R.id.blog_url_layout) TextInputLayout mBlogUrlLayout;
     @Bind(R.id.blog_url)        EditText mBlogUrlView;
     @Bind(R.id.email_layout)    TextInputLayout mEmailLayout;
     @Bind(R.id.email)           EditText mEmailView;
     @Bind(R.id.password_layout) TextInputLayout mPasswordLayout;
     @Bind(R.id.password)        EditText mPasswordView;
+    @Bind(R.id.sign_in_btn)     Button mSignInBtn;
     @Bind(R.id.login_progress)  View mProgressView;
     @Bind(R.id.login_form)      View mLoginFormView;
 
@@ -61,7 +61,6 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setLayout(R.layout.activity_login);
-        setSupportActionBar(mToolbar);
 
         mPasswordView.setOnEditorActionListener(this);
 
@@ -70,7 +69,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         mEmailView.setText(prefs.getString(UserPrefs.Key.USERNAME));
         mPasswordView.setText(prefs.getString(UserPrefs.Key.PASSWORD));
 
-        findViewById(R.id.email_sign_in_button).setOnClickListener(this);
+        mSignInBtn.setOnClickListener(this);
     }
 
     @Override
