@@ -198,18 +198,20 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
                     || error.getCause() instanceof SocketTimeoutException);
             // don't remember when this happens, but it does happen consistently in one error scenario
             boolean conversionError = error.getKind() == RetrofitError.Kind.CONVERSION;
-            String blogUrl = mBlogUrlView.getText().toString();
+            String blogUrl = event.blogUrl;
             if (userNetworkError || conversionError) {
                 mBlogUrlLayout.setError(String.format(getString(R.string.no_such_blog), blogUrl));
                 mBlogUrlView.requestFocus();
             } else if (connectionError) {
                 Toast.makeText(this, String.format(getString(R.string.login_connection_error), blogUrl),
                         Toast.LENGTH_SHORT).show();
+                mBlogUrlLayout.setError(null);
             } else {
                 Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during login!");
                 Crashlytics.logException(error);
                 Toast.makeText(this, getString(R.string.login_unexpected_error),
                         Toast.LENGTH_SHORT).show();
+                mBlogUrlLayout.setError(null);
             }
         }
     }

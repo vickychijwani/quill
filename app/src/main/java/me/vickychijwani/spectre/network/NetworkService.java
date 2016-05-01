@@ -210,7 +210,7 @@ public class NetworkService {
                     clearSavedPassword();
                     getBus().post(new PasswordChangedEvent());
                 } else {
-                    getBus().post(new LoginErrorEvent(error));
+                    getBus().post(new LoginErrorEvent(error, event.blogUrl));
                 }
                 flushApiEventQueue(true);
             }
@@ -742,7 +742,7 @@ public class NetworkService {
                     postLoginStartEvent();
                     Log.e(TAG, "Expired refresh token used! You're wasting bandwidth / battery!");
                 } else {
-                    getBus().post(new LoginErrorEvent(error));
+                    getBus().post(new LoginErrorEvent(error, null));
                     flushApiEventQueue(true);
                 }
             }
