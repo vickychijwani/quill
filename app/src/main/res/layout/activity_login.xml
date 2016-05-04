@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:background="#99000000"
+    android:background="#72000000"
     tools:context=".view.LoginActivity">
 
     <!-- Login progress -->

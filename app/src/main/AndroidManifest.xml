@@ -20,7 +20,7 @@
             android:name=".view.LoginActivity"
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTop"
-            android:theme="@style/AppTheme.Login">
+            android:theme="@style/LoginTheme">
         </activity>
 
         <activity

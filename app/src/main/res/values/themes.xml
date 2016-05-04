@@ -18,12 +18,15 @@
     <style name="AppTheme" parent="BaseAppTheme">
     </style>
 
-    <style name="AppTheme.Login">
+    <style name="BaseLoginTheme" parent="AppTheme">
         <item name="android:buttonStyle">@style/Widget.AppCompat.Button.Colored</item>
         <item name="android:textColorHint">@color/text_primary_inverted_dim</item>
         <item name="colorControlNormal">@color/text_primary_inverted_dim</item>
         <item name="colorControlActivated">@color/accent</item>
         <item name="android:windowBackground">@drawable/login_bg</item>
+    </style>
+
+    <style name="LoginTheme" parent="BaseLoginTheme">
     </style>
 
 </resources>
