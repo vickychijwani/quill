@@ -7,9 +7,11 @@ import me.vickychijwani.spectre.model.Post;
 public class PostsLoadedEvent {
 
     public final List<Post> posts;
+    public final int postsFetchLimit;
 
-    public PostsLoadedEvent(List<Post> posts) {
+    public PostsLoadedEvent(List<Post> posts, int postsFetchLimit) {
         this.posts = posts;
+        this.postsFetchLimit = postsFetchLimit;
     }
 
 }

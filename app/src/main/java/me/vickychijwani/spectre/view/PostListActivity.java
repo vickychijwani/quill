@@ -13,7 +13,9 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -118,7 +120,7 @@ public class PostListActivity extends BaseActivity {
         mPostAdapter = new PostAdapter(this, mPosts, blogUrl, getPicasso(), v -> {
             int pos = mPostList.getChildLayoutPosition(v);
             if (pos == RecyclerView.NO_POSITION) return;
-            Post post = mPostAdapter.getItem(pos);
+            Post post = (Post) mPostAdapter.getItem(pos);
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
             intent.putExtra(BundleKeys.POST_UUID, post.getUuid());
             intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
@@ -192,6 +194,9 @@ public class PostListActivity extends BaseActivity {
                 return true;
             case R.id.action_refresh:
                 refreshData(false);
+                return true;
+            case R.id.action_feedback:
+                startBrowserActivity(BrowserActivity.FEEDBACK_PAGE);
                 return true;
             case R.id.action_about:
                 Intent aboutIntent = new Intent(this, AboutActivity.class);
@@ -271,6 +276,15 @@ public class PostListActivity extends BaseActivity {
     public void onPostsLoadedEvent(PostsLoadedEvent event) {
         mPosts.clear();
         mPosts.addAll(event.posts);
+        if (mPosts.size() >= event.postsFetchLimit) {
+            CharSequence message = Html.fromHtml(String.format(
+                    getString(R.string.post_limit_exceeded),
+                    getString(R.string.app_name), event.postsFetchLimit,
+                    BrowserActivity.POST_FETCH_LIMIT_FEEDBACK));
+            mPostAdapter.showFooter(message);
+        } else {
+            mPostAdapter.hideFooter();
+        }
         mPostAdapter.notifyDataSetChanged();
     }
 
@@ -320,7 +334,10 @@ public class PostListActivity extends BaseActivity {
     }
 
 
-    static class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
+    static class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+        private static final int TYPE_POST = 1;
+        private static final int TYPE_FOOTER = 2;
 
         private final LayoutInflater mLayoutInflater;
         private final List<Post> mPosts;
@@ -328,6 +345,7 @@ public class PostListActivity extends BaseActivity {
         private final String mBlogUrl;
         private final Picasso mPicasso;
         private final View.OnClickListener mItemClickListener;
+        private CharSequence mFooterText;
 
         public PostAdapter(Context context, List<Post> posts, String blogUrl, Picasso picasso,
                            View.OnClickListener itemClickListener) {
@@ -342,27 +360,68 @@ public class PostListActivity extends BaseActivity {
 
         @Override
         public int getItemCount() {
-            return mPosts.size();
+            int count = mPosts.size();
+            if (mFooterText != null) {
+                ++count; // +1 for footer
+            }
+            return count;
         }
 
-        public Post getItem(int position) {
-            return mPosts.get(position);
+        public Object getItem(int position) {
+            if (position < mPosts.size()) {
+                return mPosts.get(position);
+            } else {
+                return mFooterText;
+            }
         }
 
         @Override
         public long getItemId(int position) {
-            return getItem(position).getUuid().hashCode();
+            if (getItemViewType(position) == TYPE_POST) {
+                return ((Post) getItem(position)).getUuid().hashCode();
+            } else {
+                return -9999;   // footer
+            }
         }
 
         @Override
-        public PostViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = mLayoutInflater.inflate(R.layout.post_list_item, parent, false);
-            return new PostViewHolder(view, mItemClickListener);
+        public int getItemViewType(int position) {
+            if (position < mPosts.size()) {
+                return TYPE_POST;
+            } else {
+                return TYPE_FOOTER;
+            }
         }
 
         @Override
-        public void onBindViewHolder(PostViewHolder viewHolder, int position) {
-            Post post = getItem(position);
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            if (viewType == TYPE_POST) {
+                View view = mLayoutInflater.inflate(R.layout.post_list_item, parent, false);
+                return new PostViewHolder(view, mItemClickListener);
+            } else if (viewType == TYPE_FOOTER) {
+                View view = mLayoutInflater.inflate(R.layout.post_list_footer, parent, false);
+                return new FooterViewHolder(view);
+            }
+            throw new IllegalArgumentException("Invalid view type: " + viewType);
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
+            if (viewHolder instanceof PostViewHolder) {
+                PostViewHolder postVH = (PostViewHolder) viewHolder;
+                Post post = (Post) getItem(position);
+                bindPost(postVH, post);
+            } else if (viewHolder instanceof FooterViewHolder) {
+                FooterViewHolder footerVH = (FooterViewHolder) viewHolder;
+                CharSequence footerText = (CharSequence) getItem(position);
+                bindFooter(footerVH, footerText);
+            } else {
+                throw new IllegalArgumentException("Invalid ViewHolder type: " +
+                        viewHolder.getClass().getSimpleName());
+            }
+        }
+
+        private void bindPost(PostViewHolder viewHolder, Post post) {
             viewHolder.title.setText(post.getTitle());
             if (! TextUtils.isEmpty(post.getImage())) {
                 String imageUrl = AppUtils.pathJoin(mBlogUrl, post.getImage());
@@ -389,6 +448,19 @@ public class PostListActivity extends BaseActivity {
             }
         }
 
+        private void bindFooter(FooterViewHolder viewHolder, CharSequence footerText) {
+            viewHolder.textView.setText(footerText);
+            viewHolder.textView.setMovementMethod(LinkMovementMethod.getInstance());
+        }
+
+        public void showFooter(CharSequence footerText) {
+            mFooterText = footerText;
+        }
+
+        public void hideFooter() {
+            mFooterText = null;
+        }
+
         static class PostViewHolder extends RecyclerView.ViewHolder {
             @Bind(R.id.post_title)        TextView title;
             @Bind(R.id.post_published)    TextView published;
@@ -399,6 +471,15 @@ public class PostListActivity extends BaseActivity {
                 super(view);
                 ButterKnife.bind(this, view);
                 view.setOnClickListener(clickListener);
+            }
+        }
+
+        static class FooterViewHolder extends RecyclerView.ViewHolder {
+            @Bind(R.id.post_limit_exceeded)     TextView textView;
+
+            public FooterViewHolder(View view) {
+                super(view);
+                ButterKnife.bind(this, view);
             }
         }
 

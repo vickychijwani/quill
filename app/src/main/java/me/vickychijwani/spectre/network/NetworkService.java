@@ -109,6 +109,9 @@ public class NetworkService {
 
     private static final String TAG = "NetworkService";
 
+    // number of posts to fetch
+    private static final int POSTS_FETCH_LIMIT = 30;
+
     private Context mAppContext = null;     // Application context, not Activity context!
     private Realm mRealm = null;
     private GhostApiService mApi = null;
@@ -385,14 +388,14 @@ public class NetworkService {
             // 1. there are actually no posts
             // 2. we just haven't fetched any posts from the server yet (Realm returns an empty list in this case too)
             if (posts.size() > 0) {
-                getBus().post(new PostsLoadedEvent(posts));
+                getBus().post(new PostsLoadedEvent(posts, POSTS_FETCH_LIMIT));
                 refreshSucceeded(event);
                 return;
             }
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getPosts(loadEtag(ETag.TYPE_ALL_POSTS), new Callback<PostList>() {
+        mApi.getPosts(loadEtag(ETag.TYPE_ALL_POSTS), POSTS_FETCH_LIMIT, new Callback<PostList>() {
             @Override
             public void success(PostList postList, Response response) {
                 storeEtag(response.getHeaders(), ETag.TYPE_ALL_POSTS);
@@ -421,14 +424,15 @@ public class NetworkService {
 
                 // now create / update received posts
                 createOrUpdateModel(postList.posts);
-                getBus().post(new PostsLoadedEvent(getPostsSorted()));
+                getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
+
                 refreshSucceeded(event);
             }
 
             @Override
             public void failure(RetrofitError error) {
                 // fallback to cached data
-                getBus().post(new PostsLoadedEvent(getPostsSorted()));
+                getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
                 if (NetworkUtils.isRealError(error)) {
                     // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
                     // login with the password if that doesn't work either (#92)
@@ -499,7 +503,7 @@ public class NetworkService {
             // if forceNetworkCall is true, first load from the db, AND only then from the network,
             // to avoid a crash because local posts have been deleted above but are still being
             // displayed, so we need to refresh the UI first
-            getBus().post(new PostsLoadedEvent(getPostsSorted()));
+            getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
             if (event.forceNetworkCall) {
                 LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
                 mRefreshEventsQueue.add(loadPostsEvent);
@@ -539,7 +543,7 @@ public class NetworkService {
                     uploadErrorOccurred[0] = error;
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new ApiErrorEvent(error));
-                    getBus().post(new PostsLoadedEvent(getPostsSorted()));
+                    getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
                 }
             });
@@ -569,7 +573,7 @@ public class NetworkService {
                     uploadErrorOccurred[0] = error;
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new ApiErrorEvent(error));
-                    getBus().post(new PostsLoadedEvent(getPostsSorted()));
+                    getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
                 }
             });

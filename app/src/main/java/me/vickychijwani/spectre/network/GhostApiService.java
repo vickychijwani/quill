@@ -20,6 +20,7 @@ import retrofit.http.POST;
 import retrofit.http.PUT;
 import retrofit.http.Part;
 import retrofit.http.Path;
+import retrofit.http.Query;
 import retrofit.mime.TypedFile;
 
 interface GhostApiService {
@@ -42,9 +43,10 @@ interface GhostApiService {
     void getCurrentUser(@Header("If-None-Match") String etag, Callback<UserList> cb);
 
     // posts
-    // FIXME (issue #81) only allowing 30 posts right now to avoid too much data transfer
-    @GET("/posts/?status=all&staticPages=all&limit=30&include=tags")
-    void getPosts(@Header("If-None-Match") String etag, Callback<PostList> cb);
+    // FIXME (issue #81) only allowing N posts right now to avoid too much data transfer
+    @GET("/posts/?status=all&staticPages=all&include=tags")
+    void getPosts(@Header("If-None-Match") String etag, @Query("limit") int numPosts,
+                  Callback<PostList> cb);
 
     @POST("/posts/?include=tags")
     void createPost(@Body PostStubList posts, Callback<PostList> cb);

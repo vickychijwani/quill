@@ -8,11 +8,35 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebView;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import butterknife.Bind;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.view.fragments.WebViewFragment;
 
 public class BrowserActivity extends BaseActivity implements WebViewFragment.OnWebViewCreatedListener {
+
+    private static final Map<String, String> URL_MAP = new HashMap<>();
+    private static final Map<String, Boolean> UP_ACTION_MAP = new HashMap<>();
+
+    private static final boolean SHOW_UP_ACTION = true, HIDE_UP_ACTION = false;
+
+    public static final String FEEDBACK_PAGE = "me.vickychijwani.spectre://feedback";
+    public static final String POST_FETCH_LIMIT_FEEDBACK = "me.vickychijwani.spectre://feedback/post-fetch-limit";
+
+    static {
+        URL_MAP.put(POST_FETCH_LIMIT_FEEDBACK, "https://productpains.com/post/quill/load-older-posts-beyond-the-latest-30");
+        UP_ACTION_MAP.put(POST_FETCH_LIMIT_FEEDBACK, SHOW_UP_ACTION);
+
+        // TODO I want to use the Product Pains embedded widget but login doesn't work with it
+        // the Login with Github, for example, simply redirects to Product Pains' homepage
+        // URL_MAP.put(FEEDBACK_PAGE, "http://vickychijwani.github.io/quill/feedback.html");
+        // UP_ACTION_MAP.put(FEEDBACK_PAGE, HIDE_UP_ACTION);
+
+        URL_MAP.put(FEEDBACK_PAGE, "https://productpains.com/product/quill");
+        UP_ACTION_MAP.put(FEEDBACK_PAGE, SHOW_UP_ACTION);
+    }
 
     @Bind(R.id.toolbar) Toolbar mToolbar;
     private WebViewFragment mWebViewFragment;
@@ -23,10 +47,23 @@ public class BrowserActivity extends BaseActivity implements WebViewFragment.OnW
         setLayout(R.layout.activity_browser);
         setSupportActionBar(mToolbar);
         setTitle(R.string.loading);
-        //noinspection ConstantConditions
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        String url = getIntent().getStringExtra(BundleKeys.URL);
+        String url;
+        if (getIntent().getData() != null) {
+            url = getIntent().getDataString();
+        } else if (getIntent().hasExtra(BundleKeys.URL)) {
+            url = getIntent().getStringExtra(BundleKeys.URL);
+        } else {
+            throw new IllegalArgumentException("No URL given");
+        }
+        if (URL_MAP.containsKey(url)) {
+            String key = url;
+            url = URL_MAP.get(key);
+            // maybe hide the Toolbar "Up" action to avoid having too many "Back"-like actions
+            //noinspection ConstantConditions
+            getSupportActionBar().setDisplayHomeAsUpEnabled(UP_ACTION_MAP.get(key));
+        }
+
         mWebViewFragment = WebViewFragment.newInstance(url);
         mWebViewFragment.setOnWebViewCreatedListener(this);
         getSupportFragmentManager()
