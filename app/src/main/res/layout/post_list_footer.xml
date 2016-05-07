@@ -13,7 +13,7 @@
         android:paddingLeft="@dimen/padding_large"
         android:paddingRight="@dimen/padding_large"
         android:paddingBottom="@dimen/padding_inline"
-        android:textAppearance="@style/TextAppearance.Small.Dim"
+        android:textAppearance="@style/TextAppearance.XSmall.Dim"
         android:textStyle="italic"
         tools:text="@string/post_limit_exceeded"
         />

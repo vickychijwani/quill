@@ -19,7 +19,9 @@
             android:id="@+id/post_title_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/padding_large"
+            android:layout_marginTop="@dimen/padding_large"
+            android:layout_marginLeft="@dimen/padding_large"
+            android:layout_marginRight="@dimen/padding_large"
             android:background="@null"
             android:hint="@string/post_title_hint"
             android:imeOptions="actionDone"
@@ -27,8 +29,6 @@
             android:textAppearance="@style/TextAppearance.Large.Light"
             tools:text="My awesome post title"
             />
-
-        <View style="@style/MyDivider" />
 
         <EditText
             android:id="@+id/post_markdown"
@@ -39,7 +39,7 @@
             android:hint="@string/post_body_hint"
             android:inputType="text|textMultiLine|textLongMessage|textCapSentences"
             android:padding="@dimen/padding_large"
-            android:textAppearance="@style/TextAppearance.Medium.Light"
+            android:textAppearance="@style/TextAppearance.Light"
             android:textColorHint="@color/text_secondary"
             tools:text="@string/lorem_ipsum"
             />

@@ -44,7 +44,19 @@
                 return;         // DOM not ready yet
             }
             markdown = POST.getMarkdown();
-            content.innerHTML = showdown.makeHtml(markdown);
+
+            var html = showdown.makeHtml(markdown),
+                blogUrl = POST.getBlogUrl();
+
+            html = html
+                // replace all relative URLs in links so they don't start with file:///
+                .replace(/(<a[^>]*href=["'])(\/[^>]*>)/gi, "$1" + blogUrl + "$2")
+                // replace all relative URLs in images
+                .replace(/(<img[^>]*src=["'])(\/[^>]*>)/gi, "$1" + blogUrl + "$2")
+                // replace all relative URLs in videos
+                .replace(/(<source[^>]*src=["'])(\/[^>]*>)/gi, "$1" + blogUrl + "$2");
+
+            content.innerHTML = html;
             Prism.highlightAll();
         }
     </script>

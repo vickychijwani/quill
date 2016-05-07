@@ -46,7 +46,7 @@ body { margin: 0; }
 a { background: transparent; }
 a:focus { outline: thin dotted; }
 a:active, a:hover { outline: 0; }
-h1 { font-size: 2em; margin: 0.67em 0; }
+h1 { font-size: 24px; margin: 0 0 16px 0; font-weight: normal; }
 abbr[title] { border-bottom: 1px dotted; }
 b, strong { font-weight: 500; }
 dfn { font-style: italic; }
@@ -1340,7 +1340,7 @@ top: -35px;
 
   h1, h2, h3,
   h4, h5, h6 {
-    margin: 0 0 0.4em 0;
+    margin: 0 0 16px 0;
   }
 }
 
@@ -1355,7 +1355,7 @@ top: -35px;
   }
 
   body{
-    font-size:18px;
+    font-size:16px;
   }
 
   .main-nav {
@@ -1422,7 +1422,7 @@ top: -35px;
   }
 
   body{
-    font-size:18px;
+    font-size:16px;
   }
 
   pre {
@@ -1530,7 +1530,7 @@ top: -35px;
 
   h1, h2, h3,
   h4, h5, h6 {
-    margin: 0 0 0.3em 0;
+    margin: 0 0 16px 0;
   }
 
   .post-template .site-footer {

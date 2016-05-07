@@ -65,7 +65,6 @@
     <string name="about_author">Made with &lt;3 by <a href="http://github.com/vickychijwani">@vickychijwani</a>. Have feedback? <a href="mailto:vickychijwani@gmail.com?subject=Quill for Android feedback">Email me</a> or open a <a href="http://github.com/vickychijwani/quill/issues">Github issue</a>.</string>
     <string name="about_desc">This app is <a href="http://github.com/vickychijwani/quill">completely open-source</a> and would not be possible without a bunch of open-source libraries.</string>
     <string name="about_icon_credits">Launcher icon \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a>.</string>
-    <string name="about_login_bg_credits">Login screen background \"Quill\" by <a href="https://www.flickr.com/photos/baxterboy/5231053644/">timechaser</a>.</string>
 
     <!-- network -->
     <string name="no_internet_connection">No Internet connection</string>

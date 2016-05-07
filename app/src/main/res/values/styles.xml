@@ -95,6 +95,10 @@
         <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
     </style>
 
+    <style name="TextAppearance.Medium.Light.Inverse">
+        <item name="android:textColor">@color/text_primary_inverted</item>
+    </style>
+
     <style name="TextAppearance.Medium.Light.Dim">
         <item name="android:textColor">@color/text_secondary</item>
     </style>

@@ -59,9 +59,12 @@ public class PostViewFragment extends BaseFragment
 
             @JavascriptInterface
             public String getMarkdown() {
-                // FIXME dirty string-replacement hack!
-                return mPost.getMarkdown().replaceAll("/content/images",
-                        AppUtils.pathJoin(blogUrl, "/content/images"));
+                return mPost.getMarkdown();
+            }
+
+            @JavascriptInterface
+            public String getBlogUrl() {
+                return blogUrl;
             }
         }, "POST");
         mWebViewFragment.setWebViewClient(new WebViewFragment.DefaultWebViewClient() {

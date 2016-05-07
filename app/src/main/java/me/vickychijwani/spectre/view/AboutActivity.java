@@ -20,7 +20,6 @@ public class AboutActivity extends BaseActivity {
     @Bind(R.id.about_author) TextView mAuthorView;
     @Bind(R.id.about_desc) TextView mDescView;
     @Bind(R.id.about_icon_credits) TextView mIconCreditsView;
-    @Bind(R.id.about_login_bg_credits) TextView mLoginBgCreditsView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +41,6 @@ public class AboutActivity extends BaseActivity {
         mAuthorView.setMovementMethod(LinkMovementMethod.getInstance());
         mDescView.setMovementMethod(LinkMovementMethod.getInstance());
         mIconCreditsView.setMovementMethod(LinkMovementMethod.getInstance());
-        mLoginBgCreditsView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     @OnClick(R.id.about_open_source_libs_btn)
