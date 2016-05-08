@@ -196,7 +196,7 @@ public class PostListActivity extends BaseActivity {
                 refreshData(false);
                 return true;
             case R.id.action_feedback:
-                startBrowserActivity(BrowserActivity.FEEDBACK_PAGE);
+                openUrl(AboutActivity.URL_GITHUB_CONTRIBUTING);
                 return true;
             case R.id.action_about:
                 Intent aboutIntent = new Intent(this, AboutActivity.class);
@@ -280,7 +280,7 @@ public class PostListActivity extends BaseActivity {
             CharSequence message = Html.fromHtml(String.format(
                     getString(R.string.post_limit_exceeded),
                     getString(R.string.app_name), event.postsFetchLimit,
-                    BrowserActivity.POST_FETCH_LIMIT_FEEDBACK));
+                    "https://github.com/vickychijwani/quill/issues/81"));
             mPostAdapter.showFooter(message);
         } else {
             mPostAdapter.hideFooter();

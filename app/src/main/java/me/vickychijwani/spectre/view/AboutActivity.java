@@ -17,6 +17,12 @@ import me.vickychijwani.spectre.util.AppUtils;
 
 public class AboutActivity extends BaseActivity {
 
+    public static final String URL_GITHUB_CONTRIBUTING = "https://github.com/vickychijwani/quill/blob/master/CONTRIBUTING.md#reporting-bugs";
+    public static final String URL_MY_WEBSITE = "http://vickychijwani.me";
+    public static final String URL_TWITTER_PROFILE = "https://twitter.com/vickychijwani";
+    public static final String URL_GITHUB_REPO = "https://github.com/vickychijwani/quill";
+    public static final String URL_GITHUB_PROFILE = "https://github.com/vickychijwani";
+
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.about_version) TextView mVersionView;
     @Bind(R.id.about_icon_credits) TextView mIconCreditsView;
@@ -49,27 +55,27 @@ public class AboutActivity extends BaseActivity {
 
     @OnClick(R.id.about_me)
     public void onAboutMeClicked(View v) {
-        startActivity(makeOpenUrlIntent("https://github.com/vickychijwani"));
+        openUrl(URL_GITHUB_PROFILE);
     }
 
     @OnClick(R.id.about_github)
     public void onGithubClicked(View v) {
-        startActivity(makeOpenUrlIntent("https://github.com/vickychijwani/quill"));
+        openUrl(URL_GITHUB_REPO);
     }
 
     @OnClick(R.id.about_twitter)
     public void onTwitterClicked(View v) {
-        startActivity(makeOpenUrlIntent("https://twitter.com/vickychijwani"));
+        openUrl(URL_TWITTER_PROFILE);
     }
 
     @OnClick(R.id.about_website)
     public void onWebsiteClicked(View v) {
-        startActivity(makeOpenUrlIntent("http://vickychijwani.me"));
+        openUrl(URL_MY_WEBSITE);
     }
 
     @OnClick(R.id.about_report_bugs)
     public void onReportBugsClicked(View v) {
-        startActivity(makeOpenUrlIntent("https://github.com/vickychijwani/quill/blob/master/CONTRIBUTING.md#reporting-bugs"));
+        openUrl(URL_GITHUB_CONTRIBUTING);
     }
 
     @OnClick(R.id.about_play_store)
@@ -96,10 +102,6 @@ public class AboutActivity extends BaseActivity {
             Toast.makeText(this, R.string.intent_no_apps, Toast.LENGTH_LONG)
                     .show();
         }
-    }
-
-    public Intent makeOpenUrlIntent(String url) {
-        return new Intent(Intent.ACTION_VIEW, Uri.parse(url));
     }
 
 }

@@ -3,6 +3,7 @@ package me.vickychijwani.spectre.view;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
@@ -141,6 +142,10 @@ public abstract class BaseActivity extends RxAppCompatActivity {
         Intent browserIntent = new Intent(this, BrowserActivity.class);
         browserIntent.putExtra(BundleKeys.URL, url);
         startActivity(browserIntent);
+    }
+
+    protected void openUrl(String url) {
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
     }
 
 
