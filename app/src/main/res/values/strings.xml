@@ -60,10 +60,27 @@
     <!-- about -->
     <string name="about_action">About…</string>
     <string name="about">About</string>
-    <string name="version">Version %s</string>
+
+    <string name="version">Version</string>
+    <string name="version_unknown">Unknown</string>
+    <string name="version_placeholder">%s</string>
     <string name="open_source_libs">Open-source libraries</string>
-    <string name="about_author">Made with &lt;3 by <a href="http://github.com/vickychijwani">@vickychijwani</a>. Have feedback? <a href="mailto:vickychijwani@gmail.com?subject=Quill for Android feedback">Email me</a> or open a <a href="http://github.com/vickychijwani/quill/issues">Github issue</a>.</string>
-    <string name="about_desc">This app is <a href="http://github.com/vickychijwani/quill">completely open-source</a> and would not be possible without a bunch of open-source libraries.</string>
+
+    <string name="category_author">Author</string>
+    <string name="vicky_chijwani" translatable="false">Vicky Chijwani</string>
+    <string name="fork_on_github">Fork on Github</string>
+    <string name="follow_on_twitter">Follow on Twitter</string>
+    <string name="visit_website">Visit website</string>
+
+    <string name="category_support_development">Support development</string>
+    <string name="report_bugs">Report bugs</string>
+    <string name="report_bugs_subtitle">Report bugs or propose new features</string>
+    <string name="play_store">Rate on Play Store</string>
+    <string name="play_store_subtitle">Thanks for your support!</string>
+    <string name="email_developer">Email the developer</string>
+    <string name="email_developer_subtitle">Contact the developer directly</string>
+    <string name="email_subject">%s - Feedback</string>
+
     <string name="about_icon_credits">Launcher icon \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a>.</string>
 
     <!-- network -->
@@ -79,10 +96,10 @@
     <string name="share">Share</string>
     <string name="loading">Loading…</string>
     <string name="insert">Insert</string>
+    <string name="intent_no_apps">There are no apps that can handle this action</string>
 
     <!-- content descriptions -->
     <string name="user_image">User image</string>
     <string name="cdesc_post_image">Post image</string>
-    <string name="cdesc_about_icon">About icon</string>
 
 </resources>

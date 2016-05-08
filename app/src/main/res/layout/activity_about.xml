@@ -5,7 +5,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@color/card_list_background"
+    android:orientation="vertical"
+    tools:ignore="UseCompoundDrawables,ContentDescription">
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
@@ -44,71 +46,225 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
-            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:padding="@dimen/padding_default"
-            >
+            android:paddingLeft="@dimen/padding_default"
+            android:paddingStart="@dimen/padding_default"
+            android:paddingRight="@dimen/padding_default"
+            android:paddingEnd="@dimen/padding_default"
+            android:paddingBottom="@dimen/padding_default">
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="64dp"
-                android:layout_marginTop="@dimen/padding_default"
-                android:src="@drawable/about_icon"
-                android:contentDescription="@string/cdesc_about_icon"
-                />
+            <!-- general -->
+            <android.support.v7.widget.CardView style="@style/AboutCardStyle">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/padding_default"
-                android:text="@string/app_name"
-                android:textAppearance="@style/TextAppearance.Large"
-                />
+                <LinearLayout style="@style/AboutLayoutStyle">
 
-            <TextView
-                android:id="@+id/about_version"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/padding_inline"
-                android:textAppearance="@style/TextAppearance.Small.Dim"
-                tools:text="Version 1.0.0"
-                />
+                    <!-- app name -->
+                    <LinearLayout
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/ic_launcher"/>
+                        <TextView
+                            style="@style/AboutTextStyle"
+                            android:text="@string/app_name"
+                            android:textAppearance="@style/TextAppearance.Medium"
+                            />
+                    </LinearLayout>
 
-            <TextView
-                android:id="@+id/about_author"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/padding_large"
-                android:gravity="center_horizontal"
-                android:text="@string/about_author"
-                android:textAppearance="@style/TextAppearance.Small"
-                />
+                    <!-- version -->
+                    <LinearLayout style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/info"
+                            />
+                        <LinearLayout style="@style/AboutSubItemStyle">
+                            <TextView
+                                style="@style/AboutTitleStyle"
+                                android:text="@string/version"
+                                />
+                            <TextView
+                                android:id="@+id/about_version"
+                                style="@style/AboutSubtitleStyle"
+                                android:text="@string/version_unknown"
+                                />
+                        </LinearLayout>
+                    </LinearLayout>
 
-            <TextView
-                android:id="@+id/about_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/padding_large"
-                android:gravity="center_horizontal"
-                android:text="@string/about_desc"
-                android:textAppearance="@style/TextAppearance.Small"
-                />
+                    <!-- open-source libraries -->
+                    <LinearLayout
+                        android:id="@+id/about_open_source_libs"
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/file"
+                            />
+                        <TextView
+                            style="@style/AboutTextStyle"
+                            android:text="@string/open_source_libs"
+                            />
+                    </LinearLayout>
 
-            <Button
-                android:id="@+id/about_open_source_libs_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/open_source_libs"
-                />
+                </LinearLayout>
 
+            </android.support.v7.widget.CardView>
+
+
+            <!-- author -->
+            <android.support.v7.widget.CardView style="@style/AboutCardStyle">
+
+                <LinearLayout style="@style/AboutLayoutStyle">
+
+                    <TextView
+                        style="@style/AboutCategoryHeadingStyle"
+                        android:text="@string/category_author"
+                        />
+
+                    <!-- developer -->
+                    <LinearLayout
+                        android:id="@+id/about_me"
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/user"
+                            />
+                        <TextView
+                            style="@style/AboutTextStyle"
+                            android:text="@string/vicky_chijwani"
+                            />
+                    </LinearLayout>
+
+                    <!-- github -->
+                    <LinearLayout
+                        android:id="@+id/about_github"
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/github"
+                            />
+                        <TextView
+                            style="@style/AboutTextStyle"
+                            android:text="@string/fork_on_github"
+                            />
+                    </LinearLayout>
+
+                    <!-- twitter -->
+                    <LinearLayout
+                        android:id="@+id/about_twitter"
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/twitter"
+                            />
+                        <TextView
+                            style="@style/AboutTextStyle"
+                            android:text="@string/follow_on_twitter"
+                            />
+                    </LinearLayout>
+
+                    <!-- website -->
+                    <LinearLayout
+                        android:id="@+id/about_website"
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/website"
+                            />
+                        <TextView
+                            style="@style/AboutTextStyle"
+                            android:text="@string/visit_website"
+                            />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </android.support.v7.widget.CardView>
+
+
+            <!-- support development -->
+            <android.support.v7.widget.CardView style="@style/AboutCardStyle">
+
+                <LinearLayout style="@style/AboutLayoutStyle">
+
+                    <TextView
+                        style="@style/AboutCategoryHeadingStyle"
+                        android:text="@string/category_support_development"
+                        />
+
+                    <!-- report bugs -->
+                    <LinearLayout
+                        android:id="@+id/about_report_bugs"
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/bug"
+                            />
+                        <LinearLayout style="@style/AboutSubItemStyle">
+                            <TextView
+                                style="@style/AboutTitleStyle"
+                                android:text="@string/report_bugs"
+                                />
+                            <TextView
+                                style="@style/AboutSubtitleStyle"
+                                android:text="@string/report_bugs_subtitle"
+                                />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- rate on play store -->
+                    <LinearLayout
+                        android:id="@+id/about_play_store"
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/star"
+                            />
+                        <LinearLayout style="@style/AboutSubItemStyle">
+                            <TextView
+                                style="@style/AboutTitleStyle"
+                                android:text="@string/play_store"
+                                />
+                            <TextView
+                                style="@style/AboutSubtitleStyle"
+                                android:text="@string/play_store_subtitle"
+                                />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- email me -->
+                    <LinearLayout
+                        android:id="@+id/about_email_developer"
+                        style="@style/AboutItemStyle">
+                        <ImageView
+                            style="@style/AboutIconStyle"
+                            android:src="@drawable/email"
+                            />
+                        <LinearLayout style="@style/AboutSubItemStyle">
+                            <TextView
+                                style="@style/AboutTitleStyle"
+                                android:text="@string/email_developer"
+                                />
+                            <TextView
+                                style="@style/AboutSubtitleStyle"
+                                android:text="@string/email_developer_subtitle"
+                                />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </android.support.v7.widget.CardView>
+
+
+            <!-- icon credits -->
             <TextView
                 android:id="@+id/about_icon_credits"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/padding_large"
+                android:layout_marginBottom="@dimen/padding_large"
                 android:gravity="center_horizontal"
                 android:text="@string/about_icon_credits"
-                android:textAppearance="@style/TextAppearance.Small"
+                android:textAppearance="@style/TextAppearance.XSmall.Dim"
                 />
 
         </LinearLayout>

@@ -34,6 +34,80 @@
         <item name="tabIndicatorHeight">3dp</item>
     </style>
 
+    <!-- About screen -->
+    <style name="AboutCardStyle" parent="MyCardView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/padding_default</item>
+    </style>
+
+    <style name="AboutLayoutStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingTop">@dimen/padding_default</item>
+        <item name="android:paddingBottom">@dimen/padding_default</item>
+    </style>
+
+    <style name="AboutCategoryHeadingStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">32dp</item>
+        <item name="android:layout_marginLeft">@dimen/padding_large</item>
+        <item name="android:layout_marginStart" tools:targetApi="jelly_bean_mr1">@dimen/padding_large</item>
+        <item name="android:layout_marginRight">@dimen/padding_large</item>
+        <item name="android:layout_marginEnd" tools:targetApi="jelly_bean_mr1">@dimen/padding_large</item>
+        <item name="android:textAppearance">@style/TextAppearance.Small.Dim.Label</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="AboutItemStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingLeft">@dimen/padding_large</item>
+        <item name="android:paddingStart" tools:targetApi="jelly_bean_mr1">@dimen/padding_large</item>
+        <item name="android:paddingRight">@dimen/padding_large</item>
+        <item name="android:paddingEnd" tools:targetApi="jelly_bean_mr1">@dimen/padding_large</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:clickable">true</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
+    <style name="AboutSubItemStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:paddingTop">@dimen/padding_default</item>
+        <item name="android:paddingBottom">@dimen/padding_default</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="AboutIconStyle">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_marginTop">@dimen/padding_inline</item>
+        <item name="android:layout_marginBottom">@dimen/padding_inline</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_marginRight">@dimen/padding_large</item>
+        <item name="android:layout_marginEnd" tools:targetApi="jelly_bean_mr1">@dimen/padding_large</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
+
+    <style name="AboutTitleStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.Small</item>
+    </style>
+
+    <style name="AboutTextStyle" parent="AboutTitleStyle">
+        <item name="android:layout_gravity">center_vertical</item>
+    </style>
+
+    <style name="AboutSubtitleStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.XSmall.Dim</item>
+    </style>
+
     <!-- Text styles -->
     <style name="TextAppearance" parent="@android:style/TextAppearance">
         <item name="android:textColor">@color/text_primary</item>
