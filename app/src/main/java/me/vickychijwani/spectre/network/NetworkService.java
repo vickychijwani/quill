@@ -130,6 +130,7 @@ public class NetworkService {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class, new DateDeserializer())
+                .registerTypeAdapter(ConfigurationList.class, new ConfigurationListDeserializer())
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setExclusionStrategies(new RealmExclusionStrategy())
                 .create();
