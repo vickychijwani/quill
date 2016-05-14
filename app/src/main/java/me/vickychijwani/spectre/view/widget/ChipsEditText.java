@@ -61,7 +61,9 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
         setOnEditorActionListener((view, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 updateChips();
-                return true;
+                // don't consume the event, so the keyboard can also be hidden
+                // http://stackoverflow.com/questions/2342620/how-to-hide-keyboard-after-typing-in-edittext-in-android#comment20849208_10184099
+                return false;
             }
             return false;
         });
@@ -131,6 +133,8 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
         updateChips();
     }
 
+
+
     // courtesy http://stackoverflow.com/a/29442039/504611
     public static class RoundedBackgroundSpan extends ReplacementSpan {
         private static final String TAG = "ChipsEditText";
@@ -157,8 +161,7 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
         @Override
         public int getSize(Paint paint, CharSequence text, int start, int end,
                            Paint.FontMetricsInt fm) {
-            return (int) (mLeftPadding
-                    + paint.measureText(text.subSequence(start, end).toString()) + mRightPadding);
+            return (int) (mLeftPadding + paint.measureText(text, start, end) + mRightPadding);
             // this is supposed to work but isn't
             // the span keeps growing in height as each character is typed / deleted (!)
 //            if (fm != null) {
@@ -189,7 +192,8 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
                          int y, int bottom, Paint paint) {
 //            canvas.translate(mLeftMargin, mTopMargin);
             float width = paint.measureText(text.subSequence(start, end).toString());
-            RectF rect = new RectF(x, top, x + mLeftPadding + width + mRightPadding, bottom);
+            float newBottom = bottom - 2;   // magic number to make sure consecutive lines don't touch
+            RectF rect = new RectF(x, top, x + mLeftPadding + width + mRightPadding, newBottom);
             paint.setColor(mBackgroundColor);
             canvas.drawRoundRect(rect, mCornerRadius, mCornerRadius, paint);
             paint.setColor(mTextColor);

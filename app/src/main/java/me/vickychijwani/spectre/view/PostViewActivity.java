@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -105,8 +106,16 @@ public class PostViewActivity extends BaseActivity implements
                 android.R.layout.simple_dropdown_item_1line, Collections.emptyList());
         mPostTagsEditText.setAdapter(tagSuggestionsAdapter);
         mPostTagsEditText.setTokenizer(new ChipsEditText.SpaceTokenizer());
-        mPostTagsEditText.setChipBackgroundColor(getResources().getColor(R.color.accent));
+        mPostTagsEditText.setChipBackgroundColor(getResources().getColor(R.color.primary));
         mPostTagsEditText.setChipTextColor(getResources().getColor(R.color.text_primary_inverted));
+
+        // make the field single line, but wrapped instead of scrolling horizontally
+        // the Done IME action makes the keyboard close on tapping
+        // NOTE: setting these in XML doesn't seem to work
+        mPostTagsEditText.setSingleLine(true);
+        mPostTagsEditText.setMaxLines(4);
+        mPostTagsEditText.setHorizontallyScrolling(false);
+        mPostTagsEditText.setImeOptions(EditorInfo.IME_ACTION_DONE);
 
         mSaveTimeoutRunnable = () -> {
             if (mbPreviewPost) {
