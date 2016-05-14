@@ -171,8 +171,6 @@ public class PostEditFragment extends BaseFragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         if (mbFileStorageEnabled) {
             inflater.inflate(R.menu.post_edit_file_storage_enabled, menu);
-            MenuItem insertImageItem = menu.findItem(R.id.action_insert_image);
-            inflater.inflate(R.menu.insert_image_file_storage_enabled, insertImageItem.getSubMenu());
         } else {
             inflater.inflate(R.menu.post_edit_file_storage_disabled, menu);
         }

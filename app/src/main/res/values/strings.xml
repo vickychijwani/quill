@@ -58,6 +58,7 @@
     <string name="insert_image_upload">Upload Image</string>
     <string name="uploading">Uploading…</string>
     <string name="image_upload_failed">Couldn\'t upload image</string>
+    <string name="remove_image">Remove This Image</string>
 
     <!-- about -->
     <string name="about_action">About…</string>

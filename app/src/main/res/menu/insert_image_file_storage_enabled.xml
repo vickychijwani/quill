@@ -15,4 +15,10 @@
         app:showAsAction="never"
         />
 
+    <item
+        android:id="@+id/action_image_remove"
+        android:title="@string/remove_image"
+        app:showAsAction="never"
+        />
+
 </menu>

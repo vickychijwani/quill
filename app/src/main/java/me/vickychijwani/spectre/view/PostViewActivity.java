@@ -316,21 +316,29 @@ public class PostViewActivity extends BaseActivity implements
 
     @Override
     public void onClick(View view) {
-        PopupMenu popupMenu = new PopupMenu(this, mPostImageLayoutManager.getRootLayout());
-        if (mbFileStorageEnabled) {
-            popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
-        } else {
-            popupMenu.inflate(R.menu.insert_image_file_storage_disabled);
-        }
-        popupMenu.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_insert_image_url) {
-                mPostEditFragment.onInsertImageUrlClicked(getInsertImageDoneAction());
+        if (view.getId() == R.id.post_image_edit_layout) {
+            PopupMenu popupMenu = new PopupMenu(this, mPostImageLayoutManager.getRootLayout());
+            if (mbFileStorageEnabled) {
+                popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
             } else {
-                mPostEditFragment.onInsertImageUploadClicked(getInsertImageDoneAction());
+                popupMenu.inflate(R.menu.insert_image_file_storage_disabled);
             }
-            return true;
-        });
-        popupMenu.show();
+            if (TextUtils.isEmpty(mPost.getImage())) {
+                MenuItem removeImageItem = popupMenu.getMenu().findItem(R.id.action_image_remove);
+                removeImageItem.setVisible(false);
+            }
+            popupMenu.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_insert_image_url) {
+                    mPostEditFragment.onInsertImageUrlClicked(getInsertImageDoneAction());
+                } else if (item.getItemId() == R.id.action_insert_image_upload) {
+                    mPostEditFragment.onInsertImageUploadClicked(getInsertImageDoneAction());
+                } else if (item.getItemId() == R.id.action_image_remove) {
+                    getInsertImageDoneAction().call("");
+                }
+                return true;
+            });
+            popupMenu.show();
+        }
     }
 
     private Action1<String> getInsertImageDoneAction() {
