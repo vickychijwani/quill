@@ -23,7 +23,7 @@
             style="@style/MyToolbar">
 
             <TextView
-                style="@style/TextAppearance.Large.Light.Inverse"
+                style="@style/TextAppearance.Medium.Light.Inverse"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:ellipsize="end"

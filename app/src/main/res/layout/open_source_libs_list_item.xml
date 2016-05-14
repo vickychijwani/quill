@@ -17,7 +17,7 @@
             android:id="@+id/lib_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Medium"
+            android:textAppearance="@style/TextAppearance"
             tools:text="Retrofit"
             />
 
