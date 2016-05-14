@@ -191,6 +191,15 @@ public class PostViewActivity extends BaseActivity implements
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        if (mDrawerLayout.isDrawerOpen(mNavView)) {
+            mDrawerLayout.closeDrawer(mNavView);
+            return;
+        }
+        super.onBackPressed();
+    }
+
     public void viewPostInBrowser(boolean saveBeforeViewing) {
         mbPreviewPost = true;
         Observable<Boolean> waitForNetworkObservable;
