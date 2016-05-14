@@ -66,10 +66,8 @@ public class PostViewActivity extends BaseActivity implements
     @Bind(R.id.drawer_layout)                   DrawerLayout mDrawerLayout;
     @Bind(R.id.nav_view)                        NavigationView mNavView;
 
-    ImageView mPostImageView;
-    ViewGroup mPostImageEditLayout;
-    ProgressBar mPostImageProgressBar;
-    ChipsEditText mPostTagsEditText;
+    private PostImageLayoutManager mPostImageLayoutManager = null;
+    private ChipsEditText mPostTagsEditText;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
@@ -90,9 +88,8 @@ public class PostViewActivity extends BaseActivity implements
         // ButterKnife doesn't work with the NavigationView's header because it isn't
         // exposed via findViewById: https://code.google.com/p/android/issues/detail?id=190226
         ViewGroup headerView = (ViewGroup) mNavView.getHeaderView(0);
-        mPostImageView = (ImageView) headerView.findViewById(R.id.post_image);
-        mPostImageEditLayout = (ViewGroup) headerView.findViewById(R.id.post_image_edit_layout);
-        mPostImageProgressBar = (ProgressBar) headerView.findViewById(R.id.post_image_loading);
+        ViewGroup postImageLayout = (ViewGroup) headerView.findViewById(R.id.post_image_edit_layout);
+        mPostImageLayoutManager = new PostImageLayoutManager(postImageLayout);
         mPostTagsEditText = (ChipsEditText) headerView.findViewById(R.id.post_tags_edit);
 
         setSupportActionBar(mToolbar);
@@ -147,7 +144,7 @@ public class PostViewActivity extends BaseActivity implements
         // This ensures that the anonymous callback we have does not prevent the activity from
         // being garbage collected. It also prevents our callback from getting invoked after the
         // activity is destroyed.
-        getPicasso().cancelRequest(mPostImageView);
+        getPicasso().cancelRequest(mPostImageLayoutManager.getImageView());
     }
 
     @Override
@@ -248,7 +245,7 @@ public class PostViewActivity extends BaseActivity implements
         mViewPager.addOnPageChangeListener(this);
         mTabLayout.setupWithViewPager(mViewPager);
         updatePostSettings();
-        mPostImageEditLayout.setOnClickListener(this);
+        mPostImageLayoutManager.setOnClickListener(this);
     }
 
     @Subscribe
@@ -289,33 +286,26 @@ public class PostViewActivity extends BaseActivity implements
     private void updatePostSettings() {
         String imageUrl = mPost.getImage();
         if (!TextUtils.isEmpty(imageUrl)) {
-            mPostImageProgressBar.setVisibility(View.VISIBLE);
-            mPostImageView.setVisibility(View.INVISIBLE);
+            mPostImageLayoutManager.setViewState(PostImageLayoutManager.ViewState.PROGRESS_BAR);
             imageUrl = AppUtils.pathJoin(mBlogUrl, imageUrl);
             getPicasso()
                     .load(imageUrl)
                     .fit().centerCrop()
-                    .into(mPostImageView, new Callback() {
+                    .into(mPostImageLayoutManager.getImageView(), new Callback() {
                         @Override
                         public void onSuccess() {
-                            mPostImageProgressBar.setVisibility(View.GONE);
-                            mPostImageView.setVisibility(View.VISIBLE);
+                            mPostImageLayoutManager.setViewState(PostImageLayoutManager.ViewState.IMAGE);
                         }
 
                         @Override
                         public void onError() {
-                            mPostImageProgressBar.setVisibility(View.GONE);
-                            mPostImageView.setVisibility(View.VISIBLE);
-                            mPostImageView.setImageResource(R.drawable.image_placeholder);
-                            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                            Toast.makeText(PostViewActivity.this, R.string.post_image_load_error,
+                                    Toast.LENGTH_SHORT).show();
+                            mPostImageLayoutManager.setViewState(PostImageLayoutManager.ViewState.PLACEHOLDER);
                         }
                     });
-            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         } else {
-            mPostImageView.setImageResource(R.drawable.image_placeholder);   // clear the image
-            mPostImageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            mPostImageProgressBar.setVisibility(View.GONE);
-            mPostImageView.setVisibility(View.VISIBLE);
+            mPostImageLayoutManager.setViewState(PostImageLayoutManager.ViewState.PLACEHOLDER);
         }
         List<String> tagStrs = new ArrayList<>();
         for (Tag tag : mPost.getTags()) {
@@ -326,7 +316,7 @@ public class PostViewActivity extends BaseActivity implements
 
     @Override
     public void onClick(View view) {
-        PopupMenu popupMenu = new PopupMenu(this, mPostImageView);
+        PopupMenu popupMenu = new PopupMenu(this, mPostImageLayoutManager.getRootLayout());
         if (mbFileStorageEnabled) {
             popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
         } else {
@@ -403,6 +393,66 @@ public class PostViewActivity extends BaseActivity implements
 
     public Post getPost() {
         return mPost;
+    }
+
+
+
+    private final static class PostImageLayoutManager {
+        private final ImageView mPostImageView;
+        private final ImageView mPostImagePlaceholderView;
+        private final TextView mPostImageHintTextView;
+        private final ProgressBar mPostImageProgressBar;
+        private final ViewGroup mRootLayout;
+
+        public enum ViewState {
+            PLACEHOLDER,
+            PROGRESS_BAR,
+            IMAGE
+        }
+
+        public PostImageLayoutManager(ViewGroup rootLayout) {
+            mRootLayout = rootLayout;
+            mPostImageView = (ImageView) rootLayout.findViewById(R.id.post_image);
+            mPostImagePlaceholderView = (ImageView) rootLayout.findViewById(R.id.post_image_placeholder);
+            mPostImageHintTextView = (TextView) rootLayout.findViewById(R.id.post_image_hint);
+            mPostImageProgressBar = (ProgressBar) rootLayout.findViewById(R.id.post_image_loading);
+        }
+
+        public ViewGroup getRootLayout() {
+            return mRootLayout;
+        }
+
+        public ImageView getImageView() {
+            return mPostImageView;
+        }
+
+        public void setOnClickListener(View.OnClickListener clickListener) {
+            mRootLayout.setOnClickListener(clickListener);
+        }
+
+        public void setViewState(ViewState state) {
+            switch (state) {
+                case PLACEHOLDER:
+                    mPostImageView.setVisibility(View.INVISIBLE);
+                    mPostImagePlaceholderView.setVisibility(View.VISIBLE);
+                    mPostImageHintTextView.setVisibility(View.VISIBLE);
+                    mPostImageProgressBar.setVisibility(View.INVISIBLE);
+                    break;
+                case PROGRESS_BAR:
+                    mPostImageView.setVisibility(View.INVISIBLE);
+                    mPostImagePlaceholderView.setVisibility(View.INVISIBLE);
+                    mPostImageHintTextView.setVisibility(View.INVISIBLE);
+                    mPostImageProgressBar.setVisibility(View.VISIBLE);
+                    break;
+                case IMAGE:
+                    mPostImageView.setVisibility(View.VISIBLE);
+                    mPostImagePlaceholderView.setVisibility(View.INVISIBLE);
+                    mPostImageHintTextView.setVisibility(View.INVISIBLE);
+                    mPostImageProgressBar.setVisibility(View.INVISIBLE);
+                    break;
+            }
+        }
+
     }
 
 }

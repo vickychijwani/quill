@@ -46,8 +46,10 @@
     <string name="save_draft_explicit">Draft saved</string>
 
     <string name="post_title_hint">Give your post a title…</string>
+    <string name="post_image_hint">Add post image</string>
     <string name="post_tags_hint">Add some tags…</string>
     <string name="post_body_hint">Type something here…</string>
+    <string name="post_image_load_error">Error loading post image</string>
 
     <!-- image insert / upload -->
     <string name="insert_image">Insert Image</string>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -12,14 +13,38 @@
         android:layout_height="@dimen/post_image_height"
         android:foreground="?attr/selectableItemBackground">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="#eee">
+
+            <ImageView
+                android:id="@+id/post_image_placeholder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/image_placeholder"
+                tools:ignore="ContentDescription"
+                />
+
+            <TextView
+                android:id="@+id/post_image_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Medium.Label"
+                android:textColor="#bbb"
+                android:text="@string/post_image_hint"
+                />
+
+        </LinearLayout>
+
         <ImageView
             android:id="@+id/post_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerInside"
+            android:scaleType="centerCrop"
             android:contentDescription="@string/cdesc_post_image"
-            android:src="@drawable/image_placeholder"
-            android:background="#eee"
             />
 
         <ProgressBar
