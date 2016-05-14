@@ -58,7 +58,7 @@ interface GhostApiService {
     @GET("/settings/?type=blog")
     void getSettings(@Header("If-None-Match") String etag, Callback<SettingsList> cb);
 
-    @GET("/configuration")
+    @GET("/configuration/")
     void getConfiguration(@Header("If-None-Match") String etag, Callback<ConfigurationList> cb);
 
     // file upload
