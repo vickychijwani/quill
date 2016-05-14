@@ -13,7 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
-        app:cardElevation="@dimen/toolbar_elevation">
+        app:cardElevation="@dimen/toolbar_elevation"
+        app:cardUseCompatPadding="false">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
