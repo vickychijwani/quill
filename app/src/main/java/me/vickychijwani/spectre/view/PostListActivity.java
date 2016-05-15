@@ -196,7 +196,7 @@ public class PostListActivity extends BaseActivity {
                 refreshData(false);
                 return true;
             case R.id.action_feedback:
-                openUrl(AboutActivity.URL_GITHUB_CONTRIBUTING);
+                AppUtils.emailDeveloper(this);
                 return true;
             case R.id.action_about:
                 Intent aboutIntent = new Intent(this, AboutActivity.class);

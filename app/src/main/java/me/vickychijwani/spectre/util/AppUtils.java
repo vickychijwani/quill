@@ -2,6 +2,7 @@ package me.vickychijwani.spectre.util;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -19,8 +20,12 @@ import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.view.Gravity;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+
+import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.view.BaseActivity;
 
 public class AppUtils {
 
@@ -37,6 +42,21 @@ public class AppUtils {
 
     public static float pxToDp(final float px) {
         return px / Resources.getSystem().getDisplayMetrics().density;
+    }
+
+    public static void emailDeveloper(@NonNull BaseActivity activity) {
+        String emailSubject = String.format(activity.getString(R.string.email_subject),
+                activity.getString(R.string.app_name));
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "vickychijwani@gmail.com" });
+        intent.putExtra(Intent.EXTRA_SUBJECT, emailSubject);
+        if (intent.resolveActivity(activity.getPackageManager()) != null) {
+            activity.startActivity(intent);
+        } else {
+            Toast.makeText(activity, R.string.intent_no_apps, Toast.LENGTH_LONG)
+                    .show();
+        }
     }
 
     public static int insertTextAtCursorOrEnd(@NonNull EditTextSelectionState selectionState,

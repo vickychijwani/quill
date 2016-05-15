@@ -8,7 +8,6 @@ import android.support.v7.widget.Toolbar;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -90,18 +89,7 @@ public class AboutActivity extends BaseActivity {
 
     @OnClick(R.id.about_email_developer)
     public void onEmailDeveloperClicked(View v) {
-        String emailSubject = String.format(getString(R.string.email_subject),
-                getString(R.string.app_name));
-        Intent intent = new Intent(Intent.ACTION_SENDTO);
-        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "vickychijwani@gmail.com" });
-        intent.putExtra(Intent.EXTRA_SUBJECT, emailSubject);
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivity(intent);
-        } else {
-            Toast.makeText(this, R.string.intent_no_apps, Toast.LENGTH_LONG)
-                    .show();
-        }
+        AppUtils.emailDeveloper(this);
     }
 
 }
