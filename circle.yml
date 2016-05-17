@@ -11,3 +11,8 @@ dependencies:
     - $ANDROID_HOME/tools
     - $ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION
 
+
+test:
+  override:
+    - ./gradlew assembleDebug
+
