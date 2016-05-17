@@ -69,8 +69,11 @@
 -keep class me.vickychijwani.spectre.model.** { *; }
 
 # Crashlytics
--keep class com.crashlytics.** { *; }
+-keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
+-keep public class * extends java.lang.Exception
+-keep class com.crashlytics.** { *; }
+-dontwarn com.crashlytics.**
 
 # Realm
 -keep class io.realm.annotations.RealmModule
