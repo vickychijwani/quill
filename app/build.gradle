@@ -46,20 +46,20 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    signingConfigs {
-        release {
-            storeFile(file(System.getenv('KEYSTORE') ?: '') ?: '')
-            storePassword(System.getenv('KEYSTORE_PASSWORD') ?: '')
-            keyAlias(System.getenv('KEY_ALIAS') ?: '')
-            keyPassword(System.getenv('KEY_PASSWORD') ?: '')
-        }
-    }
+//    signingConfigs {
+//        release {
+//            storeFile(file(System.getenv('KEYSTORE') ?: '') ?: '')
+//            storePassword(System.getenv('KEYSTORE_PASSWORD') ?: '')
+//            keyAlias(System.getenv('KEY_ALIAS') ?: '')
+//            keyPassword(System.getenv('KEY_PASSWORD') ?: '')
+//        }
+//    }
     buildTypes {
         debug {
             applicationIdSuffix '.debug'
         }
         release {
-            signingConfig signingConfigs.release
+//            signingConfig signingConfigs.release
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
