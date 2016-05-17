@@ -43,7 +43,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onCreate()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onCreate()");
         getBus().register(this);
     }
 
@@ -55,7 +55,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onStart()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onStart()");
         if (! (this instanceof LoginActivity)) {
             mPasswordChangedEventHandler = new PasswordChangedEventHandler(this);
             getBus().register(mPasswordChangedEventHandler);
@@ -65,19 +65,19 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onResume()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onResume()");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onPause()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onPause()");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onStop()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onStop()");
         if (mPasswordChangedEventHandler != null) {
             getBus().unregister(mPasswordChangedEventHandler);
             mPasswordChangedEventHandler = null;
@@ -87,20 +87,20 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDestroy()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onDestroy()");
         getBus().unregister(this);
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onLowMemory()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onLowMemory()");
     }
 
     @Override
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onTrimMemory()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onTrimMemory()");
     }
 
     @Override
@@ -116,7 +116,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onBackPressed()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onBackPressed()");
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         if (fragments != null) {
             for (Fragment f : fragments) {
