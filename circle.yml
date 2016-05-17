@@ -17,5 +17,5 @@ dependencies:
 
 test:
   override:
-    - ./gradlew assembleDebug --stacktrace --debug
+    - ./gradlew assembleDebug --stacktrace
 
