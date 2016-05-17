@@ -29,7 +29,7 @@ import me.vickychijwani.spectre.view.BaseActivity;
 
 public class AppUtils {
 
-    public static String pathJoin(String basePath, String relativePath) {
+    public static String pathJoin(@NonNull String basePath, @NonNull String relativePath) {
         // handling for protocol-relative URLs
         if (relativePath.startsWith("//")) relativePath = "http:" + relativePath;
         if (relativePath.startsWith("http")) return relativePath;

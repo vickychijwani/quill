@@ -242,14 +242,21 @@ public class PostListActivity extends BaseActivity {
 
     @Subscribe
     public void onUserLoadedEvent(UserLoadedEvent event) {
-        UserPrefs prefs = UserPrefs.getInstance(this);
-        String imageUrl = AppUtils.pathJoin(prefs.getString(UserPrefs.Key.BLOG_URL),
-                event.user.getImage());
-        getPicasso()
-                .load(imageUrl)
-                .transform(new BorderedCircleTransformation())
-                .fit()
-                .into(mUserImageView);
+        if (event.user.getImage() != null) {
+            if (event.user.getImage().isEmpty()) {
+                return;
+            }
+            String blogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
+            String imageUrl = AppUtils.pathJoin(blogUrl, event.user.getImage());
+            getPicasso()
+                    .load(imageUrl)
+                    .transform(new BorderedCircleTransformation())
+                    .fit()
+                    .into(mUserImageView);
+        } else {
+            // Crashlytics issue #77
+            Crashlytics.logException(new Exception("user image is null!"));
+        }
     }
 
     @Subscribe
