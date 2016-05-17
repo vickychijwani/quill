@@ -18,4 +18,21 @@ Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get
 [File an issue](/CONTRIBUTING.md)
 
 
+
+### Developer setup
+
+Quill uses [Fabric](http://fabric.io/) (formerly Crashlytics) for automatic crash-reporting. However my Fabric API key and secret is not committed to this Github repo for security reasons. So to build the app in Android Studio, you will have to either:
+
+- Create the file `app/crashlytics.properties` and set your own Fabric API key and secret like this:
+
+```
+apiKey=YOUR_API_KEY_HERE
+apiSecret=YOUR_API_SECRET_HERE
+```
+
+- OR, to skip Crashlytics altogether, create an empty file `app/crashlytics.properties` and comment out the call `Fabric.with(this, new Crashlytics())` in `SpectreApplication.java` line 51
+
+If you face any issues setting this up, please let me know by [filing a new issue](/issues/new).
+
+
 [playstore]: https://play.google.com/store/apps/details?id=me.vickychijwani.spectre
