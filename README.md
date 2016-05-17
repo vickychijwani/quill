@@ -1,4 +1,4 @@
-![](https://dl.dropboxusercontent.com/u/3037831/quill-github/feature-graphic.png)
+[![](https://dl.dropboxusercontent.com/u/3037831/quill-github/feature-graphic.png)][playstore]
 
 Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get it [here on the Google Play Store][playstore].
 
