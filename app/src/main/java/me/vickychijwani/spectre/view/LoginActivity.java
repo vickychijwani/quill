@@ -108,6 +108,11 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         String email = mEmailView.getText().toString().trim();
         String password = mPasswordView.getText().toString().trim();
 
+        // FIXME try defaulting to a secure connection first
+        if (!blogUrl.startsWith("http://") && !blogUrl.startsWith("https://")) {
+            blogUrl = "http://" + blogUrl;
+        }
+
         boolean cancel = false;
         View focusView = null;
 
