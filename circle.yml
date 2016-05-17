@@ -1,0 +1,13 @@
+machine:
+  environment:
+    TOOLS_VERSION: 25.1.6
+    BUILD_TOOLS_VERSION: 23.0.3
+
+dependencies:
+  pre:
+    - if ! $(grep -q "Revision="$TOOLS_VERSION $ANDROID_HOME/tools/source.properties); then echo y | android update sdk --no-ui --all --filter "tools"; fi
+    - if [ ! -e $ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION ]; then echo y | android update sdk --no-ui --all --filter "build-tools-"$BUILD_TOOLS_VERSION; fi
+  cache_directories:
+    - $ANDROID_HOME/tools
+    - $ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION
+
