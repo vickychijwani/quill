@@ -1,0 +1,14 @@
+language: android
+jdk: oraclejdk8
+android:
+  components:
+  - platform-tools
+  - tools
+  - build-tools-23.0.3
+  - android-23
+  - extra-android-m2repository
+before_install:
+- openssl aes-256-cbc -K $encrypted_2d474234b752_key -iv $encrypted_2d474234b752_iv
+  -in crashlytics.properties.enc -out app/crashlytics.properties -d
+script:
+- ./gradlew assemble

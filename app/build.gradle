@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'me.tatarka:gradle-retrolambda:3.1.0'
+        classpath 'me.tatarka:gradle-retrolambda:3.2.5'
         classpath 'io.fabric.tools:gradle:1.+'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
         classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
@@ -66,22 +66,6 @@ android {
     }
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
-    }
-}
-
-// Fabric / Crashlytics
-afterEvaluate {
-    initFabricPropertiesIfNeeded()
-}
-
-def initFabricPropertiesIfNeeded() {
-    def propertiesFile = file('crashlytics.properties')
-    if (!propertiesFile.exists()) {
-        def commentMessage = 'This file is auto-generated from system environment variables.'
-        ant.propertyfile(file: propertiesFile.path, comment: commentMessage) {
-            entry(key: 'apiKey', value: crashlyticsApiKey)
-            entry(key: 'apiSecret', value: crashlyticsApiSecret)
-        }
     }
 }
 
