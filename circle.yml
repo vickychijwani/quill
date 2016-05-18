@@ -2,12 +2,11 @@ machine:
   environment:
     TOOLS_VERSION: 25.1.6
     BUILD_TOOLS_VERSION: 23.0.3
+  java:
+    version: oraclejdk8
 
 dependencies:
   pre:
-    - sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0/bin/java
-    - sudo update-alternatives --set javac /usr/lib/jvm/java-8-openjdk-amd64/bin/javac
-    - echo 'export JAVA8_HOME=/usr/lib/jvm/java-8-openjdk-amd64' >> ~/.circlerc
     - if ! $(grep -q "Revision="$TOOLS_VERSION $ANDROID_HOME/tools/source.properties); then echo y | android update sdk --no-ui --all --filter "tools"; fi
     - if [ ! -e $ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION ]; then echo y | android update sdk --no-ui --all --filter "build-tools-"$BUILD_TOOLS_VERSION; fi
   cache_directories:
@@ -17,5 +16,4 @@ dependencies:
 
 test:
   override:
-    - ./gradlew assembleDebug --stacktrace
-
+    - ./gradlew assembleDebug
