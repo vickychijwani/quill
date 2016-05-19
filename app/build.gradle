@@ -39,8 +39,8 @@ android {
         applicationId 'me.vickychijwani.spectre'
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 100000      // 2 digits each for major, minor, patch
-        versionName '1.0.0'
+        versionCode 100001      // 2 digits each for major, minor, patch
+        versionName '1.0.1'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
