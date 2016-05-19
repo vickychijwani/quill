@@ -26,7 +26,6 @@ public class OpenSourceLibsActivity extends BaseActivity {
 
     private static final List<Library> LIBRARIES = Arrays.asList(
             new Library("ButterKnife", "Jake Wharton", "http://jakewharton.github.io/butterknife/"),
-            new Library("Crashlytics", "Crashlytics", "https://crashlytics.com"),
             new Library("DebugDrawer", "Mantas Palaima", "https://github.com/palaima/DebugDrawer"),
             new Library("Gson", "Google Inc.", "https://github.com/google/gson"),
             new Library("LeakCanary", "Square Inc.", "https://github.com/square/leakcanary"),
