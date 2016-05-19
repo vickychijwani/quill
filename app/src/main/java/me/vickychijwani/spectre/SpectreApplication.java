@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.answers.Answers;
 import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.DeadEvent;
@@ -26,8 +27,10 @@ import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric.sdk.android.Fabric;
+import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
+import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
 import me.vickychijwani.spectre.network.NetworkService;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -45,10 +48,13 @@ public class SpectreApplication extends Application {
     protected OkHttpClient mOkHttpClient = null;
     protected Picasso mPicasso = null;
 
+    @SuppressWarnings("FieldCanBeLocal")
+    private AnalyticsService mAnalyticsService = null;
+
     @Override
     public void onCreate() {
         super.onCreate();
-        Fabric.with(this, new Crashlytics());
+        Fabric.with(this, new Crashlytics(), new Answers());
         Crashlytics.log(Log.DEBUG, TAG, "APP LAUNCHED");
         BusProvider.getBus().register(this);
         sInstance = this;
@@ -57,6 +63,9 @@ public class SpectreApplication extends Application {
         initOkHttpClient();
         initPicasso();
         new NetworkService().start(this, mOkHttpClient);
+
+        mAnalyticsService = new AnalyticsService(BusProvider.getBus());
+        mAnalyticsService.start();
     }
 
     private void setupFonts() {

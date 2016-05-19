@@ -16,11 +16,7 @@ import com.squareup.otto.Subscribe;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -33,6 +29,7 @@ import java.util.regex.Pattern;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.SpectreApplication;
@@ -47,8 +44,10 @@ import me.vickychijwani.spectre.event.FileUploadErrorEvent;
 import me.vickychijwani.spectre.event.FileUploadEvent;
 import me.vickychijwani.spectre.event.FileUploadedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
+import me.vickychijwani.spectre.event.GhostVersionLoadedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadConfigurationEvent;
+import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
 import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
@@ -103,6 +102,7 @@ import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedByteArray;
 import retrofit.mime.TypedFile;
 import rx.Observable;
+import rx.functions.Action0;
 import rx.functions.Action1;
 
 public class NetworkService {
@@ -199,7 +199,8 @@ public class NetworkService {
             @Override
             public void success(AuthToken authToken, Response response) {
                 onNewAuthToken(authToken);
-                getBus().post(new LoginDoneEvent(event.blogUrl, event.username, event.password));
+                getBus().post(new LoginDoneEvent(event.blogUrl, event.username, event.password,
+                        event.initiatedByUser));
             }
 
             @Override
@@ -214,7 +215,7 @@ public class NetworkService {
                     clearSavedPassword();
                     getBus().post(new PasswordChangedEvent());
                 } else {
-                    getBus().post(new LoginErrorEvent(error, event.blogUrl));
+                    getBus().post(new LoginErrorEvent(error, event.blogUrl, event.initiatedByUser));
                 }
                 flushApiEventQueue(true);
             }
@@ -256,6 +257,77 @@ public class NetworkService {
             mRefreshEventsQueue.clear();
             mRefreshError = null;           // clear last error if any
         }
+    }
+
+    @Subscribe
+    public void onLoadGhostVersionEvent(LoadGhostVersionEvent event) {
+        if (mAuthToken == null) {
+            return; // can't do much, not logged in
+        }
+
+        final String UNKNOWN_VERSION = "Unknown";
+
+        if (! event.forceNetworkCall) {
+            RealmQuery<ConfigurationParam> query = mRealm.where(ConfigurationParam.class)
+                    .equalTo("key", "version", false);
+            if (query.count() > 0) {
+                getBus().post(new GhostVersionLoadedEvent(query.findFirst().getValue()));
+                return;
+            }
+        }
+
+        if (! validateAccessToken(event)) return;
+
+        Action0 checkVersionInConfiguration = () -> {
+            Action1<List<ConfigurationParam>> successCallback = configParams -> {
+                boolean versionFound = false;
+                for (ConfigurationParam param : configParams) {
+                    if ("version".equals(param.getKey())) {
+                        versionFound = true;
+                        getBus().post(new GhostVersionLoadedEvent(param.getValue()));
+                    }
+                }
+                if (! versionFound) {
+                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
+                }
+            };
+            Action1<RetrofitError> failureCallback = error -> {
+                if (NetworkUtils.isRealError(error)) {
+                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
+                } else {
+                    // fallback to cached data
+                    successCallback.call(mRealm.allObjects(ConfigurationParam.class));
+                }
+            };
+            doLoadConfiguration(new LoadConfigurationEvent(true), successCallback, failureCallback);
+        };
+
+        mApi.getVersion(new JSONObjectCallback() {
+            @Override
+            public void onSuccess(JSONObject jsonObject, Response response) {
+                try {
+                    String ghostVersion = jsonObject
+                            .getJSONArray("configuration")
+                            .getJSONObject(0)
+                            .getString("version");
+                    getBus().post(new GhostVersionLoadedEvent(ghostVersion));
+                } catch (JSONException e) {
+                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
+                }
+            }
+
+            @Override
+            public void onFailure(RetrofitError error) {
+                if (error.getResponse().getStatus() == HttpURLConnection.HTTP_NOT_FOUND) {
+                    // this condition means the version is < 0.7.9, because that is when
+                    // the new /configuration/about endpoint was introduced
+                    // FIXME remove this mess once we stop supporting < 0.7.9
+                    checkVersionInConfiguration.call();
+                } else {
+                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
+                }
+            }
+        });
     }
 
     @Subscribe
@@ -342,11 +414,32 @@ public class NetworkService {
 
     @Subscribe
     public void onLoadConfigurationEvent(final LoadConfigurationEvent event) {
-        if (event.loadCachedData || ! event.forceNetworkCall) {
+        Action1<List<ConfigurationParam>> successCallback = configParams -> {
+            getBus().post(new ConfigurationLoadedEvent(configParams));
+            refreshSucceeded(event);
+        };
+        Action1<RetrofitError> failureCallback = error -> {
+            // fallback to cached data
             RealmResults<ConfigurationParam> params = mRealm.allObjects(ConfigurationParam.class);
             if (params.size() > 0) {
                 getBus().post(new ConfigurationLoadedEvent(params));
+            }
+            if (NetworkUtils.isRealError(error)) {
+                refreshFailed(event, error);
+            } else {
                 refreshSucceeded(event);
+            }
+        };
+        doLoadConfiguration(event, successCallback, failureCallback);
+    }
+
+    public void doLoadConfiguration(final LoadConfigurationEvent event,
+                                    @NonNull Action1<List<ConfigurationParam>> successCallback,
+                                    @NonNull Action1<RetrofitError> failureCallback) {
+        if (event.loadCachedData || ! event.forceNetworkCall) {
+            RealmResults<ConfigurationParam> params = mRealm.allObjects(ConfigurationParam.class);
+            if (params.size() > 0) {
+                successCallback.call(params);
                 return;
             }
             // no configuration params found in db, force a network call!
@@ -358,25 +451,17 @@ public class NetworkService {
             public void success(ConfigurationList configurationList, Response response) {
                 storeEtag(response.getHeaders(), ETag.TYPE_CONFIGURATION);
                 createOrUpdateModel(configurationList.configuration);
-                getBus().post(new ConfigurationLoadedEvent(configurationList.configuration));
-                refreshSucceeded(event);
+                successCallback.call(configurationList.configuration);
             }
 
             @Override
             public void failure(RetrofitError error) {
-                // fallback to cached data
-                RealmResults<ConfigurationParam> params = mRealm.allObjects(ConfigurationParam.class);
-                if (params.size() > 0) {
-                    getBus().post(new ConfigurationLoadedEvent(params));
-                }
                 // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
                 // login with the password if that doesn't work either (#92)
                 if (NetworkUtils.isRealError(error)) {
                     getBus().post(new ApiErrorEvent(error));
-                    refreshFailed(event, error);
-                } else {
-                    refreshSucceeded(event);
                 }
+                failureCallback.call(error);
             }
         });
     }
@@ -659,34 +744,19 @@ public class NetworkService {
                 new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, mAuthToken.getRefreshToken())
         };
         for (RevokeReqBody reqBody : revokeReqs) {
-            mApi.revokeAuthToken(reqBody, new ResponseCallback() {
+            mApi.revokeAuthToken(reqBody, new JSONObjectCallback() {
                 @Override
-                public void success(Response response) {
-                    try {
-                        InputStream istream = response.getBody().in();
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
-                        StringBuilder out = new StringBuilder();
-                        String newLine = System.getProperty("line.separator");
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            out.append(line);
-                            out.append(newLine);
-                        }
-                        JSONObject json = new JSONObject(out.toString());
-                        if (json.has("error")) {
-                            Crashlytics.log(Log.ERROR, TAG, "Failed to revoke "
-                                    + reqBody.tokenTypeHint + ": " + json.getString("error"));
-                        }
-                    } catch (IOException e) {
-                        // no-op
-                    } catch (JSONException e) {
-                        // no-op
+                public void onSuccess(JSONObject json, Response response) {
+                    if (json.has("error")) {
+                        Crashlytics.log(Log.ERROR, TAG, "Failed to revoke "
+                                + reqBody.tokenTypeHint + ": " + json.optString("error"));
                     }
                 }
 
                 @Override
-                public void failure(RetrofitError error) {
+                public void onFailure(RetrofitError error) {
                     Crashlytics.log(Log.ERROR, TAG, "Failed to revoke " + reqBody.tokenTypeHint);
+                    Crashlytics.logException(error);
                 }
             });
         }
@@ -747,7 +817,7 @@ public class NetworkService {
                     postLoginStartEvent();
                     Log.e(TAG, "Expired refresh token used! You're wasting bandwidth / battery!");
                 } else {
-                    getBus().post(new LoginErrorEvent(error, null));
+                    getBus().post(new LoginErrorEvent(error, null, false));
                     flushApiEventQueue(true);
                 }
             }

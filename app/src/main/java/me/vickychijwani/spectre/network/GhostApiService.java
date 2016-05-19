@@ -10,7 +10,6 @@ import me.vickychijwani.spectre.model.RevokeReqBody;
 import me.vickychijwani.spectre.model.SettingsList;
 import me.vickychijwani.spectre.model.UserList;
 import retrofit.Callback;
-import retrofit.ResponseCallback;
 import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.GET;
@@ -36,7 +35,7 @@ interface GhostApiService {
     void refreshAuthToken(@Body RefreshReqBody credentials, Callback<AuthToken> cb);
 
     @POST("/authentication/revoke")
-    void revokeAuthToken(@Body RevokeReqBody revoke, ResponseCallback cb);
+    void revokeAuthToken(@Body RevokeReqBody revoke, JSONObjectCallback cb);
 
     // users
     @GET("/users/me/?include=roles&status=all")
@@ -60,6 +59,9 @@ interface GhostApiService {
 
     @GET("/configuration/")
     void getConfiguration(@Header("If-None-Match") String etag, Callback<ConfigurationList> cb);
+
+    @GET("/configuration/about/")
+    void getVersion(JSONObjectCallback cb);
 
     // file upload
     @Multipart
