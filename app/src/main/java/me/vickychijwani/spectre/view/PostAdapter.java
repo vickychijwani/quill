@@ -151,7 +151,7 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
 
-    private static class PostViewHolder extends RecyclerView.ViewHolder {
+    static class PostViewHolder extends RecyclerView.ViewHolder {
         @Bind(R.id.post_title)          TextView title;
         @Bind(R.id.post_published)      TextView published;
         @Bind(R.id.post_image)          ImageView image;
@@ -165,7 +165,7 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
 
-    private static class FooterViewHolder extends RecyclerView.ViewHolder {
+    static class FooterViewHolder extends RecyclerView.ViewHolder {
         @Bind(R.id.post_limit_exceeded) TextView textView;
 
         public FooterViewHolder(View view) {
