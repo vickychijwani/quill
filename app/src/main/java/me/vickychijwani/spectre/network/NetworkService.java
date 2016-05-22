@@ -826,10 +826,15 @@ public class NetworkService {
 
     private void flushApiEventQueue(boolean loadCachedData) {
         Bus bus = getBus();
+        boolean isQueueEmpty = false;
         while (! mApiEventQueue.isEmpty()) {
             ApiCallEvent event = mApiEventQueue.remove();
+            isQueueEmpty = mApiEventQueue.isEmpty();
             if (loadCachedData) event.loadCachedData();
             bus.post(event);
+            if (isQueueEmpty) {     // don't retry, gets into infinite loop
+                mApiEventQueue.clear();
+            }
         }
     }
 
