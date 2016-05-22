@@ -18,11 +18,8 @@ import android.webkit.WebViewClient;
 
 import com.crashlytics.android.Crashlytics;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
-import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.view.BundleKeys;
 
 /**
@@ -34,7 +31,7 @@ public class WebViewFragment extends BaseFragment {
         void onWebViewCreated();
     }
 
-    @Bind(R.id.web_view) WebView mWebView;
+    private WebView mWebView;
     private String mUrl;
     private OnWebViewCreatedListener mOnWebViewCreatedListener = null;
 
@@ -58,7 +55,7 @@ public class WebViewFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_web_view, container, false);
-        ButterKnife.bind(this, view);
+        mWebView = (WebView) view.findViewById(R.id.web_view);
         mUrl = getArguments().getString(BundleKeys.URL);
         if (TextUtils.isEmpty(mUrl)) {
             throw new IllegalArgumentException("Empty URL passed to WebViewFragment!");
@@ -106,17 +103,19 @@ public class WebViewFragment extends BaseFragment {
 
     @Override
     public void onDestroyView() {
+        super.onDestroyView();
         // don't hold on to the listener (which could potentially be an Activity)
         mOnWebViewCreatedListener = null;
         // destroy the WebView completely
         if (mWebView != null) {
+            // the WebView must be removed from the view hierarchy before calling destroy
+            // to prevent a memory leak (#75)
+            // See https://developer.android.com/reference/android/webkit/WebView.html#destroy%28%29
+            ((ViewGroup) mWebView.getParent()).removeView(mWebView);
+            mWebView.removeAllViews();
             mWebView.destroy();
             mWebView = null;
         }
-        // NOTE: super must be called AFTER WebView is destroyed, because super method calls
-        // ButterKnife.unbind which sets mWebView to null WITHOUT destroying it!
-        super.onDestroyView();
-        ((SpectreApplication) getActivity().getApplicationContext()).forceUnregisterComponentCallbacks();
     }
 
     // our custom methods

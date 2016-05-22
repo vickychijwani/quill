@@ -2,8 +2,6 @@ package me.vickychijwani.spectre;
 
 import android.app.Activity;
 import android.app.Application;
-import android.app.ApplicationErrorReport;
-import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.os.Build;
 import android.os.StatFs;
@@ -22,15 +20,12 @@ import com.tsengvn.typekit.Typekit;
 
 import java.io.File;
 import java.net.HttpURLConnection;
-import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric.sdk.android.Fabric;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
-import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
 import me.vickychijwani.spectre.network.NetworkService;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -159,70 +154,6 @@ public class SpectreApplication extends Application {
     @Subscribe
     public void onDeadEvent(DeadEvent event) {
         Log.w(TAG, "Dead event ignored: " + event.event.getClass().getName());
-    }
-
-    // brilliant hack for #75, courtesy http://stackoverflow.com/a/27253968/504611
-    @Override
-    public void registerComponentCallbacks(ComponentCallbacks callback) {
-        super.registerComponentCallbacks(callback);
-        ComponentCallbacksAdjustmentTool.INSTANCE.onComponentCallbacksRegistered(callback);
-    }
-
-    @Override
-    public void unregisterComponentCallbacks(ComponentCallbacks callback) {
-        super.unregisterComponentCallbacks(callback);
-        ComponentCallbacksAdjustmentTool.INSTANCE.onComponentCallbacksUnregistered(callback);
-    }
-
-    public void forceUnregisterComponentCallbacks() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            ComponentCallbacksAdjustmentTool.INSTANCE.unregisterAll(this);
-        }
-    }
-
-    private static class ComponentCallbacksAdjustmentTool {
-        static final ComponentCallbacksAdjustmentTool INSTANCE = new ComponentCallbacksAdjustmentTool();
-
-        private final WeakHashMap<ComponentCallbacks, ApplicationErrorReport.CrashInfo> mCallbacks
-                = new WeakHashMap<>();
-        private boolean mSuspended = false;
-
-        public void onComponentCallbacksRegistered(ComponentCallbacks callback) {
-            Throwable thr = new Throwable("Callback registered here");
-            ApplicationErrorReport.CrashInfo ci = new ApplicationErrorReport.CrashInfo(thr);
-            if (! mSuspended) {
-                if (callback.getClass().getName().startsWith("org.chromium.android_webview.AwContents")) {
-                    mCallbacks.put(callback, ci);
-                }
-            } else {
-                Log.e(TAG, "ComponentCallbacks was registered while tracking is suspended!");
-            }
-        }
-
-        public void onComponentCallbacksUnregistered(ComponentCallbacks callback) {
-            if (! mSuspended) {
-                mCallbacks.remove(callback);
-            }
-        }
-
-        public void unregisterAll(Context context) {
-            mSuspended = true;
-            for (Map.Entry<ComponentCallbacks, ApplicationErrorReport.CrashInfo> entry : mCallbacks.entrySet()) {
-                ComponentCallbacks callback = entry.getKey();
-                if (callback == null) continue;
-                if (BuildConfig.DEBUG) {
-                    Log.w(TAG, "Forcibly unregistering a misbehaving ComponentCallbacks: " + entry.getKey());
-                    Log.w(TAG, entry.getValue().stackTrace);
-                }
-                try {
-                    context.unregisterComponentCallbacks(entry.getKey());
-                } catch (Exception exc) {
-                    Log.e(TAG, "Unable to unregister ComponentCallbacks", exc);
-                }
-            }
-            mCallbacks.clear();
-            mSuspended = false;
-        }
     }
 
 }
