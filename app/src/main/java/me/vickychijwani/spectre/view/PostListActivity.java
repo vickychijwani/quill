@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -48,6 +49,7 @@ import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
+import me.vickychijwani.spectre.event.LogoutStatusEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
@@ -203,10 +205,7 @@ public class PostListActivity extends BaseActivity {
                 startActivity(aboutIntent);
                 return true;
             case R.id.action_logout:
-                getBus().post(new LogoutEvent());
-                finish();
-                Intent logoutIntent = new Intent(this, LoginActivity.class);
-                startActivity(logoutIntent);
+                getBus().post(new LogoutEvent(false));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -306,6 +305,27 @@ public class PostListActivity extends BaseActivity {
         intent.putExtra(BundleKeys.POST_UUID, event.newPost.getUuid());
         intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
         startActivity(intent);
+    }
+
+    @Subscribe
+    public void onLogoutStatusEvent(LogoutStatusEvent event) {
+        if (!event.succeeded && event.hasPendingActions) {
+            final AlertDialog alertDialog = new AlertDialog.Builder(this)
+                    .setMessage(getString(R.string.unsynced_changes_msg))
+                    .setPositiveButton(R.string.dont_logout, (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton(R.string.logout, (dialog, which) -> {
+                        dialog.dismiss();
+                        getBus().post(new LogoutEvent(true));
+                    })
+                    .create();
+            alertDialog.show();
+        } else {
+            finish();
+            Intent logoutIntent = new Intent(this, LoginActivity.class);
+            startActivity(logoutIntent);
+        }
     }
 
 

@@ -56,6 +56,7 @@ import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
+import me.vickychijwani.spectre.event.LogoutStatusEvent;
 import me.vickychijwani.spectre.event.PasswordChangedEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostLoadedEvent;
@@ -738,6 +739,15 @@ public class NetworkService {
 
     @Subscribe
     public void onLogoutEvent(LogoutEvent event) {
+        if (!event.forceLogout) {
+            // check for pending actions
+            RealmResults<PendingAction> pendingActions = mRealm.allObjects(PendingAction.class);
+            if (pendingActions.size() > 0) {
+                getBus().post(new LogoutStatusEvent(false, true));
+                return;
+            }
+        }
+
         // revoke access and refresh tokens
         RevokeReqBody revokeReqs[] = new RevokeReqBody[] {
                 new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, mAuthToken.getAccessToken()),
@@ -771,6 +781,7 @@ public class NetworkService {
         mRefreshEventsQueue.clear();
         mbAuthRequestOnGoing = false;
         mRefreshError = null;
+        getBus().post(new LogoutStatusEvent(true, false));
     }
 
 

@@ -8,6 +8,8 @@
     <string name="login_connection_error">Could not connect to %s/ghost. Please try again.</string>
     <string name="logout">Logout</string>
     <string name="password_changed">Has your password changed? Couldn\'t login with that password.</string>
+    <string name="unsynced_changes_msg">You will lose all unsynced changes if you log out now</string>
+    <string name="dont_logout">Don\'t logout</string>
 
     <!-- posts -->
     <string name="published">Published %s</string>
