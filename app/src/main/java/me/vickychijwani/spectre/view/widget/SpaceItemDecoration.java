@@ -19,11 +19,7 @@ public class SpaceItemDecoration extends RecyclerView.ItemDecoration {
         outRect.top = vertical;
         outRect.left = horizontal;
         outRect.right = horizontal;
-
-        // Add bottom margin only for the last item to avoid double space between items
-        if (parent.getChildLayoutPosition(view) == state.getItemCount()) {
-            outRect.bottom = vertical;
-        }
+        outRect.bottom = vertical;
     }
 
 }

@@ -6,11 +6,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
@@ -52,6 +53,7 @@ import me.vickychijwani.spectre.model.Setting;
 import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.DeviceUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.view.image.BorderedCircleTransformation;
 import me.vickychijwani.spectre.view.widget.SpaceItemDecoration;
@@ -119,11 +121,30 @@ public class PostListActivity extends BaseActivity {
             startActivity(intent);
         });
         mPostList.setAdapter(mPostAdapter);
-        mPostList.setLayoutManager(new LinearLayoutManager(this));
+        mPostList.setLayoutManager(new StaggeredGridLayoutManager(
+                getResources().getInteger(R.integer.post_grid_num_columns),
+                StaggeredGridLayoutManager.VERTICAL));
         mPostList.setItemAnimator(new DefaultItemAnimator());
-        int hSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_h);
-        int vSpace = getResources().getDimensionPixelOffset(R.dimen.padding_default_card_v);
+        int hSpace = getResources().getDimensionPixelOffset(R.dimen.card_grid_hspace);
+        int vSpace = getResources().getDimensionPixelOffset(R.dimen.card_grid_vspace);
         mPostList.addItemDecoration(new SpaceItemDecoration(hSpace, vSpace));
+
+        // use a fixed-width grid on large screens
+        int screenWidth = DeviceUtils.getScreenWidth(this);
+        int maxContainerWidth = getResources().getDimensionPixelSize(R.dimen.post_grid_max_width);
+        if (screenWidth > maxContainerWidth) {
+            int containerPadding = (screenWidth - maxContainerWidth) / 2;
+            ViewCompat.setPaddingRelative(mToolbar,
+                    ViewCompat.getPaddingStart(mToolbar) + containerPadding,
+                    mToolbar.getPaddingTop(),
+                    ViewCompat.getPaddingEnd(mToolbar) + containerPadding,
+                    mToolbar.getPaddingBottom());
+            ViewCompat.setPaddingRelative(mPostList,
+                    ViewCompat.getPaddingStart(mPostList) + containerPadding,
+                    mPostList.getPaddingTop(),
+                    ViewCompat.getPaddingEnd(mPostList) + containerPadding,
+                    mPostList.getPaddingBottom());
+        }
 
         final Drawable appbarShadowDrawable;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

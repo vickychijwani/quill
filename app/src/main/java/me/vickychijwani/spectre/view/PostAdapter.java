@@ -3,6 +3,7 @@ package me.vickychijwani.spectre.view;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
@@ -89,6 +90,16 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return new PostViewHolder(view, mItemClickListener);
         } else if (viewType == TYPE_FOOTER) {
             View view = mLayoutInflater.inflate(R.layout.post_list_footer, parent, false);
+
+            // make sure the footer spans the entire grid
+            StaggeredGridLayoutManager.LayoutParams lp = (StaggeredGridLayoutManager.LayoutParams) view.getLayoutParams();
+            if (lp == null) {
+                lp = new StaggeredGridLayoutManager.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            }
+            lp.setFullSpan(true);
+            view.setLayoutParams(lp);
+
             return new FooterViewHolder(view);
         }
         throw new IllegalArgumentException("Invalid view type: " + viewType);

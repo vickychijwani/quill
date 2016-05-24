@@ -3,10 +3,21 @@
     <!-- padding -->
     <dimen name="padding_inline">4dp</dimen>
     <dimen name="padding_default">8dp</dimen>
-    <dimen name="padding_default_card_h">5dp</dimen> <!-- card view already has 3dp horizontal for shadow -->
-    <dimen name="padding_default_card_v">4dp</dimen> <!-- card view already has 4dp vertical for shadow -->
     <dimen name="padding_large">16dp</dimen>
     <dimen name="padding_fab_normal">88dp</dimen>  <!-- fab_size_normal + 2 * padding_large -->
+
+    <!-- card view with useCompatPadding=true already has 3dp horizontal for shadow -->
+    <!-- in a grid, with 2.5dp on each side the inter-card space becomes 3+5=8dp -->
+    <!-- an extra 2.5dp is added to the margins for items on the edge -->
+    <dimen name="card_grid_hspace">2.5dp</dimen>
+    <dimen name="card_grid_hmargin">2.5dp</dimen>
+
+    <!-- card view with useCompatPadding=true already has 4dp vertical for shadow -->
+    <!-- in a grid, with 2dp on top and bottom, the inter-card space becomes 4+4=8dp -->
+    <!-- an extra 2dp is added to the margins for items on the edge -->
+    <dimen name="card_grid_vspace">2dp</dimen>
+    <dimen name="card_grid_vmargin">2dp</dimen>
+    <dimen name="card_grid_fab_margin">82dp</dimen> <!-- padding_fab_normal - 4dp (vertical shadow compat padding) - card_grid_vmargin -->
 
     <!-- text sizes -->
     <dimen name="text_size_xsmall">12sp</dimen>
@@ -24,6 +35,7 @@
     <dimen name="tabbar_height">48dp</dimen>
     <dimen name="post_view_appbar_height">104dp</dimen>   <!-- toolbar_height + tabbar_height -->
     <dimen name="post_image_height">192dp</dimen>
+    <dimen name="post_grid_max_width">1200dp</dimen>
 
     <!-- misc numbers -->
     <integer name="animation_duration">200</integer>

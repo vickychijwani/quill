@@ -80,7 +80,7 @@ public class KeyboardUtils {
 
             @Override
             public void onGlobalLayout() {
-                float estimatedKeyboardHeight = AppUtils.dpToPx(ESTIMATED_KEYBOARD_SIZE_DP);
+                float estimatedKeyboardHeight = DeviceUtils.dpToPx(ESTIMATED_KEYBOARD_SIZE_DP);
                 activityRootView.getWindowVisibleDisplayFrame(r);
                 int heightDiff = activityRootView.getRootView().getHeight() - (r.bottom - r.top);
                 boolean isVisible = (heightDiff >= estimatedKeyboardHeight);

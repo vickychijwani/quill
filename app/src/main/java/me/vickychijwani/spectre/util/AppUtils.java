@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
@@ -34,14 +33,6 @@ public class AppUtils {
         if (relativePath.startsWith("//")) relativePath = "http:" + relativePath;
         if (relativePath.startsWith("http")) return relativePath;
         return Uri.withAppendedPath(Uri.parse(basePath), relativePath).toString();
-    }
-
-    public static float dpToPx(final float dp) {
-        return dp * Resources.getSystem().getDisplayMetrics().density;
-    }
-
-    public static float pxToDp(final float px) {
-        return px / Resources.getSystem().getDisplayMetrics().density;
     }
 
     public static void emailDeveloper(@NonNull BaseActivity activity) {

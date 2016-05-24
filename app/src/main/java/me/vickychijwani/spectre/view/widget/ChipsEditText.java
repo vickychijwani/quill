@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.DeviceUtils;
 
 /**
  * Adapted from https://github.com/kpbird/chipsedittext/blob/master/src/com/kpbird/chipsedittext/ChipsMultiAutoCompleteTextview.java
@@ -140,11 +140,11 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
         private static final String TAG = "ChipsEditText";
 //        private static final String TALLEST_STRING = "Pyfgl";
 
-        private final float mCornerRadius = AppUtils.dpToPx(7);
+        private final float mCornerRadius = DeviceUtils.dpToPx(7);
 //        private final int mTopPadding = (int) AppUtils.dpToPx(0);
 //        private final int mBottomPadding = (int) AppUtils.dpToPx(0);
-        private final int mLeftPadding = (int) AppUtils.dpToPx(5);
-        private final int mRightPadding = (int) AppUtils.dpToPx(5);
+        private final int mLeftPadding = (int) DeviceUtils.dpToPx(5);
+        private final int mRightPadding = (int) DeviceUtils.dpToPx(5);
 
 //        private final int mTopMargin = (int) AppUtils.dpToPx(0);
 //        private final int mLeftMargin = (int) AppUtils.dpToPx(0);
