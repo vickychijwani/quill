@@ -1,5 +1,8 @@
 package me.vickychijwani.spectre.network;
 
+import android.util.Log;
+
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -20,15 +23,21 @@ public class ConfigurationListDeserializer implements JsonDeserializer<Configura
     public ConfigurationList deserialize(JsonElement element, Type type,
                                          JsonDeserializationContext context)
             throws JsonParseException {
-        JsonArray configJsons = element.getAsJsonObject().getAsJsonArray("configuration");
-        if (configJsons.size() > 0 && !configJsons.get(0).getAsJsonObject().has("key")) {
-            // new configuration format - dictionary style
-            // { configuration: [{ fileStorage: {value: true, type: "bool"}, ... }] }
-            return parseDictionaryStyleConfig(configJsons.get(0).getAsJsonObject());
-        } else {
-            // old configuration format - array of entries
-            // { configuration: [ {key: fileStorage, value: true}, ... ] }
-            return parseArrayOfEntriesConfig(configJsons);
+        try {
+            JsonArray configJsons = element.getAsJsonObject().getAsJsonArray("configuration");
+            if (configJsons.size() > 0 && !configJsons.get(0).getAsJsonObject().has("key")) {
+                // new configuration format - dictionary style
+                // { configuration: [{ fileStorage: {value: true, type: "bool"}, ... }] }
+                return parseDictionaryStyleConfig(configJsons.get(0).getAsJsonObject());
+            } else {
+                // old configuration format - array of entries
+                // { configuration: [ {key: fileStorage, value: true}, ... ] }
+                return parseArrayOfEntriesConfig(configJsons);
+            }
+        } catch (Exception e) {
+            // FIXME temp log to help debug Crashlytics issue #87
+            Crashlytics.log(Log.DEBUG, "ParseException", "Exception thrown while trying to parse JSON: " + element.toString());
+            throw e;
         }
     }
 
@@ -58,7 +67,10 @@ public class ConfigurationListDeserializer implements JsonDeserializer<Configura
             throws JsonParseException {
         ConfigurationParam param = new ConfigurationParam();
         String valueStr;
-        if (value.isString()) {
+        if (value == null) {
+            // FIXME temp log to help debug Crashlytics issue #87
+            throw new NullPointerException("value for key '" + key + "' is null!");
+        } else if (value.isString()) {
             valueStr = value.getAsString();
         } else if (value.isBoolean()) {
             valueStr = String.valueOf(value.getAsBoolean());
