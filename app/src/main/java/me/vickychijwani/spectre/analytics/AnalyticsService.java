@@ -63,14 +63,14 @@ public class AnalyticsService {
         if (ghostVersion == null) {
             ghostVersion = "Unknown";
         }
-        Crashlytics.log(Log.DEBUG, TAG, "GHOST VERSION = " + ghostVersion);
+        Crashlytics.log(Log.INFO, TAG, "GHOST VERSION = " + ghostVersion);
         Answers.getInstance().logCustom(new CustomEvent("Ghost Version")
                 .putCustomAttribute("version", ghostVersion));
     }
 
     public static void logLogin(String blogType, boolean success) {
         String successStr = success ? "SUCCEEDED" : "FAILED";
-        Crashlytics.log(Log.DEBUG, TAG, "LOGIN " + successStr + ", blog type = " + blogType);
+        Crashlytics.log(Log.INFO, TAG, "LOGIN " + successStr + ", blog type = " + blogType);
         Answers.getInstance().logLogin(new LoginEvent()
                 .putMethod(blogType)
                 .putSuccess(success));

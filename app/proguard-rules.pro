@@ -69,21 +69,10 @@
 -keep class me.vickychijwani.spectre.model.** { *; }
 
 # Crashlytics
--keepattributes *Annotation*
--keepattributes SourceFile,LineNumberTable
--keep public class * extends java.lang.Exception
--keep class com.crashlytics.** { *; }
--dontwarn com.crashlytics.**
+# proguard.txt included in library
 
 # Realm
--keep class io.realm.annotations.RealmModule
--keep @io.realm.annotations.RealmModule class *
--keep class io.realm.internal.Keep
--keep @io.realm.internal.Keep class *
--keep class io.realm.** { *; }
--keep class me.vickychijwani.spectre.model.** { *; }
--dontwarn javax.**
--dontwarn io.realm.**
+# proguard.txt included in library
 
 # Retrolambda
 -dontwarn java.lang.invoke.*

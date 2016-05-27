@@ -14,7 +14,7 @@ public class DateTimeUtils {
     private static final PrettyTime prettyTime = new PrettyTime();
 
     public static long getEpochSeconds() {
-        return System.currentTimeMillis() / 1000l;
+        return System.currentTimeMillis() / 1000L;
     }
 
     /**
