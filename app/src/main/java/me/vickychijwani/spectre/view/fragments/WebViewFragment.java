@@ -119,6 +119,14 @@ public class WebViewFragment extends BaseFragment {
     }
 
     // our custom methods
+    public void showWebView() {
+        mWebView.setVisibility(View.VISIBLE);
+    }
+
+    public void hideWebView() {
+        mWebView.setVisibility(View.INVISIBLE);
+    }
+
     @Nullable
     public String getCurrentUrl() {
         if (mWebView == null) {

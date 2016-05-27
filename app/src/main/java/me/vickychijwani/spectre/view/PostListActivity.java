@@ -115,6 +115,7 @@ public class PostListActivity extends BaseActivity {
             int pos = mPostList.getChildLayoutPosition(v);
             if (pos == RecyclerView.NO_POSITION) return;
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             intent.putExtra(BundleKeys.POST, (Post) mPostAdapter.getItem(pos));
             intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
             startActivity(intent);
@@ -188,6 +189,12 @@ public class PostListActivity extends BaseActivity {
         super.onDestroy();
         mRefreshDataRunnable = null;    // the runnable holds an implicit reference to the activity!
                                         // allow it to get GC'ed to avoid a memory leak
+    }
+
+    @Override
+    public void onBackPressed() {
+        PostViewActivity.setFinishOnStart(true);
+        super.onBackPressed();
     }
 
     @Override

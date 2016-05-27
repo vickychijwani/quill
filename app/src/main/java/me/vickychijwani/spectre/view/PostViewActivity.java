@@ -1,6 +1,7 @@
 package me.vickychijwani.spectre.view;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -59,6 +60,7 @@ public class PostViewActivity extends BaseActivity implements
 {
 
     private static final String TAG = "PostViewActivity";
+    private static boolean sFinishOnStart = false;
 
     @Bind(R.id.toolbar)                         Toolbar mToolbar;
     @Bind(R.id.toolbar_title)                   TextView mToolbarTitle;
@@ -137,6 +139,12 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        updatePost(intent.getExtras().getParcelable(BundleKeys.POST));
+    }
+
+    @Override
     public void onPostViewFragmentInitialized(PostViewFragment postViewFragment) {
         mPostViewFragment = postViewFragment;
     }
@@ -144,6 +152,15 @@ public class PostViewActivity extends BaseActivity implements
     @Override
     public void onPostEditFragmentInitialized(PostEditFragment postEditFragment) {
         mPostEditFragment = postEditFragment;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (sFinishOnStart) {
+            sFinishOnStart = false;
+            finish();
+        }
     }
 
     @Override
@@ -199,11 +216,23 @@ public class PostViewActivity extends BaseActivity implements
 
     @Override
     public void onBackPressed() {
+        // try to close the drawer first
         if (mDrawerLayout.isDrawerOpen(mNavView)) {
             mDrawerLayout.closeDrawer(mNavView);
             return;
         }
-        super.onBackPressed();
+        // send this Activity to the background instead of destroying, so we can reuse it
+        Intent backIntent = getSupportParentActivityIntent();
+        if (backIntent != null) {
+            backIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+            startActivity(backIntent);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    public static void setFinishOnStart(boolean finishOnStart) {
+        sFinishOnStart = finishOnStart;
     }
 
     public void viewPostInBrowser(boolean saveBeforeViewing) {

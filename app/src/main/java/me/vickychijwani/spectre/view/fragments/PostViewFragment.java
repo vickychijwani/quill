@@ -70,7 +70,14 @@ public class PostViewFragment extends BaseFragment
             public String getBlogUrl() {
                 return blogUrl;
             }
+
+            @JavascriptInterface
+            public void onPreviewUpdated() {
+                // FIXME apparently this gets called before the preview is actually *rendered*
+                mWebViewFragment.showWebView();
+            }
         }, "POST");
+
         mWebViewFragment.setWebViewClient(new WebViewFragment.DefaultWebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -98,6 +105,10 @@ public class PostViewFragment extends BaseFragment
     }
 
     public void setPost(@NonNull Post post) {
+        if (! post.getUuid().equals(mPost.getUuid())) {
+            // this is an entirely new post, hide the preview until it is updated
+            mWebViewFragment.hideWebView();
+        }
         mPost = post;
         updatePreview();
     }
