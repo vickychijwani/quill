@@ -1,5 +1,7 @@
 package me.vickychijwani.spectre.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringDef;
 
@@ -8,13 +10,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Date;
 
 import io.realm.RealmList;
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.Required;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 
 @RealmClass
-public class Post extends RealmObject {
+public class Post implements RealmModel, Parcelable {
 
     @Retention(RetentionPolicy.SOURCE)
     @StringDef({ DRAFT, PUBLISHED })
@@ -26,20 +29,30 @@ public class Post extends RealmObject {
     public static final String DEFAULT_TITLE = "(Untitled)";
     public static final String DEFAULT_SLUG_PREFIX = "untitled";
 
-    @PrimaryKey
+    @PrimaryKey @Required
     private String uuid = null;
     private int id;
-    private String title = DEFAULT_TITLE;
-    private String slug = null;
-    @Status private String status = DRAFT;
 
+    @Required
+    private String title = DEFAULT_TITLE;
+
+    private String slug = null;
+
+    @Required @Status
+    private String status = DRAFT;
+
+    @Required
     private String markdown = "";
+
     private String html = "";
+
     private RealmList<Tag> tags;
 
     private String image = null;
     private boolean featured = false;
     private boolean page = false;
+
+    @Required
     private String language = "en_US";
 
     private int author;
@@ -48,20 +61,23 @@ public class Post extends RealmObject {
     private int publishedBy;
 
     private Date createdAt = null;
-    private Date updatedAt = DateTimeUtils.FAR_FUTURE;  // so that locally-created posts will be sorted to the top
     private Date publishedAt = DateTimeUtils.FAR_FUTURE;  // so that locally-created posts will be sorted to the top
+
+    @Required
+    private Date updatedAt = DateTimeUtils.FAR_FUTURE;  // so that locally-created posts will be sorted to the top
 
     private String metaTitle = "";
     private String metaDescription = "";
 
-    // transient fields are not serialized / deserialized
+    // exclude from serialization / deserialization
     // NOTE: default values for these fields will be assigned to all serialized Posts (because they
     // are not touched by Retrofit), so don't assign any defaults specific to new posts here!
-    private transient RealmList<PendingAction> pendingActions = new RealmList<>();
+    @GsonExclude
+    private RealmList<PendingAction> pendingActions = new RealmList<>();
 
     public Post() {}
 
-    // TODO remember to update this whenever a new field is added!
+    // TODO remember to update this, Parcelable methods, and DB migration whenever fields are changed!
     public Post(@NonNull Post post) {
         this.setUuid(post.getUuid());
         this.setId(post.getId());
@@ -92,12 +108,89 @@ public class Post extends RealmObject {
         this.setMetaTitle(post.getMetaTitle());
         this.setMetaDescription(post.getMetaDescription());
 
-        PendingAction[] pendingActions = new PendingAction[post.getPendingActions().size()];
-        post.getPendingActions().toArray(pendingActions);
-        this.setPendingActions(new RealmList<>(pendingActions));
+        for (PendingAction action : post.getPendingActions()) {
+            this.addPendingAction(action.getType());
+        }
     }
 
-    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
+    // Parcelable methods
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.uuid);
+        dest.writeInt(this.id);
+        dest.writeString(this.title);
+        dest.writeString(this.slug);
+        dest.writeString(this.status);
+        dest.writeString(this.markdown);
+        dest.writeString(this.html);
+        dest.writeList(this.tags);
+        dest.writeString(this.image);
+        dest.writeByte(this.featured ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.page ? (byte) 1 : (byte) 0);
+        dest.writeString(this.language);
+        dest.writeInt(this.author);
+        dest.writeInt(this.createdBy);
+        dest.writeInt(this.updatedBy);
+        dest.writeInt(this.publishedBy);
+        dest.writeLong(this.createdAt != null ? this.createdAt.getTime() : -1);
+        dest.writeLong(this.updatedAt != null ? this.updatedAt.getTime() : -1);
+        dest.writeLong(this.publishedAt != null ? this.publishedAt.getTime() : -1);
+        dest.writeString(this.metaTitle);
+        dest.writeString(this.metaDescription);
+        dest.writeList(this.pendingActions);
+    }
+
+    protected Post(Parcel in) {
+        this.uuid = in.readString();
+        this.id = in.readInt();
+        this.title = in.readString();
+        this.slug = in.readString();
+        //noinspection WrongConstant
+        this.status = in.readString();
+        this.markdown = in.readString();
+        this.html = in.readString();
+        this.tags = new RealmList<>();
+        in.readList(this.tags, Tag.class.getClassLoader());
+        this.image = in.readString();
+        this.featured = in.readByte() != 0;
+        this.page = in.readByte() != 0;
+        this.language = in.readString();
+        this.author = in.readInt();
+        this.createdBy = in.readInt();
+        this.updatedBy = in.readInt();
+        this.publishedBy = in.readInt();
+        long tmpCreatedAt = in.readLong();
+        this.createdAt = tmpCreatedAt == -1 ? null : new Date(tmpCreatedAt);
+        long tmpUpdatedAt = in.readLong();
+        this.updatedAt = tmpUpdatedAt == -1 ? null : new Date(tmpUpdatedAt);
+        long tmpPublishedAt = in.readLong();
+        this.publishedAt = tmpPublishedAt == -1 ? null : new Date(tmpPublishedAt);
+        this.metaTitle = in.readString();
+        this.metaDescription = in.readString();
+        this.pendingActions = new RealmList<>();
+        in.readList(this.pendingActions, PendingAction.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator<Post> CREATOR = new Parcelable.Creator<Post>() {
+        @Override
+        public Post createFromParcel(Parcel source) {
+            return new Post(source);
+        }
+
+        @Override
+        public Post[] newArray(int size) {
+            return new Post[size];
+        }
+    };
+
+
+
+    // accessors
     public String getUuid() {
         return uuid;
     }
@@ -266,12 +359,40 @@ public class Post extends RealmObject {
         this.metaDescription = metaDesc;
     }
 
-    public RealmList<PendingAction> getPendingActions() {
+    private RealmList<PendingAction> getPendingActions() {
         return pendingActions;
     }
 
-    public void setPendingActions(RealmList<PendingAction> pendingActions) {
+    private void setPendingActions(RealmList<PendingAction> pendingActions) {
         this.pendingActions = pendingActions;
+    }
+
+    public boolean isPendingActionsEmpty() {
+        return this.pendingActions.isEmpty();
+    }
+
+    public boolean hasPendingAction(@PendingAction.Type String type) {
+        for (PendingAction action : getPendingActions()) {
+            if (type.equals(action.getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Add a {@link PendingAction} to the given {@link Post}, if it doesn't already exist.
+     * @param type the type of the pending action to add
+     * @return true if the action was added now, false if it already existed
+     */
+    public boolean addPendingAction(@NonNull @PendingAction.Type String type) {
+        if (hasPendingAction(type)) return false;
+        getPendingActions().add(new PendingAction(type));
+        return true;
+    }
+
+    public void clearPendingActions() {
+        this.pendingActions.clear();
     }
 
 }

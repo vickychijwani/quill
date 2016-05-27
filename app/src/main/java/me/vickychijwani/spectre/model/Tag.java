@@ -1,16 +1,22 @@
 package me.vickychijwani.spectre.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Date;
 
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.Required;
 
 @RealmClass
-public class Tag extends RealmObject {
+public class Tag implements RealmModel, Parcelable {
 
-    @PrimaryKey
+    @PrimaryKey @Required
     private String uuid = null;
+
+    @Required
     private String name;
 
     private String slug = null;
@@ -31,7 +37,56 @@ public class Tag extends RealmObject {
         this.name = name;
     }
 
-    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
+
+    // parcelable methods
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.uuid);
+        dest.writeString(this.name);
+        dest.writeString(this.slug);
+        dest.writeString(this.description);
+        dest.writeString(this.image);
+        dest.writeByte(this.hidden ? (byte) 1 : (byte) 0);
+        dest.writeString(this.metaTitle);
+        dest.writeString(this.metaDescription);
+        dest.writeLong(this.createdAt != null ? this.createdAt.getTime() : -1);
+        dest.writeLong(this.updatedAt != null ? this.updatedAt.getTime() : -1);
+    }
+
+    protected Tag(Parcel in) {
+        this.uuid = in.readString();
+        this.name = in.readString();
+        this.slug = in.readString();
+        this.description = in.readString();
+        this.image = in.readString();
+        this.hidden = in.readByte() != 0;
+        this.metaTitle = in.readString();
+        this.metaDescription = in.readString();
+        long tmpCreatedAt = in.readLong();
+        this.createdAt = tmpCreatedAt == -1 ? null : new Date(tmpCreatedAt);
+        long tmpUpdatedAt = in.readLong();
+        this.updatedAt = tmpUpdatedAt == -1 ? null : new Date(tmpUpdatedAt);
+    }
+
+    public static final Parcelable.Creator<Tag> CREATOR = new Parcelable.Creator<Tag>() {
+        @Override
+        public Tag createFromParcel(Parcel source) {
+            return new Tag(source);
+        }
+
+        @Override
+        public Tag[] newArray(int size) {
+            return new Tag[size];
+        }
+    };
+
+
+    // accessors
     public String getUuid() {
         return uuid;
     }

@@ -27,10 +27,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.realm.Case;
 import io.realm.Realm;
+import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.ApiCallEvent;
@@ -48,7 +51,6 @@ import me.vickychijwani.spectre.event.GhostVersionLoadedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
 import me.vickychijwani.spectre.event.LoadConfigurationEvent;
 import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
-import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
@@ -59,7 +61,6 @@ import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.LogoutStatusEvent;
 import me.vickychijwani.spectre.event.PasswordChangedEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
-import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
@@ -113,7 +114,6 @@ public class NetworkService {
     // number of posts to fetch
     private static final int POSTS_FETCH_LIMIT = 30;
 
-    private Context mAppContext = null;     // Application context, not Activity context!
     private Realm mRealm = null;
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
@@ -133,7 +133,7 @@ public class NetworkService {
                 .registerTypeAdapter(Date.class, new DateDeserializer())
                 .registerTypeAdapter(ConfigurationList.class, new ConfigurationListDeserializer())
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .setExclusionStrategies(new RealmExclusionStrategy())
+                .setExclusionStrategies(new RealmExclusionStrategy(), new AnnotationExclusionStrategy())
                 .create();
         mGsonConverter = new GsonConverter(gson);
         mAuthInterceptor = (request) -> {
@@ -147,10 +147,9 @@ public class NetworkService {
     public void start(Context context, OkHttpClient okHttpClient) {
         mOkHttpClient = okHttpClient;
         getBus().register(this);
-        mAppContext = context.getApplicationContext();
-        mRealm = Realm.getInstance(mAppContext);
+        mRealm = Realm.getDefaultInstance();
         if (AppState.getInstance(context).getBoolean(AppState.Key.LOGGED_IN)) {
-            mAuthToken = mRealm.allObjects(AuthToken.class).first();
+            mAuthToken = mRealm.where(AuthToken.class).findFirst();
             String blogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
             mApi = buildApiService(blogUrl);
         }
@@ -270,7 +269,7 @@ public class NetworkService {
 
         if (! event.forceNetworkCall) {
             RealmQuery<ConfigurationParam> query = mRealm.where(ConfigurationParam.class)
-                    .equalTo("key", "version", false);
+                    .equalTo("key", "version", Case.INSENSITIVE);
             if (query.count() > 0) {
                 getBus().post(new GhostVersionLoadedEvent(query.findFirst().getValue()));
                 return;
@@ -297,7 +296,7 @@ public class NetworkService {
                     getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
                 } else {
                     // fallback to cached data
-                    successCallback.call(mRealm.allObjects(ConfigurationParam.class));
+                    successCallback.call(mRealm.where(ConfigurationParam.class).findAll());
                 }
             };
             doLoadConfiguration(new LoadConfigurationEvent(true), successCallback, failureCallback);
@@ -334,7 +333,7 @@ public class NetworkService {
     @Subscribe
     public void onLoadUserEvent(final LoadUserEvent event) {
         if (event.loadCachedData || ! event.forceNetworkCall) {
-            RealmResults<User> users = mRealm.allObjects(User.class);
+            RealmResults<User> users = mRealm.where(User.class).findAll();
             if (users.size() > 0) {
                 getBus().post(new UserLoadedEvent(users.first()));
                 refreshSucceeded(event);
@@ -356,7 +355,7 @@ public class NetworkService {
             @Override
             public void failure(RetrofitError error) {
                 // fallback to cached data
-                RealmResults<User> users = mRealm.allObjects(User.class);
+                RealmResults<User> users = mRealm.where(User.class).findAll();
                 if (users.size() > 0) {
                     getBus().post(new UserLoadedEvent(users.first()));
                 }
@@ -375,7 +374,7 @@ public class NetworkService {
     @Subscribe
     public void onLoadBlogSettingsEvent(final LoadBlogSettingsEvent event) {
         if (event.loadCachedData || ! event.forceNetworkCall) {
-            RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
+            RealmResults<Setting> settings = mRealm.where(Setting.class).findAll();
             if (settings.size() > 0) {
                 getBus().post(new BlogSettingsLoadedEvent(settings));
                 refreshSucceeded(event);
@@ -397,7 +396,7 @@ public class NetworkService {
             @Override
             public void failure(RetrofitError error) {
                 // fallback to cached data
-                RealmResults<Setting> settings = mRealm.allObjects(Setting.class);
+                RealmResults<Setting> settings = mRealm.where(Setting.class).findAll();
                 if (settings.size() > 0) {
                     getBus().post(new BlogSettingsLoadedEvent(settings));
                 }
@@ -421,7 +420,7 @@ public class NetworkService {
         };
         Action1<RetrofitError> failureCallback = error -> {
             // fallback to cached data
-            RealmResults<ConfigurationParam> params = mRealm.allObjects(ConfigurationParam.class);
+            RealmResults<ConfigurationParam> params = mRealm.where(ConfigurationParam.class).findAll();
             if (params.size() > 0) {
                 getBus().post(new ConfigurationLoadedEvent(params));
             }
@@ -438,7 +437,7 @@ public class NetworkService {
                                     @NonNull Action1<List<ConfigurationParam>> successCallback,
                                     @NonNull Action1<RetrofitError> failureCallback) {
         if (event.loadCachedData || ! event.forceNetworkCall) {
-            RealmResults<ConfigurationParam> params = mRealm.allObjects(ConfigurationParam.class);
+            RealmResults<ConfigurationParam> params = mRealm.where(ConfigurationParam.class).findAll();
             if (params.size() > 0) {
                 successCallback.call(params);
                 return;
@@ -490,7 +489,7 @@ public class NetworkService {
                 // delete posts that are no longer present on the server
                 // this assumes that postList.posts is a list of ALL posts on the server
                 // FIXME time complexity is quadratic in the number of posts!
-                Observable.from(mRealm.allObjects(Post.class))
+                Observable.from(mRealm.where(Post.class).findAll())
                         .filter(cached -> postList.indexOf(cached.getUuid()) == -1)
                         .toList()
                         .forEach(NetworkService.this::deleteModels);
@@ -533,22 +532,9 @@ public class NetworkService {
     }
 
     @Subscribe
-    public void onLoadPostEvent(LoadPostEvent event) {
-        Post post = mRealm.where(Post.class).equalTo("uuid", event.uuid).findFirst();
-        if (post != null) {
-            Post postCopy = new Post(post);   // copy isn't tied to db, so it can be mutated freely
-            getBus().post(new PostLoadedEvent(postCopy));
-        } else {
-            String error = "No post with uuid = " + event.uuid + " found!";
-            Crashlytics.logException(new IllegalArgumentException(error));
-            Log.e(TAG, error);
-        }
-    }
-
-    @Subscribe
     public void onCreatePostEvent(final CreatePostEvent event) {
         Post newPost = new Post();
-        PostUtils.addPendingAction(newPost, PendingAction.CREATE);
+        newPost.addPendingAction(PendingAction.CREATE);
         newPost.setUuid(getTempUniqueId(Post.class));
         createOrUpdateModel(newPost);                    // save the local post to db
         getBus().post(new PostCreatedEvent(newPost));
@@ -567,7 +553,7 @@ public class NetworkService {
 
         final RealmResults<Post> localNewPosts = mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.CREATE)
-                .findAllSorted("uuid", false);
+                .findAllSorted("uuid", Sort.DESCENDING);
         final RealmResults<Post> localEditedPosts = mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.EDIT)
                 .findAll();
@@ -613,7 +599,7 @@ public class NetworkService {
                 @Override
                 public void success(PostList postList, Response response) {
                     createOrUpdateModel(postList.posts, () -> {
-                        localPost.getPendingActions().clear();
+                        localPost.clearPendingActions();
                     });
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     localNewPostsUploaded.add(localPost);
@@ -645,7 +631,7 @@ public class NetworkService {
                 @Override
                 public void success(PostList postList, Response response) {
                     createOrUpdateModel(postList.posts, () -> {
-                        localPost.getPendingActions().clear();
+                        localPost.clearPendingActions();
                     });
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new PostSyncedEvent(localPost.getUuid()));
@@ -679,17 +665,17 @@ public class NetworkService {
         // TODO specific fields of a post rather than the entire post
 
         //noinspection StatementWithEmptyBody
-        if (PostUtils.hasPendingAction(post, PendingAction.CREATE)) {
+        if (post.hasPendingAction(PendingAction.CREATE)) {
             // no-op; if the post is yet to be created, we DO NOT change the PendingAction on it
         } else if (Post.DRAFT.equals(post.getStatus())) {
-            PostUtils.addPendingAction(post, PendingAction.EDIT);
+            post.addPendingAction(PendingAction.EDIT);
         } else if (Post.PUBLISHED.equals(post.getStatus()) && event.isAutoSave) {
-            post.getPendingActions().clear();
-            PostUtils.addPendingAction(post, PendingAction.EDIT_LOCAL);
+            post.clearPendingActions();
+            post.addPendingAction(PendingAction.EDIT_LOCAL);
         } else {
             // user hit "publish changes" explicitly, on a published post, so mark it for uploading
-            post.getPendingActions().clear();
-            PostUtils.addPendingAction(post, PendingAction.EDIT);
+            post.clearPendingActions();
+            post.addPendingAction(PendingAction.EDIT);
         }
 
         // save tags to Realm first
@@ -733,7 +719,7 @@ public class NetworkService {
         List<Tag> tagsCopy = new ArrayList<>(tags.size());
         for (Tag tag : tags) {
             tagsCopy.add(new Tag(tag.getName()));
-            }
+        }
         getBus().post(new TagsLoadedEvent(tagsCopy));
     }
 
@@ -741,7 +727,7 @@ public class NetworkService {
     public void onLogoutEvent(LogoutEvent event) {
         if (!event.forceLogout) {
             // check for pending actions
-            RealmResults<PendingAction> pendingActions = mRealm.allObjects(PendingAction.class);
+            RealmResults<PendingAction> pendingActions = mRealm.where(PendingAction.class).findAll();
             if (pendingActions.size() > 0) {
                 getBus().post(new LogoutStatusEvent(false, true));
                 return;
@@ -772,8 +758,8 @@ public class NetworkService {
         }
         // clear all persisted blog data to avoid primary key conflicts
         mRealm.close();
-        Realm.deleteRealmFile(mAppContext);
-        mRealm = Realm.getInstance(mAppContext);
+        Realm.deleteRealm(mRealm.getConfiguration());
+        mRealm = Realm.getDefaultInstance();
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, false);
         // reset state, to be sure
@@ -922,7 +908,7 @@ public class NetworkService {
 
     private List<Post> getPostsSorted() {
         // FIXME time complexity O(n) for copying + O(n log n) for sorting!
-        RealmResults<Post> posts = mRealm.allObjects(Post.class);
+        RealmResults<Post> posts = mRealm.where(Post.class).findAll();
         List<Post> postsCopy = new ArrayList<>(posts);
         Collections.sort(postsCopy, PostUtils.COMPARATOR_MAIN_LIST);
         return postsCopy;
@@ -948,7 +934,7 @@ public class NetworkService {
      * you'll get the same id twice!</b>
      */
     @NonNull
-    private <T extends RealmObject> String getTempUniqueId(Class<T> clazz) {
+    private <T extends RealmModel> String getTempUniqueId(Class<T> clazz) {
         int tempId = Integer.MAX_VALUE;
         while (mRealm.where(clazz).equalTo("uuid", String.valueOf(tempId)).findAll().size() > 0) {
             --tempId;
@@ -956,11 +942,11 @@ public class NetworkService {
         return String.valueOf(tempId);
     }
 
-    private <T extends RealmObject> T createOrUpdateModel(T object) {
+    private <T extends RealmModel> T createOrUpdateModel(T object) {
         return createOrUpdateModel(object, null);
     }
 
-    private <T extends RealmObject> T createOrUpdateModel(T object, @Nullable Runnable transaction) {
+    private <T extends RealmModel> T createOrUpdateModel(T object, @Nullable Runnable transaction) {
         // TODO add error handling
         // TODO use Realm#executeTransaction(Realm.Transaction) instead of this
         mRealm.beginTransaction();
@@ -972,12 +958,12 @@ public class NetworkService {
         return realmObject;
     }
 
-    private <T extends RealmObject> List<T> createOrUpdateModel(Iterable<T> objects) {
+    private <T extends RealmModel> List<T> createOrUpdateModel(Iterable<T> objects) {
         return createOrUpdateModel(objects, null);
     }
 
-    private <T extends RealmObject> List<T> createOrUpdateModel(Iterable<T> objects,
-                                                                @Nullable Runnable transaction) {
+    private <T extends RealmModel> List<T> createOrUpdateModel(Iterable<T> objects,
+                                                               @Nullable Runnable transaction) {
         mRealm.beginTransaction();
         List<T> realmObjects = mRealm.copyToRealmOrUpdate(objects);
         if (transaction != null) {
@@ -987,9 +973,9 @@ public class NetworkService {
         return realmObjects;
     }
 
-    private <T extends RealmObject> void deleteModels(List<T> realmObjects) {
+    private <T extends RealmModel> void deleteModels(List<T> realmObjects) {
         mRealm.beginTransaction();
-        Observable.from(realmObjects).forEach(T::removeFromRealm);
+        Observable.from(realmObjects).forEach(RealmObject::deleteFromRealm);
         mRealm.commitTransaction();
     }
 

@@ -8,6 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.Required;
 
 @RealmClass
 public class ETag extends RealmObject {
@@ -21,8 +22,10 @@ public class ETag extends RealmObject {
     public static final String TYPE_BLOG_SETTINGS = "blog_settings";
     public static final String TYPE_CONFIGURATION = "configuration";
 
-    @PrimaryKey
+    @PrimaryKey @Required
     private String type;
+
+    @Required
     private String tag;
 
     @SuppressWarnings("unused")

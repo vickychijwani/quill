@@ -114,9 +114,8 @@ public class PostListActivity extends BaseActivity {
         mPostAdapter = new PostAdapter(this, mPosts, blogUrl, getPicasso(), v -> {
             int pos = mPostList.getChildLayoutPosition(v);
             if (pos == RecyclerView.NO_POSITION) return;
-            Post post = (Post) mPostAdapter.getItem(pos);
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-            intent.putExtra(BundleKeys.POST_UUID, post.getUuid());
+            intent.putExtra(BundleKeys.POST, (Post) mPostAdapter.getItem(pos));
             intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
             startActivity(intent);
         });
@@ -313,7 +312,7 @@ public class PostListActivity extends BaseActivity {
     @Subscribe
     public void onPostCreatedEvent(PostCreatedEvent event) {
         Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-        intent.putExtra(BundleKeys.POST_UUID, event.newPost.getUuid());
+        intent.putExtra(BundleKeys.POST, event.newPost);
         intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
         startActivity(intent);
     }

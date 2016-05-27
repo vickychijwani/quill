@@ -23,9 +23,12 @@ import java.net.HttpURLConnection;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric.sdk.android.Fabric;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
+import me.vickychijwani.spectre.model.DatabaseMigration;
 import me.vickychijwani.spectre.network.NetworkService;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -54,6 +57,7 @@ public class SpectreApplication extends Application {
         BusProvider.getBus().register(this);
         sInstance = this;
 
+        setupRealm();
         setupFonts();
         initOkHttpClient();
         initPicasso();
@@ -61,6 +65,16 @@ public class SpectreApplication extends Application {
 
         mAnalyticsService = new AnalyticsService(BusProvider.getBus());
         mAnalyticsService.start();
+    }
+
+    private void setupRealm() {
+        final int DB_SCHEMA_VERSION = 1;
+        RealmConfiguration config = new RealmConfiguration.Builder(this)
+                .schemaVersion(DB_SCHEMA_VERSION)
+                .migration(new DatabaseMigration())
+                .build();
+        Realm.setDefaultConfiguration(config);
+        AnalyticsService.logDbSchemaVersion(String.valueOf(DB_SCHEMA_VERSION));
     }
 
     private void setupFonts() {

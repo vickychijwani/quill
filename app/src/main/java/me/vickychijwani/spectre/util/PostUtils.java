@@ -14,8 +14,6 @@ import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.model.Tag;
 import me.vickychijwani.spectre.pref.UserPrefs;
 
-// TODO some of these methods belong in the Post class but Realm doesn't allow arbitrary methods on
-// RealmObjects at the moment
 public class PostUtils {
 
     /**
@@ -26,8 +24,8 @@ public class PostUtils {
      */
     @SuppressWarnings("unused")
     public static Comparator<Post> COMPARATOR_MAIN_LIST = (lhs, rhs) -> {
-        boolean isLhsNew = hasPendingAction(lhs, PendingAction.CREATE);
-        boolean isRhsNew = hasPendingAction(rhs, PendingAction.CREATE);
+        boolean isLhsNew = lhs.hasPendingAction(PendingAction.CREATE);
+        boolean isRhsNew = rhs.hasPendingAction(PendingAction.CREATE);
         boolean isLhsDraft = Post.DRAFT.equals(lhs.getStatus());
         boolean isRhsDraft = Post.DRAFT.equals(rhs.getStatus());
         boolean isLhsPublished = Post.PUBLISHED.equals(lhs.getStatus());
@@ -46,8 +44,12 @@ public class PostUtils {
         return -lhs.getUpdatedAt().compareTo(rhs.getUpdatedAt());
     };
 
-    @SuppressWarnings("RedundantIfStatement")
+    @SuppressWarnings({"RedundantIfStatement", "OverlyComplexMethod"})
     public static boolean isDirty(@NonNull Post original, @NonNull Post current) {
+        boolean bothImagesNull = (original.getImage() == null && current.getImage() == null);
+        boolean oneImageNull = (original.getImage() != null && current.getImage() == null)
+                || (original.getImage() == null && current.getImage() != null);
+
         if (! original.getTitle().equals(current.getTitle()))
             return true;
         if (! original.getStatus().equals(current.getStatus()))
@@ -56,7 +58,7 @@ public class PostUtils {
             return true;
         if (! original.getMarkdown().equals(current.getMarkdown()))
             return true;
-        if (! original.getImage().equals(current.getImage()))
+        if (!bothImagesNull && (oneImageNull || !original.getImage().equals(current.getImage())))
             return true;
         if (original.getTags().size() != current.getTags().size())
             return true;
@@ -78,26 +80,12 @@ public class PostUtils {
         }
     }
 
-    /**
-     * Add a {@link PendingAction} to the given {@link Post}, if it doesn't already exist.
-     * @param post the post to which to add the action
-     * @param type the type of the pending action to add
-     * @return true if the action was added now, false if it already existed
-     */
-    public static boolean addPendingAction(@Nullable Post post, @Nullable @PendingAction.Type String type) {
-        if (post == null) throw new IllegalArgumentException("post cannot be null!");
-        if (type == null) throw new IllegalArgumentException("pending action type cannot be null!");
-        if (hasPendingAction(post, type)) return false;
-        post.getPendingActions().add(new PendingAction(type));
-        return true;
-    }
-
     public static String getStatusString(@Nullable Post post, @NonNull Context context) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         String status;
-        if (hasPendingAction(post, PendingAction.EDIT_LOCAL)) {
+        if (post.hasPendingAction(PendingAction.EDIT_LOCAL)) {
             status = context.getString(R.string.published_auto_saved);
-        } else if (! post.getPendingActions().isEmpty()) {
+        } else if (! post.isPendingActionsEmpty()) {
             status = context.getString(R.string.offline_changes);
         } else if (Post.PUBLISHED.equals(post.getStatus())) {
             String dateStr = DateTimeUtils.formatRelative(post.getPublishedAt());
@@ -113,9 +101,9 @@ public class PostUtils {
     public static int getStatusColor(@Nullable Post post, @NonNull Context context) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         int colorId;
-        if (hasPendingAction(post, PendingAction.EDIT_LOCAL)) {
+        if (post.hasPendingAction(PendingAction.EDIT_LOCAL)) {
             colorId = R.color.published_auto_saved;
-        } else if (! post.getPendingActions().isEmpty()) {
+        } else if (! post.isPendingActionsEmpty()) {
             colorId = R.color.offline_changes;
         } else if (Post.PUBLISHED.equals(post.getStatus())) {
             colorId = R.color.published;
@@ -125,15 +113,6 @@ public class PostUtils {
             throw new IllegalArgumentException("unknown post status!");
         }
         return context.getResources().getColor(colorId);
-    }
-
-    public static boolean hasPendingAction(Post post, @PendingAction.Type String type) {
-        for (PendingAction action : post.getPendingActions()) {
-            if (type.equals(action.getType())) {
-                return true;
-            }
-        }
-        return false;
     }
 
 

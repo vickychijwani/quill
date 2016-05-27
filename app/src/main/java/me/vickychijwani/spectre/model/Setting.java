@@ -1,16 +1,24 @@
 package me.vickychijwani.spectre.model;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.Required;
 
 @RealmClass
 public class Setting extends RealmObject {
 
-    @PrimaryKey
+    @PrimaryKey @Index
     private int id;
+
+    @Required
     private String uuid;
+
+    @Required
     private String key;
+
+    @Required
     private String value;
 
     // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq

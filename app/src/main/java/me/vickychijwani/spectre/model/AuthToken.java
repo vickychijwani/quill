@@ -3,15 +3,21 @@ package me.vickychijwani.spectre.model;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.Required;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 
 @RealmClass
 public class AuthToken extends RealmObject {
 
-    @PrimaryKey   // intentional; there should only ever be one auth token
+    @PrimaryKey @Required   // intentional; there should only ever be one auth token
     private String tokenType = "Bearer";
+
+    @Required
     private String accessToken;
+
+    @Required
     private String refreshToken;
+
     private int expiresIn;
 
     /**

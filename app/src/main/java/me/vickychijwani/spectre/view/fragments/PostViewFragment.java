@@ -15,7 +15,7 @@ import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
-import me.vickychijwani.spectre.view.PostViewActivity;
+import me.vickychijwani.spectre.view.BundleKeys;
 
 public class PostViewFragment extends BaseFragment
         implements WebViewFragment.OnWebViewCreatedListener {
@@ -25,8 +25,12 @@ public class PostViewFragment extends BaseFragment
     private WebViewFragment mWebViewFragment;
 
     @SuppressWarnings("unused")
-    public static PostViewFragment newInstance() {
-        return new PostViewFragment();
+    public static PostViewFragment newInstance(@NonNull Post post) {
+        PostViewFragment fragment = new PostViewFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(BundleKeys.POST, post);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Nullable
@@ -35,7 +39,7 @@ public class PostViewFragment extends BaseFragment
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_post_view, container, false);
 
-        mPost = ((PostViewActivity) getActivity()).getPost();
+        mPost = getArguments().getParcelable(BundleKeys.POST);
 
         mWebViewFragment = WebViewFragment.newInstance("file:///android_asset/post-preview.html");
         mWebViewFragment.setOnWebViewCreatedListener(this);

@@ -1,19 +1,29 @@
 package me.vickychijwani.spectre.model;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.Required;
 
 @RealmClass
 public class User extends RealmObject {
 
-    @PrimaryKey
+    @PrimaryKey @Index
     private int id;
+
+    @Required
     private String uuid;
+
+    @Required
     private String name;
+
+    @Required
     private String slug;
 
+    @Required
     private String email;
+
     private String image;
     private String bio;
 

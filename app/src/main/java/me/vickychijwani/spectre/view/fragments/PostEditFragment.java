@@ -100,9 +100,10 @@ public class PostEditFragment extends BaseFragment {
 
 
     @SuppressWarnings("unused")
-    public static PostEditFragment newInstance(boolean fileStorageEnabled) {
+    public static PostEditFragment newInstance(@NonNull Post post, boolean fileStorageEnabled) {
         PostEditFragment fragment = new PostEditFragment();
         Bundle args = new Bundle();
+        args.putParcelable(BundleKeys.POST, post);
         args.putBoolean(BundleKeys.FILE_STORAGE_ENABLED, fileStorageEnabled);
         fragment.setArguments(args);
         return fragment;
@@ -120,7 +121,7 @@ public class PostEditFragment extends BaseFragment {
         mbFileStorageEnabled = getArguments().getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
                 mbFileStorageEnabled);
 
-        setPost(mActivity.getPost(), true);
+        setPost(getArguments().getParcelable(BundleKeys.POST), true);
 
         mSaveTimeoutRunnable = () -> {
             View parent = PostEditFragment.this.getView();
@@ -187,7 +188,7 @@ public class PostEditFragment extends BaseFragment {
     public boolean shouldShowPublishAction() {
         // show the publish action for drafts and for locally-edited published posts
         if (Post.DRAFT.equals(mPost.getStatus())
-                || PostUtils.hasPendingAction(mPost, PendingAction.EDIT_LOCAL)
+                || mPost.hasPendingAction(PendingAction.EDIT_LOCAL)
                 || mPostTitleOrBodyTextChanged) {
             if (mPostTextWatcher != null) {
                 mPostTitleEditView.removeTextChangedListener(mPostTextWatcher);

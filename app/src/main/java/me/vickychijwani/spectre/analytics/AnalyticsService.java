@@ -1,5 +1,6 @@
 package me.vickychijwani.spectre.analytics;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -73,6 +74,12 @@ public class AnalyticsService {
         Answers.getInstance().logLogin(new LoginEvent()
                 .putMethod(blogType)
                 .putSuccess(success));
+    }
+
+    public static void logDbSchemaVersion(@NonNull String dbSchemaVersion) {
+        Crashlytics.log(Log.INFO, TAG, "DB SCHEMA VERSION = " + dbSchemaVersion);
+        Answers.getInstance().logCustom(new CustomEvent("DB Schema Version")
+                .putCustomAttribute("version", dbSchemaVersion));
     }
 
     private String getBlogTypeFromUrl(@Nullable String blogUrl) {

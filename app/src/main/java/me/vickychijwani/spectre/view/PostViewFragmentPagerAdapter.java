@@ -1,10 +1,12 @@
 package me.vickychijwani.spectre.view;
 
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
 
+import me.vickychijwani.spectre.model.Post;
 import me.vickychijwani.spectre.view.fragments.BaseFragment;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
@@ -19,14 +21,20 @@ class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
     private static final String[] TAB_TITLES = new String[] { "Preview", "Edit" };
     private static final int TAB_COUNT = TAB_TITLES.length;
 
-    private final boolean mFileStorageEnabled;
+    private Post mPost;
+    private boolean mFileStorageEnabled;
     private final OnFragmentsInitializedListener mFragmentsInitializedListener;
 
-    public PostViewFragmentPagerAdapter(FragmentManager fm, boolean fileStorageEnabled,
+    public PostViewFragmentPagerAdapter(FragmentManager fm, Post post, boolean fileStorageEnabled,
                                         OnFragmentsInitializedListener listener) {
         super(fm);
+        mPost = post;
         mFileStorageEnabled = fileStorageEnabled;
         mFragmentsInitializedListener = listener;
+    }
+
+    public void setPost(@NonNull Post post) {
+        mPost = post;
     }
 
     // called when a Fragment is to be attached -- this may either call getItem() to create a new
@@ -58,9 +66,9 @@ class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position) {
             case 0:
-                return PostViewFragment.newInstance();
+                return PostViewFragment.newInstance(mPost);
             case 1:
-                return PostEditFragment.newInstance(mFileStorageEnabled);
+                return PostEditFragment.newInstance(mPost, mFileStorageEnabled);
             default:
                 throw new IllegalArgumentException("No fragment exists at position " + position);
         }

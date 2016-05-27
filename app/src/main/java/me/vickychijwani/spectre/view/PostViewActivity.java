@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -27,14 +28,14 @@ import com.squareup.picasso.Callback;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.Bind;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
-import me.vickychijwani.spectre.event.LoadPostEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
-import me.vickychijwani.spectre.event.PostLoadedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
@@ -122,9 +123,17 @@ public class PostViewActivity extends BaseActivity implements
             }
         };
 
-        getBus().post(new LoadPostEvent(getIntent().getExtras().getString(BundleKeys.POST_UUID)));
+        mPost = getIntent().getExtras().getParcelable(BundleKeys.POST);
+        mbFileStorageEnabled = getIntent().getExtras().getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
+        mViewPager.setAdapter(new PostViewFragmentPagerAdapter(getSupportFragmentManager(),
+                mPost, mbFileStorageEnabled, this));
+        mViewPager.removeOnPageChangeListener(this);
+        mViewPager.addOnPageChangeListener(this);
+        mTabLayout.setupWithViewPager(mViewPager);
+        updatePostSettings();
+        mPostImageLayoutManager.setOnClickListener(this);
+
         getBus().post(new LoadTagsEvent());
-        // wait for the post to load, then initialize fragments, etc.
     }
 
     @Override
@@ -236,21 +245,8 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     @Subscribe
-    public void onPostLoadedEvent(PostLoadedEvent event) {
-        mPost = event.post;
-        mbFileStorageEnabled = getIntent().getExtras()
-                .getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
-        mViewPager.setAdapter(new PostViewFragmentPagerAdapter(getSupportFragmentManager(),
-                mbFileStorageEnabled, this));
-        mViewPager.addOnPageChangeListener(this);
-        mTabLayout.setupWithViewPager(mViewPager);
-        updatePostSettings();
-        mPostImageLayoutManager.setOnClickListener(this);
-    }
-
-    @Subscribe
     public void onTagsLoadedEvent(TagsLoadedEvent event) {
-        List<String> allTags = new ArrayList<>(event.tags.size());
+        Set<String> allTags = new HashSet<>(event.tags.size());
         for (Tag tag : event.tags) {
             String tagName = tag.getName();
             if (! allTags.contains(tagName)) {
@@ -258,18 +254,16 @@ public class PostViewActivity extends BaseActivity implements
             }
         }
         // notifyDataSetChanged doesn't work for some reason
+        String[] allTagsArray = new String[allTags.size()];
         ArrayAdapter<String> tagSuggestionsAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, allTags);
+                android.R.layout.simple_dropdown_item_1line, allTags.toArray(allTagsArray));
         mPostTagsEditText.setAdapter(tagSuggestionsAdapter);
     }
 
     @Subscribe
     public void onPostReplacedEvent(PostReplacedEvent event) {
         // FIXME check which post changed before blindly assigning to mPost!
-        mPost = event.newPost;
-        mPostViewFragment.setPost(mPost);
-        mPostEditFragment.setPost(mPost, true);
-        updatePostSettings();
+        updatePost(event.newPost);
     }
 
     @Subscribe
@@ -277,7 +271,12 @@ public class PostViewActivity extends BaseActivity implements
         if (! mPost.getUuid().equals(event.post.getUuid())) {
             return;
         }
-        mPost = event.post;
+        updatePost(event.post);
+    }
+
+    private void updatePost(@NonNull Post newPost) {
+        mPost = newPost;
+        ((PostViewFragmentPagerAdapter) mViewPager.getAdapter()).setPost(mPost);
         mPostViewFragment.setPost(mPost);
         mPostEditFragment.setPost(mPost, true);
         updatePostSettings();
@@ -397,10 +396,6 @@ public class PostViewActivity extends BaseActivity implements
     @Override
     public void setTitle(int titleId) {
         mToolbarTitle.setText(titleId);
-    }
-
-    public Post getPost() {
-        return mPost;
     }
 
 
