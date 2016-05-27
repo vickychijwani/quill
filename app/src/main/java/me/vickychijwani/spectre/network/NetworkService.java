@@ -318,7 +318,8 @@ public class NetworkService {
 
             @Override
             public void onFailure(RetrofitError error) {
-                if (error.getResponse().getStatus() == HttpURLConnection.HTTP_NOT_FOUND) {
+                if (error.getResponse() != null
+                        && error.getResponse().getStatus() == HttpURLConnection.HTTP_NOT_FOUND) {
                     // this condition means the version is < 0.7.9, because that is when
                     // the new /configuration/about endpoint was introduced
                     // FIXME remove this mess once we stop supporting < 0.7.9
