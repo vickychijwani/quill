@@ -9,9 +9,9 @@ import java.util.List;
 
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
-import me.vickychijwani.spectre.model.PendingAction;
-import me.vickychijwani.spectre.model.Post;
-import me.vickychijwani.spectre.model.Tag;
+import me.vickychijwani.spectre.model.entity.PendingAction;
+import me.vickychijwani.spectre.model.entity.Post;
+import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.pref.UserPrefs;
 
 public class PostUtils {

@@ -1,6 +1,6 @@
 package me.vickychijwani.spectre.event;
 
-import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.entity.Post;
 
 public class PostLoadedEvent {
 

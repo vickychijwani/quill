@@ -1,6 +1,6 @@
 package me.vickychijwani.spectre.event;
 
-import me.vickychijwani.spectre.model.User;
+import me.vickychijwani.spectre.model.entity.User;
 
 public class UserLoadedEvent {
 

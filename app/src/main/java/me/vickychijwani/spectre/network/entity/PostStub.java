@@ -1,9 +1,12 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.network.entity;
 
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import me.vickychijwani.spectre.model.entity.Post;
+import me.vickychijwani.spectre.model.entity.Tag;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public final class PostStub {

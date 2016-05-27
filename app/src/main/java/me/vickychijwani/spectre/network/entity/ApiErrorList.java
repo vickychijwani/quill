@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.network.entity;
 
 import java.util.Arrays;
 import java.util.List;

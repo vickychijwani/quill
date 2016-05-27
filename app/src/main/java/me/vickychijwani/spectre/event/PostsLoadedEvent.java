@@ -2,7 +2,7 @@ package me.vickychijwani.spectre.event;
 
 import java.util.List;
 
-import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.entity.Post;
 
 public class PostsLoadedEvent {
 

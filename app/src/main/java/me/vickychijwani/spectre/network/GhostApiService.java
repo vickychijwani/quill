@@ -1,14 +1,14 @@
 package me.vickychijwani.spectre.network;
 
-import me.vickychijwani.spectre.model.AuthReqBody;
-import me.vickychijwani.spectre.model.AuthToken;
-import me.vickychijwani.spectre.model.ConfigurationList;
-import me.vickychijwani.spectre.model.PostList;
-import me.vickychijwani.spectre.model.PostStubList;
-import me.vickychijwani.spectre.model.RefreshReqBody;
-import me.vickychijwani.spectre.model.RevokeReqBody;
-import me.vickychijwani.spectre.model.SettingsList;
-import me.vickychijwani.spectre.model.UserList;
+import me.vickychijwani.spectre.model.entity.AuthToken;
+import me.vickychijwani.spectre.network.entity.AuthReqBody;
+import me.vickychijwani.spectre.network.entity.ConfigurationList;
+import me.vickychijwani.spectre.network.entity.PostList;
+import me.vickychijwani.spectre.network.entity.PostStubList;
+import me.vickychijwani.spectre.network.entity.RefreshReqBody;
+import me.vickychijwani.spectre.network.entity.RevokeReqBody;
+import me.vickychijwani.spectre.network.entity.SettingsList;
+import me.vickychijwani.spectre.network.entity.UserList;
 import retrofit.Callback;
 import retrofit.client.Response;
 import retrofit.http.Body;

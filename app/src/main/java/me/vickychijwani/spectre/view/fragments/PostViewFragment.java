@@ -12,7 +12,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
 import me.vickychijwani.spectre.R;
-import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.view.BundleKeys;

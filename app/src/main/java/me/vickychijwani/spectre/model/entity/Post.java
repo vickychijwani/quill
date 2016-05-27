@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.model.entity;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -14,6 +14,7 @@ import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
+import me.vickychijwani.spectre.model.GsonExclude;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 
 @RealmClass

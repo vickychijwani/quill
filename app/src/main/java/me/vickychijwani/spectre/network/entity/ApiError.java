@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.network.entity;
 
 import com.google.gson.annotations.SerializedName;
 

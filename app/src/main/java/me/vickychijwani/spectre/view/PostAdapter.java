@@ -19,8 +19,8 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import me.vickychijwani.spectre.R;
-import me.vickychijwani.spectre.model.Post;
-import me.vickychijwani.spectre.model.Tag;
+import me.vickychijwani.spectre.model.entity.Post;
+import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 

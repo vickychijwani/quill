@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.model.entity;
 
 import android.os.Parcel;
 import android.os.Parcelable;

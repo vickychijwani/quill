@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.model.entity;
 
 import android.support.annotation.StringDef;
 

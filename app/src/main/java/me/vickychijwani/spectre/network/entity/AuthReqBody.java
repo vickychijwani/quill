@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.network.entity;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;

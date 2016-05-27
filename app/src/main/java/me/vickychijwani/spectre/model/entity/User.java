@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.model.entity;
 
 import io.realm.RealmObject;
 import io.realm.annotations.Index;

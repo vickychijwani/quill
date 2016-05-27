@@ -1,9 +1,11 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.network.entity;
 
 import android.support.annotation.NonNull;
 
 import java.util.Arrays;
 import java.util.List;
+
+import me.vickychijwani.spectre.model.entity.Post;
 
 // dummy wrapper class needed for Retrofit
 @SuppressWarnings("unused")

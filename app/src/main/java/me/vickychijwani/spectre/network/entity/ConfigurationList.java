@@ -1,8 +1,10 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.network.entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 
 @SuppressWarnings("unused")
 public class ConfigurationList {

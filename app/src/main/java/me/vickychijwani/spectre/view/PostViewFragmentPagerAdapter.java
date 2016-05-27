@@ -6,7 +6,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
 
-import me.vickychijwani.spectre.model.Post;
+import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.view.fragments.BaseFragment;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;

@@ -1,6 +1,8 @@
-package me.vickychijwani.spectre.model;
+package me.vickychijwani.spectre.network.entity;
 
 import android.support.annotation.NonNull;
+
+import me.vickychijwani.spectre.model.entity.Tag;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class TagStub {
