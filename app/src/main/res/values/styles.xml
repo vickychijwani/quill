@@ -208,31 +208,4 @@
         <item name="android:textSize">@dimen/text_size_hyperlarge</item>
     </style>
 
-    <!-- easy layouting -->
-    <style name="DefaultPadding" />
-
-    <style name="DefaultPadding.Page">
-        <item name="android:paddingTop">@dimen/padding_default</item>
-        <item name="android:paddingBottom">@dimen/padding_default</item>
-        <item name="android:paddingLeft">@dimen/padding_default</item>
-        <item name="android:paddingRight">@dimen/padding_default</item>
-    </style>
-
-    <style name="DefaultPadding.Blocks">
-        <item name="android:paddingLeft">@dimen/padding_default</item>
-        <item name="android:paddingRight">@dimen/padding_default</item>
-    </style>
-
-    <style name="DefaultPadding.Blocks.WithTopMargin">
-        <item name="android:layout_marginTop">@dimen/padding_inline</item>
-    </style>
-
-    <style name="DefaultPadding.Blocks.WithBottomMargin">
-        <item name="android:layout_marginBottom">@dimen/padding_default</item>
-    </style>
-
-    <style name="DefaultPadding.Blocks.WithBottomMargin.FlowText">
-        <item name="android:lineSpacingMultiplier">1.2</item>
-    </style>
-
 </resources>

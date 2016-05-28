@@ -14,7 +14,8 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:supportsRtl="true">
 
         <activity
             android:name=".view.LoginActivity"
@@ -25,7 +26,8 @@
 
         <activity
             android:name=".view.PostListActivity"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:theme="@style/CardListActivityTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -57,7 +59,8 @@
 
         <activity
             android:name=".view.AboutActivity"
-            android:parentActivityName=".view.PostListActivity">
+            android:parentActivityName=".view.PostListActivity"
+            android:theme="@style/CardListActivityTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".view.PostListActivity"/>

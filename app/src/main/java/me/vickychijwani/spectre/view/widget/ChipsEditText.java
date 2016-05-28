@@ -31,28 +31,26 @@ import me.vickychijwani.spectre.util.DeviceUtils;
  */
 public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterView.OnItemClickListener {
 
-    private final String TAG = "ChipsEditText";
-
     private Pattern mDelimiter;
     @ColorInt private int mChipBgColor;
     @ColorInt private int mChipTextColor;
 
     public ChipsEditText(Context context) {
         super(context);
-        init(context);
+        init();
     }
 
     public ChipsEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+        init();
     }
 
     public ChipsEditText(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init(context);
+        init();
     }
 
-    public void init(Context context) {
+    private void init() {
         mDelimiter = Pattern.compile("\\S+");
         setOnItemClickListener(this);
         addTextChangedListener(mTextWatcher);
@@ -78,7 +76,7 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
     }
 
     // regenerate chips if the user types any string followed by a space
-    private TextWatcher mTextWatcher = new TextWatcher() {
+    private final TextWatcher mTextWatcher = new TextWatcher() {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (count >= 1 && s.charAt(start) == ' ') {
@@ -93,7 +91,7 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
         public void afterTextChanged(Editable s) {}
     };
 
-    public void updateChips() {
+    private void updateChips() {
         if (! getText().toString().contains(" ")) {
             return;
         }
@@ -137,7 +135,6 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
 
     // courtesy http://stackoverflow.com/a/29442039/504611
     public static class RoundedBackgroundSpan extends ReplacementSpan {
-        private static final String TAG = "ChipsEditText";
 //        private static final String TALLEST_STRING = "Pyfgl";
 
         private final float mCornerRadius = DeviceUtils.dpToPx(7);
@@ -149,8 +146,8 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
 //        private final int mTopMargin = (int) AppUtils.dpToPx(0);
 //        private final int mLeftMargin = (int) AppUtils.dpToPx(0);
 
-        private int mBackgroundColor;
-        private int mTextColor;
+        private final int mBackgroundColor;
+        private final int mTextColor;
 
         public RoundedBackgroundSpan(int backgroundColor, int textColor) {
             super();

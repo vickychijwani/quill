@@ -6,6 +6,7 @@ import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 
+@SuppressWarnings("unused")
 @RealmClass
 public class AuthToken extends RealmObject {
 

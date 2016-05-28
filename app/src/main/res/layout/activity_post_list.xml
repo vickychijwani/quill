@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/card_list_background"
     tools:context=".view.PostListActivity">
 
     <FrameLayout
@@ -23,7 +22,9 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/MyToolbar">
+            android:layoutDirection="locale"
+            style="@style/MyToolbar"
+            tools:targetApi="jelly_bean_mr1">
 
             <ImageView
                 android:id="@+id/user_image"

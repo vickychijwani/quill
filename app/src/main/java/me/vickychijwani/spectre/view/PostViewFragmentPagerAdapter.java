@@ -22,7 +22,7 @@ class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
     private static final int TAB_COUNT = TAB_TITLES.length;
 
     private Post mPost;
-    private boolean mFileStorageEnabled;
+    private final boolean mFileStorageEnabled;
     private final OnFragmentsInitializedListener mFragmentsInitializedListener;
 
     public PostViewFragmentPagerAdapter(FragmentManager fm, Post post, boolean fileStorageEnabled,

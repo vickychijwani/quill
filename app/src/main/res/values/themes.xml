@@ -30,4 +30,8 @@
     <style name="LoginTheme" parent="BaseLoginTheme">
     </style>
 
+    <style name="CardListActivityTheme" parent="AppTheme">
+        <item name="android:windowBackground">@color/card_list_background</item>
+    </style>
+
 </resources>

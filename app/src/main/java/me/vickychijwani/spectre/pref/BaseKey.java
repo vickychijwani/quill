@@ -6,7 +6,7 @@ abstract class BaseKey {
     private final Class mType;
     private final Object mDefaultValue;
 
-    protected <T> BaseKey(String str, Class<T> type, T defaultValue) {
+    /* package */ <T> BaseKey(String str, Class<T> type, T defaultValue) {
         mStr = str;
         mType = type;
         mDefaultValue = defaultValue;

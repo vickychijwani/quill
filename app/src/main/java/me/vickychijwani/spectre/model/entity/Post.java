@@ -27,7 +27,7 @@ public class Post implements RealmModel, Parcelable {
     public static final String DRAFT = "draft";
     public static final String PUBLISHED = "published";
 
-    public static final String DEFAULT_TITLE = "(Untitled)";
+    private static final String DEFAULT_TITLE = "(Untitled)";
     public static final String DEFAULT_SLUG_PREFIX = "untitled";
 
     @PrimaryKey @Required

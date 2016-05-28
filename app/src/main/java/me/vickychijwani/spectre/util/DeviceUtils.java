@@ -14,8 +14,4 @@ public class DeviceUtils {
         return dp * Resources.getSystem().getDisplayMetrics().density;
     }
 
-    public static float pxToDp(final float px) {
-        return px / Resources.getSystem().getDisplayMetrics().density;
-    }
-
 }

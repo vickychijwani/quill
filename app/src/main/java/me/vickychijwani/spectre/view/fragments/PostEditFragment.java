@@ -88,7 +88,7 @@ public class PostEditFragment extends BaseFragment {
     private static final int SAVE_TIMEOUT = 5 * 1000;       // milliseconds
 
     private boolean mPostTitleOrBodyTextChanged = false;
-    PostTextWatcher mPostTextWatcher = null;
+    private PostTextWatcher mPostTextWatcher = null;
 
     // image insert / upload
     private static final int REQUEST_CODE_IMAGE_PICK = 1;
@@ -121,6 +121,7 @@ public class PostEditFragment extends BaseFragment {
         mbFileStorageEnabled = getArguments().getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
                 mbFileStorageEnabled);
 
+        //noinspection ConstantConditions
         setPost(getArguments().getParcelable(BundleKeys.POST), true);
 
         mSaveTimeoutRunnable = () -> {

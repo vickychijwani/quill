@@ -434,7 +434,7 @@ public class NetworkService {
         doLoadConfiguration(event, successCallback, failureCallback);
     }
 
-    public void doLoadConfiguration(final LoadConfigurationEvent event,
+    private void doLoadConfiguration(final LoadConfigurationEvent event,
                                     @NonNull Action1<List<ConfigurationParam>> successCallback,
                                     @NonNull Action1<RetrofitError> failureCallback) {
         if (event.loadCachedData || ! event.forceNetworkCall) {
@@ -824,7 +824,7 @@ public class NetworkService {
 
     private void flushApiEventQueue(boolean loadCachedData) {
         Bus bus = getBus();
-        boolean isQueueEmpty = false;
+        boolean isQueueEmpty;
         while (! mApiEventQueue.isEmpty()) {
             ApiCallEvent event = mApiEventQueue.remove();
             isQueueEmpty = mApiEventQueue.isEmpty();

@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.PopupMenu;
@@ -104,8 +105,8 @@ public class PostViewActivity extends BaseActivity implements
                 android.R.layout.simple_dropdown_item_1line, Collections.emptyList());
         mPostTagsEditText.setAdapter(tagSuggestionsAdapter);
         mPostTagsEditText.setTokenizer(new ChipsEditText.SpaceTokenizer());
-        mPostTagsEditText.setChipBackgroundColor(getResources().getColor(R.color.primary));
-        mPostTagsEditText.setChipTextColor(getResources().getColor(R.color.text_primary_inverted));
+        mPostTagsEditText.setChipBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+        mPostTagsEditText.setChipTextColor(ContextCompat.getColor(this, R.color.text_primary_inverted));
 
         // make the field single line, but wrapped instead of scrolling horizontally
         // the Done IME action makes the keyboard close on tapping

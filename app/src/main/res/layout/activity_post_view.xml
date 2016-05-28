@@ -5,7 +5,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".view.PostViewActivity">
 
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -42,24 +43,19 @@
 
             </android.support.v7.widget.Toolbar>
 
+            <!-- TODO hard-coded layout direction = "ltr" instead of "locale"
+                because ViewPager doesn't have RTL support
+                https://code.google.com/p/android/issues/detail?id=56831 -->
             <android.support.design.widget.TabLayout
                 android:id="@+id/tabbar"
                 style="@style/MyTabLayout"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/tabbar_height"
+                android:layoutDirection="ltr"
                 android:background="@android:color/transparent"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:layout_scrollFlags="scroll|enterAlways"
-                />
-
-            <!-- TODO get rid of this when it's fixed in the support library (currently at v23.0.0) -->
-            <!-- apparently this fixes https://code.google.com/p/android/issues/detail?id=178037 -->
-            <!-- courtesy http://stackoverflow.com/a/31084972/504611 -->
-            <View
-                android:id="@+id/appbar_dummy_hack"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#606060"
+                tools:targetApi="jelly_bean_mr1"
                 />
 
         </android.support.design.widget.AppBarLayout>

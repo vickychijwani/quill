@@ -93,7 +93,7 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
      * is made.
      */
     @SuppressWarnings("OverlyLongMethod")
-    public void attemptLogin() {
+    private void attemptLogin() {
         if (! NetworkUtils.isConnected(this)) {
             Toast.makeText(this, R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
             return;

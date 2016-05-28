@@ -17,7 +17,7 @@ import java.util.Map;
 import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
 
-public class ConfigurationListDeserializer implements JsonDeserializer<ConfigurationList> {
+/* package */ class ConfigurationListDeserializer implements JsonDeserializer<ConfigurationList> {
 
     @Override
     public ConfigurationList deserialize(JsonElement element, Type type,

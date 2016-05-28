@@ -20,7 +20,7 @@ public class AnalyticsService {
 
     private static final String TAG = AnalyticsService.class.getSimpleName();
 
-    private Bus mEventBus;
+    private final Bus mEventBus;
 
     public AnalyticsService(Bus eventBus) {
         mEventBus = eventBus;
@@ -59,7 +59,7 @@ public class AnalyticsService {
         logGhostVersion(event.version);
     }
 
-    public static void logGhostVersion(@Nullable String ghostVersion) {
+    private static void logGhostVersion(@Nullable String ghostVersion) {
         if (ghostVersion == null) {
             ghostVersion = "Unknown";
         }
@@ -68,7 +68,7 @@ public class AnalyticsService {
                 .putCustomAttribute("version", ghostVersion));
     }
 
-    public static void logLogin(String blogType, boolean success) {
+    private static void logLogin(String blogType, boolean success) {
         String successStr = success ? "SUCCEEDED" : "FAILED";
         Crashlytics.log(Log.INFO, TAG, "LOGIN " + successStr + ", blog type = " + blogType);
         Answers.getInstance().logLogin(new LoginEvent()

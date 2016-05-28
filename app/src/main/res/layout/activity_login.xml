@@ -7,7 +7,8 @@
     android:orientation="vertical"
     android:gravity="center_horizontal"
     android:background="#72000000"
-    tools:context=".view.LoginActivity">
+    tools:context=".view.LoginActivity"
+    tools:ignore="Overdraw">
 
     <!-- Login progress -->
     <ProgressBar
@@ -50,7 +51,8 @@
                 android:layout_gravity="center_horizontal"
                 android:orientation="horizontal"
                 android:focusable="true"
-                android:focusableInTouchMode="true">
+                android:focusableInTouchMode="true"
+                tools:ignore="UseCompoundDrawables">
 
                 <ImageView
                     android:layout_width="111dp"

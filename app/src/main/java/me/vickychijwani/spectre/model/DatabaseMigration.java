@@ -10,7 +10,7 @@ import io.realm.RealmSchema;
 
 public class DatabaseMigration implements RealmMigration {
 
-    public static final String TAG = DatabaseMigration.class.getSimpleName();
+    private static final String TAG = DatabaseMigration.class.getSimpleName();
 
     @Override
     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {

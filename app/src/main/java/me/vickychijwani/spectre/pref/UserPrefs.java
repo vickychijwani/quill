@@ -19,7 +19,7 @@ public class UserPrefs extends Prefs<UserPrefs.Key> {
         public static final Key USERNAME = new Key("username", String.class, "");
         public static final Key PASSWORD = new Key("password", String.class, "");
 
-        protected <T> Key(String str, Class<T> type, T defaultValue) {
+        /* package */ <T> Key(String str, Class<T> type, T defaultValue) {
             super(str, type, defaultValue);
         }
 

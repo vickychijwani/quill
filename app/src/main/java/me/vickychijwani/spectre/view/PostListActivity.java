@@ -2,10 +2,10 @@ package me.vickychijwani.spectre.view;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -146,11 +146,7 @@ public class PostListActivity extends BaseActivity {
         }
 
         final Drawable appbarShadowDrawable;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            appbarShadowDrawable = getResources().getDrawable(R.drawable.appbar_shadow, getTheme());
-        } else {
-            appbarShadowDrawable = getResources().getDrawable(R.drawable.appbar_shadow);
-        }
+        appbarShadowDrawable = ContextCompat.getDrawable(this, R.drawable.appbar_shadow);
         mPostListContainer.setForeground(null);     // hide the shadow initially
         mPostList.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override

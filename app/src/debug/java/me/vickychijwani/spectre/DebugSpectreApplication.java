@@ -1,5 +1,6 @@
 package me.vickychijwani.spectre;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 
@@ -81,10 +82,12 @@ public class DebugSpectreApplication extends SpectreApplication {
 
     // private stuff
     private static class TrustEveryoneManager implements X509TrustManager {
+        @SuppressLint("TrustAllX509TrustManager")
         @Override
         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
                 throws CertificateException {}
 
+        @SuppressLint("TrustAllX509TrustManager")
         @Override
         public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
                 throws CertificateException {}
