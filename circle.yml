@@ -8,7 +8,8 @@ machine:
 dependencies:
   pre:
     - if ! $(grep -q "Revision="$TOOLS_VERSION $ANDROID_HOME/tools/source.properties); then echo y | android update sdk --no-ui --all --filter "tools"; fi
-    - if [ ! -e $ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION ]; then echo y | android update sdk --no-ui --all --filter "build-tools-"$BUILD_TOOLS_VERSION",extra-android-m2repository"; fi
+    - if [ ! -e $ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION ]; then echo y | android update sdk --no-ui --all --filter "build-tools-"$BUILD_TOOLS_VERSION; fi
+    - echo y | android update sdk --no-ui --all --filter extra-android-m2repository
   cache_directories:
     - /usr/local/android-sdk-linux/tools
     - /usr/local/android-sdk-linux/build-tools/$BUILD_TOOLS_VERSION
