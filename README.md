@@ -10,6 +10,8 @@ Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get
 
 ### Features
 
+[![Join the chat at https://gitter.im/vickychijwani/quill](https://badges.gitter.im/vickychijwani/quill.svg)](https://gitter.im/vickychijwani/quill?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 - Simple, intuitive interface based on Material Design principles
 - Markdown editing with preview - swipe to switch between editing and previewing
 - 100% Markdown compatibility with Ghost - go ahead and use footnotes and code blocks like you're used to
