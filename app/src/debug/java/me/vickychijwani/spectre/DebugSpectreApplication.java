@@ -17,9 +17,9 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import io.palaima.debugdrawer.DebugDrawer;
-import io.palaima.debugdrawer.module.BuildModule;
-import io.palaima.debugdrawer.module.DeviceModule;
-import io.palaima.debugdrawer.module.SettingsModule;
+import io.palaima.debugdrawer.commons.BuildModule;
+import io.palaima.debugdrawer.commons.DeviceModule;
+import io.palaima.debugdrawer.commons.SettingsModule;
 import io.palaima.debugdrawer.okhttp.OkHttpModule;
 import io.palaima.debugdrawer.picasso.PicassoModule;
 import io.palaima.debugdrawer.scalpel.ScalpelModule;
@@ -60,9 +60,9 @@ public class DebugSpectreApplication extends SpectreApplication {
                 new ScalpelModule(activity),
                 new OkHttpModule(mOkHttpClient),
                 new PicassoModule(mPicasso),
-                new DeviceModule(this),
-                new BuildModule(this),
-                new SettingsModule(this)
+                new DeviceModule(activity),
+                new BuildModule(activity),
+                new SettingsModule(activity)
         ).build();
     }
 
