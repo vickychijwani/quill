@@ -61,7 +61,7 @@ android {
         }
         release {
 //            signingConfig signingConfigs.release
-            minifyEnabled true
+            minifyEnabled false   // FIXME disabled because login, revoke token strangely stopped working
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
