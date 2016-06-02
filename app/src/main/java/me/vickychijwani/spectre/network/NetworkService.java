@@ -727,9 +727,11 @@ public class NetworkService {
     @Subscribe
     public void onLogoutEvent(LogoutEvent event) {
         if (!event.forceLogout) {
-            // check for pending actions
-            RealmResults<PendingAction> pendingActions = mRealm.where(PendingAction.class).findAll();
-            if (pendingActions.size() > 0) {
+            long numPostsWithPendingActions = mRealm
+                    .where(Post.class)
+                    .isNotEmpty("pendingActions")
+                    .count();
+            if (numPostsWithPendingActions > 0) {
                 getBus().post(new LogoutStatusEvent(false, true));
                 return;
             }
