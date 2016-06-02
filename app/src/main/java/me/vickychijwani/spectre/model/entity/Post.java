@@ -8,6 +8,7 @@ import android.support.annotation.StringDef;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Date;
+import java.util.List;
 
 import io.realm.RealmList;
 import io.realm.RealmModel;
@@ -89,9 +90,12 @@ public class Post implements RealmModel, Parcelable {
         this.setMarkdown(post.getMarkdown());
         this.setHtml(post.getHtml());
 
-        Tag[] tags = new Tag[post.getTags().size()];
-        post.getTags().toArray(tags);
-        this.setTags(new RealmList<>(tags));
+        List<Tag> realmTags = post.getTags();
+        RealmList<Tag> unmanagedTags = new RealmList<>();
+        for (Tag realmTag : realmTags) {
+            unmanagedTags.add(new Tag(realmTag));
+        }
+        this.setTags(unmanagedTags);
 
         this.setImage(post.getImage());
         this.setFeatured(post.isFeatured());

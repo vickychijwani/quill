@@ -849,7 +849,9 @@ public class NetworkService {
     private void clearAndSetPendingActionOnPost(@NonNull Post post, @PendingAction.Type String newPendingAction) {
         List<PendingAction> pendingActions = post.getPendingActions();
         mRealm.executeTransaction(realm -> {
-            for (PendingAction pa : pendingActions) {
+            // make a copy since the original is a live-updating RealmList
+            List<PendingAction> pendingActionsCopy = new ArrayList<>(pendingActions);
+            for (PendingAction pa : pendingActionsCopy) {
                 RealmObject.deleteFromRealm(pa);
             }
             pendingActions.clear();
@@ -993,10 +995,13 @@ public class NetworkService {
 
     private List<Post> getPostsSorted() {
         // FIXME time complexity O(n) for copying + O(n log n) for sorting!
-        RealmResults<Post> posts = mRealm.where(Post.class).findAll();
-        List<Post> postsCopy = new ArrayList<>(posts);
-        Collections.sort(postsCopy, PostUtils.COMPARATOR_MAIN_LIST);
-        return postsCopy;
+        RealmResults<Post> realmPosts = mRealm.where(Post.class).findAll();
+        List<Post> unmanagedPosts = new ArrayList<>(realmPosts.size());
+        for (Post realmPost : realmPosts) {
+            unmanagedPosts.add(new Post(realmPost));
+        }
+        Collections.sort(unmanagedPosts, PostUtils.COMPARATOR_MAIN_LIST);
+        return unmanagedPosts;
     }
 
     private void storeEtag(List<Header> headers, @ETag.Type String etagType) {
@@ -1048,6 +1053,9 @@ public class NetworkService {
 
     private <T extends RealmModel> List<T> createOrUpdateModel(Iterable<T> objects,
                                                                @Nullable Runnable afterTransaction) {
+        if (! objects.iterator().hasNext()) {
+            return Collections.emptyList();
+        }
         return executeRealmTransaction(mRealm, realm -> {
             List<T> realmObjects = mRealm.copyToRealmOrUpdate(objects);
             if (afterTransaction != null) {
@@ -1065,6 +1073,9 @@ public class NetworkService {
     }
 
     private <T extends RealmModel> void deleteModels(Iterable<T> realmObjects) {
+        if (! realmObjects.iterator().hasNext()) {
+            return;
+        }
         executeRealmTransaction(mRealm, realm -> {
             for (T realmObject : realmObjects) {
                 RealmObject.deleteFromRealm(realmObject);

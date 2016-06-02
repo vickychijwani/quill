@@ -2,6 +2,7 @@ package me.vickychijwani.spectre.model.entity;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import java.util.Date;
 
@@ -38,6 +39,19 @@ public class Tag implements RealmModel, Parcelable {
         this.name = name;
     }
 
+    // TODO remember to update this, Parcelable methods, and DB migration whenever fields are changed!
+    public Tag(@NonNull Tag other) {
+        this.setUuid(other.getUuid());
+        this.setName(other.getName());
+        this.setSlug(other.getSlug());
+        this.setDescription(other.getDescription());
+        this.setImage(other.getImage());
+        this.setHidden(other.isHidden());
+        this.setMetaTitle(other.getMetaTitle());
+        this.setMetaDescription(other.getMetaDescription());
+        this.setCreatedAt(other.getCreatedAt());
+        this.setUpdatedAt(other.getUpdatedAt());
+    }
 
     // parcelable methods
     @Override
