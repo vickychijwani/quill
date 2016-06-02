@@ -501,7 +501,7 @@ public class PostEditFragment extends BaseFragment {
                     messageId = R.string.save_scenario_explicitly_publish_edits_to_published_post;
                     AnalyticsService.logEditsPublished(postUrl);
                 }
-                Snackbar sn = Snackbar.make(parent, messageId, Snackbar.LENGTH_SHORT);
+                Snackbar sn = Snackbar.make(parent, messageId, Snackbar.LENGTH_LONG);
                 sn.setAction(R.string.save_post_view, v -> mActivity.viewPostInBrowser(false));
                 sn.show();
                 break;
