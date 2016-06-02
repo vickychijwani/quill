@@ -1,6 +1,8 @@
 package me.vickychijwani.spectre.view;
 
 import android.content.Context;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -35,6 +37,7 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final String mBlogUrl;
     private final Picasso mPicasso;
     private final View.OnClickListener mItemClickListener;
+    private final Paint mLowAlphaPaint;
     private CharSequence mFooterText;
 
     public PostAdapter(Context context, List<Post> posts, String blogUrl, Picasso picasso,
@@ -45,6 +48,15 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mPosts = posts;
         mItemClickListener = itemClickListener;
+
+        mLowAlphaPaint = new Paint();
+        mLowAlphaPaint.setColorFilter(new ColorMatrixColorFilter(new float[] {
+                1,     0,     0,     0,     0,    // red
+                0,     1,     0,     0,     0,    // green
+                0,     0,     1,     0,     0,    // blue
+                0,     0,     0,     0.5f,  0,    // alpha
+        }));
+
         setHasStableIds(true);
     }
 
@@ -145,6 +157,18 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             viewHolder.tags.setVisibility(View.VISIBLE);
         } else {
             viewHolder.tags.setVisibility(View.GONE);
+        }
+
+        // grey out to-be-deleted posts, by making all the child Views of the item translucent
+        ViewGroup viewGroup = (ViewGroup) viewHolder.itemView;
+        boolean isMarkedForDeletion = post.isMarkedForDeletion();
+        for (int i = 0, len = viewGroup.getChildCount(); i < len; ++i) {
+            View childView = viewGroup.getChildAt(i);
+            if (isMarkedForDeletion) {
+                childView.setLayerType(View.LAYER_TYPE_HARDWARE, mLowAlphaPaint);
+            } else {
+                childView.setLayerType(View.LAYER_TYPE_NONE, null);
+            }
         }
     }
 

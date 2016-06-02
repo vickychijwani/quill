@@ -84,15 +84,17 @@ public class PostUtils {
     public static String getStatusString(@Nullable Post post, @NonNull Context context) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         String status;
-        if (post.hasPendingAction(PendingAction.EDIT_LOCAL)) {
-            status = context.getString(R.string.published_auto_saved);
+        if (post.isMarkedForDeletion()) {
+            status = context.getString(R.string.status_marked_for_deletion);
+        } else if (post.hasPendingAction(PendingAction.EDIT_LOCAL)) {
+            status = context.getString(R.string.status_published_auto_saved);
         } else if (! post.isPendingActionsEmpty()) {
-            status = context.getString(R.string.offline_changes);
+            status = context.getString(R.string.status_offline_changes);
         } else if (Post.PUBLISHED.equals(post.getStatus())) {
             String dateStr = DateTimeUtils.formatRelative(post.getPublishedAt());
-            status = String.format(context.getString(R.string.published), dateStr);
+            status = String.format(context.getString(R.string.status_published), dateStr);
         } else if (Post.DRAFT.equals(post.getStatus())) {
-            status = context.getString(R.string.draft);
+            status = context.getString(R.string.status_draft);
         } else {
             throw new IllegalArgumentException("unknown post status!");
         }
@@ -102,14 +104,16 @@ public class PostUtils {
     public static int getStatusColor(@Nullable Post post, @NonNull Context context) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         int colorId;
-        if (post.hasPendingAction(PendingAction.EDIT_LOCAL)) {
-            colorId = R.color.published_auto_saved;
+        if (post.hasPendingAction(PendingAction.DELETE)) {
+            colorId = R.color.status_deleted;
+        } else if (post.hasPendingAction(PendingAction.EDIT_LOCAL)) {
+            colorId = R.color.status_published_auto_saved;
         } else if (! post.isPendingActionsEmpty()) {
-            colorId = R.color.offline_changes;
+            colorId = R.color.status_offline_changes;
         } else if (Post.PUBLISHED.equals(post.getStatus())) {
-            colorId = R.color.published;
+            colorId = R.color.status_published;
         } else if (Post.DRAFT.equals(post.getStatus())) {
-            colorId = R.color.draft;
+            colorId = R.color.status_draft;
         } else {
             throw new IllegalArgumentException("unknown post status!");
         }

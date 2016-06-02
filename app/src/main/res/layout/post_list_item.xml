@@ -57,7 +57,7 @@
             android:gravity="start"
             android:maxLines="2"
             android:textAppearance="@style/TextAppearance.Small.Dim"
-            android:textColor="@color/published"
+            android:textColor="@color/status_published"
             tools:text="Published 5 days ago"
             />
 

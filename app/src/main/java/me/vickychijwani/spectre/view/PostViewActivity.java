@@ -10,9 +10,11 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +26,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Callback;
 
@@ -36,7 +39,9 @@ import java.util.Set;
 import butterknife.Bind;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.event.DeletePostEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
+import me.vickychijwani.spectre.event.PostDeletedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
@@ -60,6 +65,7 @@ public class PostViewActivity extends BaseActivity implements
 {
 
     private static final String TAG = "PostViewActivity";
+    public static final int RESULT_CODE_DELETED = 1;
 
     @Bind(R.id.toolbar)                         Toolbar mToolbar;
     @Bind(R.id.toolbar_title)                   TextView mToolbarTitle;
@@ -175,6 +181,9 @@ public class PostViewActivity extends BaseActivity implements
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.findItem(R.id.action_publish).setVisible(mPostEditFragment.shouldShowPublishAction());
         menu.findItem(R.id.action_unpublish).setVisible(mPostEditFragment.shouldShowUnpublishAction());
+        // only drafts can be deleted
+        boolean shouldShowDeleteAction = Post.DRAFT.equals(mPost.getStatus());
+        menu.findItem(R.id.action_delete).setVisible(shouldShowDeleteAction);
         return true;
     }
 
@@ -192,6 +201,9 @@ public class PostViewActivity extends BaseActivity implements
                 return true;
             case R.id.action_unpublish:
                 mPostEditFragment.onPublishUnpublishClicked();
+                return true;
+            case R.id.action_delete:
+                onDeleteClicked();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -231,6 +243,22 @@ public class PostViewActivity extends BaseActivity implements
         waitForNetworkObservable
                 .compose(bindToLifecycle())         // ensure unsubscription on activity pause
                 .subscribe(waitForNetworkAction);
+    }
+
+    private void onDeleteClicked() {
+        // confirm deletion
+        final AlertDialog alertDialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.alert_delete_draft_title)
+                .setMessage(R.string.alert_delete_draft_msg)
+                .setPositiveButton(R.string.alert_delete_yes, (dialog, which) -> {
+                    getBus().post(new DeletePostEvent(mPost));
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.alert_delete_no, (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .create();
+        alertDialog.show();
     }
 
     @Subscribe
@@ -273,6 +301,18 @@ public class PostViewActivity extends BaseActivity implements
             return;
         }
         updatePost(event.post);
+    }
+
+    @Subscribe
+    public void onPostDeletedEvent(PostDeletedEvent event) {
+        if (event.postId != mPost.getId()) {
+            RuntimeException e = new IllegalArgumentException("Received post deleted event for id = "
+                    + event.postId + ", current id = " + mPost.getId());
+            Crashlytics.log(Log.ERROR, TAG, e.getMessage());
+            throw e;
+        }
+        setResult(RESULT_CODE_DELETED);
+        finish();
     }
 
     private void updatePost(@NonNull Post newPost) {

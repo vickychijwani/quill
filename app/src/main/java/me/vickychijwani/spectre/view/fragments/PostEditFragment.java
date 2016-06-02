@@ -326,7 +326,9 @@ public class PostEditFragment extends BaseFragment {
     }
 
     private boolean saveAutomatically() {
-        if (Post.DRAFT.equals(mPost.getStatus())) {
+        if (mPost.isMarkedForDeletion()) {
+            return false;
+        } else if (Post.DRAFT.equals(mPost.getStatus())) {
             mSaveType = SaveType.DRAFT_AUTO;
         } else if (Post.PUBLISHED.equals(mPost.getStatus())) {
             mSaveType = SaveType.PUBLISHED_AUTO;

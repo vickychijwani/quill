@@ -37,7 +37,8 @@ public class Post implements RealmModel, Parcelable {
     @Required
     private String title = DEFAULT_TITLE;
 
-    private String slug = null;
+    @Required
+    private String slug = "";
 
     @Required @Status
     private String status = DRAFT;
@@ -360,11 +361,11 @@ public class Post implements RealmModel, Parcelable {
         this.metaDescription = metaDesc;
     }
 
-    private RealmList<PendingAction> getPendingActions() {
+    public RealmList<PendingAction> getPendingActions() {
         return pendingActions;
     }
 
-    private void setPendingActions(RealmList<PendingAction> pendingActions) {
+    public void setPendingActions(RealmList<PendingAction> pendingActions) {
         this.pendingActions = pendingActions;
     }
 
@@ -392,8 +393,8 @@ public class Post implements RealmModel, Parcelable {
         return true;
     }
 
-    public void clearPendingActions() {
-        this.pendingActions.clear();
+    public boolean isMarkedForDeletion() {
+        return hasPendingAction(PendingAction.DELETE);
     }
 
 }

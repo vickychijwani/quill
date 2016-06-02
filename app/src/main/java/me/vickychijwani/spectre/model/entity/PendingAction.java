@@ -18,8 +18,10 @@ public class PendingAction implements RealmModel, Parcelable {
     public static final String EDIT = "pendingaction:edit";
     // for published posts that are saved automatically
     public static final String EDIT_LOCAL = "pendingaction:edit_local";
+    // for posts that have been marked for remote deletion
+    public static final String DELETE = "pendingaction:delete";
 
-    @StringDef({CREATE, EDIT, EDIT_LOCAL})
+    @StringDef({CREATE, EDIT, EDIT_LOCAL, DELETE})
     @Retention(RetentionPolicy.SOURCE)
     public @interface Type {}
 

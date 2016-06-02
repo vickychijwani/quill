@@ -12,10 +12,12 @@
     <string name="dont_logout">Don\'t logout</string>
 
     <!-- posts -->
-    <string name="published">Published %s</string>
-    <string name="draft">Draft</string>
-    <string name="offline_changes">Saved on device, waiting to go online…</string>
-    <string name="published_auto_saved">Changes auto-saved, not published yet</string>
+    <string name="status_published">Published %s</string>
+    <string name="status_draft">Draft</string>
+    <string name="status_offline_changes">Saved on device, waiting to go online…</string>
+    <string name="status_published_auto_saved">Changes auto-saved, not published yet</string>
+    <string name="status_marked_for_deletion">Marked for deletion, waiting to go online…</string>
+    <string name="status_marked_for_deletion_open_error">That post is marked for deletion, it cannot be opened</string>
     <string name="post_limit_exceeded" tools:ignore="PluralsCandidate"><![CDATA[%1$s currently only loads the latest %2$d posts from your blog. If you would like to see support for loading older posts, <a href="%3$s">vote for this feature on Github</a> and help me prioritize development.]]></string>
     <string name="send_feedback">Send Feedback…</string>
 
@@ -24,6 +26,12 @@
     <string name="unpublish">Unpublish</string>
     <string name="alert_publish">Publish draft?</string>
     <string name="alert_unpublish">Unpublish post?</string>
+    <string name="delete_draft">Delete draft</string>
+    <string name="alert_delete_draft_title">Delete this draft?</string>
+    <string name="alert_delete_draft_msg">You will not be able to undo this!</string>
+    <string name="alert_delete_yes">Delete</string>
+    <string name="alert_delete_no">Keep</string>
+    <string name="post_deleted">Post deleted</string>
     <string name="alert_save_msg">Publish changes?</string>
     <string name="alert_save_yes">Yes, publish</string>
     <string name="alert_save_no">Not yet</string>

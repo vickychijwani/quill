@@ -5,6 +5,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -64,6 +66,7 @@ import retrofit.mime.TypedByteArray;
 public class PostListActivity extends BaseActivity {
 
     private static final String TAG = "PostListActivity";
+    public static final int REQUEST_CODE_VIEW_POST = 1;
 
     private final List<Post> mPosts = new ArrayList<>();
     private PostAdapter mPostAdapter;
@@ -114,10 +117,16 @@ public class PostListActivity extends BaseActivity {
         mPostAdapter = new PostAdapter(this, mPosts, blogUrl, getPicasso(), v -> {
             int pos = mPostList.getChildLayoutPosition(v);
             if (pos == RecyclerView.NO_POSITION) return;
+            Post post = (Post) mPostAdapter.getItem(pos);
+            if (post.isMarkedForDeletion()) {
+                Snackbar.make(mPostList, R.string.status_marked_for_deletion_open_error,
+                        Snackbar.LENGTH_SHORT).show();
+                return;
+            }
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
-            intent.putExtra(BundleKeys.POST, (Post) mPostAdapter.getItem(pos));
+            intent.putExtra(BundleKeys.POST, post);
             intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
-            startActivity(intent);
+            startActivityForResult(intent, REQUEST_CODE_VIEW_POST);
         });
         mPostList.setAdapter(mPostAdapter);
         mPostList.setLayoutManager(new StaggeredGridLayoutManager(
@@ -215,6 +224,14 @@ public class PostListActivity extends BaseActivity {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_VIEW_POST && resultCode == PostViewActivity.RESULT_CODE_DELETED) {
+            Snackbar.make(mPostList, R.string.post_deleted, Snackbar.LENGTH_SHORT).show();
         }
     }
 

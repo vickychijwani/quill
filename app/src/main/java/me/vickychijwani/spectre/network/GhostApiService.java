@@ -10,8 +10,9 @@ import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import retrofit.Callback;
-import retrofit.client.Response;
+import retrofit.ResponseCallback;
 import retrofit.http.Body;
+import retrofit.http.DELETE;
 import retrofit.http.GET;
 import retrofit.http.Header;
 import retrofit.http.Multipart;
@@ -26,7 +27,7 @@ interface GhostApiService {
 
     // auth
     @GET("/ghost")
-    void getLoginPage(Callback<Response> cb);
+    void getLoginPage(ResponseCallback cb);
 
     @POST("/authentication/token")
     void getAuthToken(@Body AuthReqBody credentials, Callback<AuthToken> cb);
@@ -52,6 +53,9 @@ interface GhostApiService {
 
     @PUT("/posts/{id}/?include=tags")
     void updatePost(@Path("id") int id, @Body PostStubList posts, Callback<PostList> cb);
+
+    @DELETE("/posts/{id}/")
+    void deletePost(@Path("id") int id, ResponseCallback cb);
 
     // settings / configuration
     @GET("/settings/?type=blog")

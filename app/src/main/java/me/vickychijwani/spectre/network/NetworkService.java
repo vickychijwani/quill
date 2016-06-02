@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Deque;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +44,7 @@ import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.event.ConfigurationLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
+import me.vickychijwani.spectre.event.DeletePostEvent;
 import me.vickychijwani.spectre.event.FileUploadErrorEvent;
 import me.vickychijwani.spectre.event.FileUploadEvent;
 import me.vickychijwani.spectre.event.FileUploadedEvent;
@@ -61,6 +63,7 @@ import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.LogoutStatusEvent;
 import me.vickychijwani.spectre.event.PasswordChangedEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
+import me.vickychijwani.spectre.event.PostDeletedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
 import me.vickychijwani.spectre.event.PostSavedEvent;
 import me.vickychijwani.spectre.event.PostSyncedEvent;
@@ -106,6 +109,7 @@ import retrofit.mime.TypedFile;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.Action2;
 
 public class NetworkService {
 
@@ -125,7 +129,6 @@ public class NetworkService {
     private RetrofitError mRefreshError = null;
     private final ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
     private final ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
-    private final ArrayDeque<Object> mPostUploadQueue = new ArrayDeque<>();
 
     public NetworkService() {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
@@ -552,6 +555,9 @@ public class NetworkService {
             return;
         }
 
+        final RealmResults<Post> localDeletedPosts = mRealm.where(Post.class)
+                .equalTo("pendingActions.type", PendingAction.DELETE)
+                .findAll();
         final RealmResults<Post> localNewPosts = mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.CREATE)
                 .findAllSorted("uuid", Sort.DESCENDING);
@@ -560,7 +566,8 @@ public class NetworkService {
                 .findAll();
 
         // nothing to upload
-        if (localNewPosts.isEmpty() && localEditedPosts.isEmpty() && event.forceNetworkCall) {
+        if (localDeletedPosts.isEmpty() && localNewPosts.isEmpty() && localEditedPosts.isEmpty()
+                && event.forceNetworkCall) {
             LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
             mRefreshEventsQueue.add(loadPostsEvent);
             getBus().post(loadPostsEvent);
@@ -568,10 +575,17 @@ public class NetworkService {
             return;
         }
 
-        // keep track of new posts uploaded successfully, so the local copies can be deleted
+        Deque<Post> mPostUploadQueue = new ArrayDeque<>();
+
+        // keep track of new posts created successfully, so the local copies can be deleted
         List<Post> localNewPostsUploaded = new ArrayList<>();
 
-        final Action1<RetrofitError> syncFinishedCB = (retrofitError) -> {
+        // ugly hack (suggested by the IDE) because this must be declared "final"
+        final RetrofitError[] uploadErrorOccurred = {null};
+
+        final Action0 syncFinishedCB = () -> {
+            RetrofitError retrofitError = uploadErrorOccurred[0];
+            // TODO log uploaded new drafts and published posts via AnalyticsService
             // delete local copies of only those new posts that were successfully uploaded
             deleteModels(localNewPostsUploaded);
             // if forceNetworkCall is true, first load from the db, AND only then from the network,
@@ -586,12 +600,42 @@ public class NetworkService {
             refreshDone(event, retrofitError);
         };
 
+        final Action2<Post, RetrofitError> onFailure = (post, retrofitError) -> {
+            // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
+            // login with the password if that doesn't work either (#92)
+            uploadErrorOccurred[0] = retrofitError;
+            mPostUploadQueue.removeFirstOccurrence(post);
+            getBus().post(new ApiErrorEvent(retrofitError));
+            getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
+            if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
+        };
+
+        mPostUploadQueue.addAll(localDeletedPosts);
         mPostUploadQueue.addAll(localNewPosts);
         mPostUploadQueue.addAll(localEditedPosts);
 
-        // ugly hack (suggested by the IDE) because this must be declared "final"
-        final RetrofitError[] uploadErrorOccurred = {null};
+        // 1. DELETED POSTS
+        // the loop variable is *local* to the loop block, so it can be captured in a closure easily
+        // this is unlike JavaScript, in which the same loop variable is mutated
+        for (final Post localPost : localDeletedPosts) {
+            if (! validateAccessToken(event)) return;
+            mApi.deletePost(localPost.getId(), new ResponseCallback() {
+                @Override
+                public void success(Response response) {
+                    mPostUploadQueue.removeFirstOccurrence(localPost);
+                    clearPendingActionsOnPost(localPost);
+                    deleteModel(localPost);
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
+                }
 
+                @Override
+                public void failure(RetrofitError error) {
+                    onFailure.call(localPost, error);
+                }
+            });
+        }
+
+        // 2. NEW POSTS
         // the loop variable is *local* to the loop block, so it can be captured in a closure easily
         // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localNewPosts) {
@@ -599,30 +643,23 @@ public class NetworkService {
             mApi.createPost(PostStubList.from(localPost), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
-                    createOrUpdateModel(postList.posts, () -> {
-                        localPost.clearPendingActions();
-                    });
+                    clearPendingActionsOnPost(localPost);
+                    createOrUpdateModel(postList.posts);
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     localNewPostsUploaded.add(localPost);
                     // FIXME this is a new post! how do subscribers know which post changed?
                     getBus().post(new PostReplacedEvent(postList.posts.get(0)));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
-                    // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
-                    // login with the password if that doesn't work either (#92)
-
-                    uploadErrorOccurred[0] = error;
-                    mPostUploadQueue.removeFirstOccurrence(localPost);
-                    getBus().post(new ApiErrorEvent(error));
-                    getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
+                    onFailure.call(localPost, error);
                 }
             });
         }
 
+        // 3. EDITED POSTS
         // the loop variable is *local* to the loop block, so it can be captured in a closure easily
         // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localEditedPosts) {
@@ -631,24 +668,16 @@ public class NetworkService {
             mApi.updatePost(localPost.getId(), postStubList, new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
-                    createOrUpdateModel(postList.posts, () -> {
-                        localPost.clearPendingActions();
-                    });
+                    clearPendingActionsOnPost(localPost);
+                    createOrUpdateModel(postList.posts);
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new PostSyncedEvent(localPost.getUuid()));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
+                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
-                    // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
-                    // login with the password if that doesn't work either (#92)
-
-                    uploadErrorOccurred[0] = error;
-                    mPostUploadQueue.removeFirstOccurrence(localPost);
-                    getBus().post(new ApiErrorEvent(error));
-                    getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call(uploadErrorOccurred[0]);
+                    onFailure.call(localPost, error);
                 }
             });
         }
@@ -656,7 +685,16 @@ public class NetworkService {
 
     @Subscribe
     public void onSavePostEvent(SavePostEvent event) {
-        Post post = event.post;
+        Post updatedPost = event.post;
+        Post realmPost = mRealm.where(Post.class)
+                .equalTo("id", event.post.getId())
+                .findFirst();
+
+        if (realmPost.hasPendingAction(PendingAction.DELETE)) {
+            RuntimeException e = new IllegalArgumentException("Trying to save deleted post with id = " + realmPost.getId());
+            Crashlytics.log(Log.ERROR, TAG, e.getMessage());
+            throw e;
+        }
 
         // TODO bug in edge-case:
         // TODO 1. user publishes draft, offline => pending actions = { EDIT }
@@ -665,33 +703,56 @@ public class NetworkService {
         // TODO to resolve this we would require some notion of pending actions associated with
         // TODO specific fields of a post rather than the entire post
 
-        //noinspection StatementWithEmptyBody
-        if (post.hasPendingAction(PendingAction.CREATE)) {
-            // no-op; if the post is yet to be created, we DO NOT change the PendingAction on it
-        } else if (Post.DRAFT.equals(post.getStatus())) {
-            post.addPendingAction(PendingAction.EDIT);
-        } else if (Post.PUBLISHED.equals(post.getStatus()) && event.isAutoSave) {
-            post.clearPendingActions();
-            post.addPendingAction(PendingAction.EDIT_LOCAL);
-        } else {
-            // user hit "publish changes" explicitly, on a published post, so mark it for uploading
-            post.clearPendingActions();
-            post.addPendingAction(PendingAction.EDIT);
-        }
-
         // save tags to Realm first
-        for (Tag tag : post.getTags()) {
+        for (Tag tag : updatedPost.getTags()) {
             if (tag.getUuid() == null) {
                 tag.setUuid(getTempUniqueId(Tag.class));
                 createOrUpdateModel(tag);
             }
         }
 
-        post.setUpdatedAt(new Date());              // mark as updated, to promote in sorted order
-        createOrUpdateModel(post);                  // save the local post to db
+        updatedPost.setUpdatedAt(new Date());              // mark as updated, to promote in sorted order
+        createOrUpdateModel(updatedPost);                  // save the local post to db
 
-        getBus().post(new PostSavedEvent(post));
+        // must set PendingActions after other stuff, else the updated post's pending actions will
+        // override the one in Realm!
+        //noinspection StatementWithEmptyBody
+        if (realmPost.hasPendingAction(PendingAction.CREATE)) {
+            // no-op; if the post is yet to be created, we DO NOT change the PendingAction on it
+        } else if (Post.DRAFT.equals(realmPost.getStatus())) {
+            clearAndSetPendingActionOnPost(realmPost, PendingAction.EDIT);
+        } else if (Post.PUBLISHED.equals(realmPost.getStatus()) && event.isAutoSave) {
+            clearAndSetPendingActionOnPost(realmPost, PendingAction.EDIT_LOCAL);
+        } else {
+            // user hit "publish changes" explicitly, on a published post, so mark it for uploading
+            clearAndSetPendingActionOnPost(realmPost, PendingAction.EDIT);
+        }
+
+        Post savedPost = new Post(realmPost);   // realmPost is guaranteed to be up-to-date
+        getBus().post(new PostSavedEvent(savedPost));
         getBus().post(new SyncPostsEvent(false));
+    }
+
+    @Subscribe
+    public void onDeletePostEvent(DeletePostEvent event) {
+        int postId = event.post.getId();
+        Post realmPost = mRealm.where(Post.class).equalTo("id", postId).findFirst();
+        if (realmPost == null) {
+            RuntimeException e = new IllegalArgumentException("Trying to delete post with non-existent id = " + postId);
+            Crashlytics.log(Log.ERROR, TAG, e.getMessage());
+            throw e;
+        } else if (realmPost.hasPendingAction(PendingAction.CREATE)) {
+            deleteModel(realmPost);
+            getBus().post(new PostDeletedEvent(postId));
+        } else {
+            // don't delete locally until the remote copy is deleted
+            clearAndSetPendingActionOnPost(realmPost, PendingAction.DELETE);
+            getBus().post(new PostDeletedEvent(postId));
+
+            // DON'T trigger a sync here, because it is automatically triggered by the post list anyway
+            // triggering it twice causes crashes due to invalid Realm objects (deleted twice)
+            //getBus().post(new SyncPostsEvent(false));
+        }
     }
 
     @Subscribe
@@ -775,6 +836,27 @@ public class NetworkService {
 
 
     // private methods
+    private void clearPendingActionsOnPost(@NonNull Post post) {
+        List<PendingAction> pendingActions = new ArrayList<>(post.getPendingActions());
+        mRealm.executeTransaction(realm -> {
+            for (PendingAction pa : pendingActions) {
+                RealmObject.deleteFromRealm(pa);
+            }
+            pendingActions.clear();
+        });
+    }
+
+    private void clearAndSetPendingActionOnPost(@NonNull Post post, @PendingAction.Type String newPendingAction) {
+        List<PendingAction> pendingActions = post.getPendingActions();
+        mRealm.executeTransaction(realm -> {
+            for (PendingAction pa : pendingActions) {
+                RealmObject.deleteFromRealm(pa);
+            }
+            pendingActions.clear();
+            post.addPendingAction(newPendingAction);
+        });
+    }
+
     private boolean validateAccessToken(@NonNull ApiCallEvent event) {
         boolean valid = ! hasAccessTokenExpired();
         if (! valid) {
@@ -949,16 +1031,15 @@ public class NetworkService {
         return createOrUpdateModel(object, null);
     }
 
-    private <T extends RealmModel> T createOrUpdateModel(T object, @Nullable Runnable transaction) {
-        // TODO add error handling
-        // TODO use Realm#executeTransaction(Realm.Transaction) instead of this
-        mRealm.beginTransaction();
-        T realmObject = mRealm.copyToRealmOrUpdate(object);
-        if (transaction != null) {
-            transaction.run();
-        }
-        mRealm.commitTransaction();
-        return realmObject;
+    private <T extends RealmModel> T createOrUpdateModel(T object,
+                                                         @Nullable Runnable afterTransaction) {
+        return executeRealmTransaction(mRealm, realm -> {
+            T realmObject = mRealm.copyToRealmOrUpdate(object);
+            if (afterTransaction != null) {
+                afterTransaction.run();
+            }
+            return realmObject;
+        });
     }
 
     private <T extends RealmModel> List<T> createOrUpdateModel(Iterable<T> objects) {
@@ -966,20 +1047,52 @@ public class NetworkService {
     }
 
     private <T extends RealmModel> List<T> createOrUpdateModel(Iterable<T> objects,
-                                                               @Nullable Runnable transaction) {
-        mRealm.beginTransaction();
-        List<T> realmObjects = mRealm.copyToRealmOrUpdate(objects);
-        if (transaction != null) {
-            transaction.run();
-        }
-        mRealm.commitTransaction();
-        return realmObjects;
+                                                               @Nullable Runnable afterTransaction) {
+        return executeRealmTransaction(mRealm, realm -> {
+            List<T> realmObjects = mRealm.copyToRealmOrUpdate(objects);
+            if (afterTransaction != null) {
+                afterTransaction.run();
+            }
+            return realmObjects;
+        });
     }
 
-    private <T extends RealmModel> void deleteModels(List<T> realmObjects) {
-        mRealm.beginTransaction();
-        Observable.from(realmObjects).forEach(RealmObject::deleteFromRealm);
-        mRealm.commitTransaction();
+    private <T extends RealmModel> void deleteModel(T realmObject) {
+        executeRealmTransaction(mRealm, realm -> {
+            RealmObject.deleteFromRealm(realmObject);
+            return null;
+        });
+    }
+
+    private <T extends RealmModel> void deleteModels(Iterable<T> realmObjects) {
+        executeRealmTransaction(mRealm, realm -> {
+            for (T realmObject : realmObjects) {
+                RealmObject.deleteFromRealm(realmObject);
+            }
+            return null;
+        });
+    }
+
+    private static <T> T executeRealmTransaction(@NonNull Realm realm,
+                                                 @NonNull RealmTransactionWithReturn<T> transaction) {
+        T retValue;
+        realm.beginTransaction();
+        try {
+            retValue = transaction.execute(realm);
+            realm.commitTransaction();
+        } catch (Throwable e) {
+            if (realm.isInTransaction()) {
+                realm.cancelTransaction();
+            } else {
+                Log.w(TAG, "Could not cancel transaction, not currently in a transaction.");
+            }
+            throw e;
+        }
+        return retValue;
+    }
+
+    private interface RealmTransactionWithReturn<T> {
+        T execute(@NonNull Realm realm);
     }
 
     private Bus getBus() {

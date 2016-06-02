@@ -5,8 +5,11 @@ import android.util.Log;
 import com.crashlytics.android.Crashlytics;
 
 import io.realm.DynamicRealm;
+import io.realm.DynamicRealmObject;
 import io.realm.RealmMigration;
+import io.realm.RealmResults;
 import io.realm.RealmSchema;
+import me.vickychijwani.spectre.model.entity.Post;
 
 public class DatabaseMigration implements RealmMigration {
 
@@ -18,8 +21,21 @@ public class DatabaseMigration implements RealmMigration {
         Crashlytics.log(Log.INFO, TAG, "MIGRATING DATABASE from v" + oldVersion + " to v" + newVersion);
 
         if (oldVersion == 0) {
+            if (schema.get("Post").isNullable("slug")) {
+                // get rid of null-valued slugs, if any exist
+                RealmResults<DynamicRealmObject> postsWithNullSlug = realm
+                        .where(Post.class.getSimpleName())
+                        .isNull("slug")
+                        .findAll();
+                Crashlytics.log(Log.DEBUG, TAG, "CONVERTING " + postsWithNullSlug.size() + " SLUGS FROM NULL TO \"\"");
+                for (DynamicRealmObject obj : postsWithNullSlug) {
+                    obj.setString("slug", "");
+                }
+                // finally, make the field required
+                schema.get("Post").setNullable("slug", false);
+            }
+
             schema.get("Post")
-                    .setNullable("slug", true)
                     .setNullable("html", true)
                     .setNullable("image", true)
                     .setNullable("createdAt", true)

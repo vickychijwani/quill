@@ -18,9 +18,10 @@
     <color name="image_placeholder">#CCCCCC</color>
 
     <!-- one-off colors -->
-    <color name="offline_changes">#F33</color>
-    <color name="published_auto_saved">#F33</color>
-    <color name="draft">#0A0</color>
-    <color name="published">@color/text_secondary</color>
+    <color name="status_offline_changes">#F33</color>
+    <color name="status_published_auto_saved">#F33</color>
+    <color name="status_draft">#0A0</color>
+    <color name="status_published">@color/text_secondary</color>
+    <color name="status_deleted">@color/text_secondary</color>
 
 </resources>
