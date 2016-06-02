@@ -34,6 +34,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.event.FileUploadErrorEvent;
 import me.vickychijwani.spectre.event.FileUploadEvent;
 import me.vickychijwani.spectre.event.FileUploadedEvent;
@@ -466,8 +467,10 @@ public class PostEditFragment extends BaseFragment {
             return;
         }
         if (mSaveScenario == SaveScenario.UNKNOWN) {
+            AnalyticsService.logPostSavedInUnknownScenario();
             Snackbar.make(getView(), R.string.save_scenario_unknown, Snackbar.LENGTH_SHORT).show();
         } else if (mSaveScenario == SaveScenario.AUTO_SAVE_EDITS_TO_PUBLISHED_POST) {
+            AnalyticsService.logEditsAutoSavedLocally();
             Snackbar.make(getView(), R.string.save_scenario_auto_save_edits_to_published_post, Snackbar.LENGTH_SHORT).show();
             mSaveScenario = SaveScenario.UNKNOWN;
         } else {
@@ -488,22 +491,30 @@ public class PostEditFragment extends BaseFragment {
             case PUBLISH_DRAFT:
             case EXPLICITLY_PUBLISH_EDITS_TO_PUBLISHED_POST:
                 @StringRes int messageId;
+                String postUrl = PostUtils.getPostUrl(mPost);
                 if (saveScenario == SaveScenario.PUBLISH_DRAFT) {
                     messageId = R.string.save_scenario_publish_draft;
+                    // FIXME not a good idea to put this in UI code - what if this happens in the background?!
+                    // FIXME or, what if the user publishes offline and syncs later - save scenario would be unknown then!
+                    AnalyticsService.logDraftPublished(postUrl);
                 } else {
                     messageId = R.string.save_scenario_explicitly_publish_edits_to_published_post;
+                    AnalyticsService.logEditsPublished(postUrl);
                 }
                 Snackbar sn = Snackbar.make(parent, messageId, Snackbar.LENGTH_SHORT);
                 sn.setAction(R.string.save_post_view, v -> mActivity.viewPostInBrowser(false));
                 sn.show();
                 break;
             case UNPUBLISH_PUBLISHED_POST:
+                AnalyticsService.logPostUnpublished();
                 Snackbar.make(parent, R.string.save_scenario_unpublish_published_post, Snackbar.LENGTH_SHORT).show();
                 break;
             case AUTO_SAVE_DRAFT:
+                AnalyticsService.logDraftAutoSaved();
                 Snackbar.make(parent, R.string.save_scenario_auto_save_draft, Snackbar.LENGTH_SHORT).show();
                 break;
             case EXPLICITLY_SAVE_DRAFT:
+                AnalyticsService.logDraftSavedExplicitly();
                 Snackbar.make(parent, R.string.save_scenario_explicitly_save_draft, Snackbar.LENGTH_SHORT).show();
                 break;
             case AUTO_SAVE_EDITS_TO_PUBLISHED_POST:

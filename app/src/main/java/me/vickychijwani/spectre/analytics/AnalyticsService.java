@@ -11,10 +11,12 @@ import com.crashlytics.android.answers.LoginEvent;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
+import me.vickychijwani.spectre.event.FileUploadedEvent;
 import me.vickychijwani.spectre.event.GhostVersionLoadedEvent;
 import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
+import me.vickychijwani.spectre.event.LogoutStatusEvent;
 
 public class AnalyticsService {
 
@@ -76,6 +78,14 @@ public class AnalyticsService {
                 .putSuccess(success));
     }
 
+    @Subscribe
+    public void onLogoutStatusEvent(LogoutStatusEvent logoutEvent) {
+        if (logoutEvent.succeeded) {
+            Crashlytics.log(Log.INFO, TAG, "LOGOUT SUCCEEDED");
+            Answers.getInstance().logCustom(new CustomEvent("Logout"));
+        }
+    }
+
     public static void logDbSchemaVersion(@NonNull String dbSchemaVersion) {
         Crashlytics.log(Log.INFO, TAG, "DB SCHEMA VERSION = " + dbSchemaVersion);
         Answers.getInstance().logCustom(new CustomEvent("DB Schema Version")
@@ -92,6 +102,62 @@ public class AnalyticsService {
         }
     }
 
+
+    // post actions
+    public static void logNewDraftUploaded() {
+        logPostAction("New draft uploaded", null);
+    }
+
+    public static void logDraftPublished(String postUrl) {
+        logPostAction("Published draft", postUrl);
+    }
+
+    public static void logEditsPublished(String postUrl) {
+        logPostAction("Published edits to post", postUrl);
+    }
+
+    public static void logPostUnpublished() {
+        logPostAction("Unpublished post", null);
+    }
+
+    public static void logDraftAutoSaved() {
+        logPostAction("Auto-saved draft", null);
+    }
+
+    public static void logDraftSavedExplicitly() {
+        logPostAction("Explicitly saved draft", null);
+    }
+
+    public static void logPostSavedInUnknownScenario() {
+        logPostAction("Unknown scenario", null);
+    }
+
+    public static void logEditsAutoSavedLocally() {
+        logPostAction("Auto-saved edits to published post", null);
+    }
+
+    public static void logDraftDeleted() {
+        logPostAction("Deleted draft", null);
+    }
+
+    @Subscribe
+    public void onFileUploadedEvent(FileUploadedEvent event) {
+        logPostAction("Image uploaded", null);
+    }
+
+    private static void logPostAction(@NonNull String postAction, @Nullable String postUrl) {
+        CustomEvent postStatsEvent = new CustomEvent("Post Actions")
+                .putCustomAttribute("Scenario", postAction);
+        if (postUrl != null) {
+            // FIXME this is a huge hack, also Fabric only shows 10 of these per day
+            postStatsEvent.putCustomAttribute("URL", postUrl);
+        }
+        Crashlytics.log(Log.INFO, TAG, "POST ACTION: " + postAction);
+        Answers.getInstance().logCustom(postStatsEvent);
+    }
+
+
+    // misc private methods
     private Bus getBus() {
         return mEventBus;
     }

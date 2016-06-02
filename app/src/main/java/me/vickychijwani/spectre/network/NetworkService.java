@@ -37,6 +37,7 @@ import io.realm.RealmResults;
 import io.realm.Sort;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
@@ -622,6 +623,7 @@ public class NetworkService {
             mApi.deletePost(localPost.getId(), new ResponseCallback() {
                 @Override
                 public void success(Response response) {
+                    AnalyticsService.logDraftDeleted();
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     clearPendingActionsOnPost(localPost);
                     deleteModel(localPost);
@@ -643,6 +645,7 @@ public class NetworkService {
             mApi.createPost(PostStubList.from(localPost), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
+                    AnalyticsService.logNewDraftUploaded();
                     clearPendingActionsOnPost(localPost);
                     createOrUpdateModel(postList.posts);
                     mPostUploadQueue.removeFirstOccurrence(localPost);
