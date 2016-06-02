@@ -60,14 +60,14 @@ public class PostEditFragment extends BaseFragment {
 
     private static final String TAG = "PostEditFragment";
 
-    private enum SaveType {
-        NONE,
-        PUBLISH,
-        UNPUBLISH,
-        PUBLISHED_AUTO,
-        PUBLISHED_EXPLICIT,
-        DRAFT_AUTO,
-        DRAFT_EXPLICIT
+    private enum SaveScenario {
+        UNKNOWN,
+        PUBLISH_DRAFT,
+        UNPUBLISH_PUBLISHED_POST,
+        AUTO_SAVE_EDITS_TO_PUBLISHED_POST,
+        EXPLICITLY_PUBLISH_EDITS_TO_PUBLISHED_POST,
+        AUTO_SAVE_DRAFT,
+        EXPLICITLY_SAVE_DRAFT,      // unused; feature was removed from UI as it seemed unnecessary
     }
 
     @Bind(R.id.post_title_edit)             EditText mPostTitleEditView;
@@ -83,7 +83,7 @@ public class PostEditFragment extends BaseFragment {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private boolean mbDiscardChanges = false;
 
-    private SaveType mSaveType = SaveType.NONE;
+    private SaveScenario mSaveScenario = SaveScenario.UNKNOWN;
     private Runnable mSaveTimeoutRunnable;
     private static final int SAVE_TIMEOUT = 5 * 1000;       // milliseconds
 
@@ -128,7 +128,7 @@ public class PostEditFragment extends BaseFragment {
             View parent = PostEditFragment.this.getView();
             if (parent != null) {
                 Snackbar.make(parent, R.string.save_post_timeout, Snackbar.LENGTH_SHORT).show();
-                mSaveType = SaveType.NONE;
+                mSaveScenario = SaveScenario.UNKNOWN;
             }
         };
 
@@ -309,14 +309,14 @@ public class PostEditFragment extends BaseFragment {
     private boolean saveToServerExplicitly(@Nullable @Post.Status String newStatus) {
         if (newStatus == null) {
             if (Post.DRAFT.equals(mPost.getStatus())) {
-                mSaveType = SaveType.DRAFT_EXPLICIT;
+                mSaveScenario = SaveScenario.EXPLICITLY_SAVE_DRAFT;
             } else if (Post.PUBLISHED.equals(mPost.getStatus())) {
-                mSaveType = SaveType.PUBLISHED_EXPLICIT;
+                mSaveScenario = SaveScenario.EXPLICITLY_PUBLISH_EDITS_TO_PUBLISHED_POST;
             }
         } else if (Post.DRAFT.equals(newStatus)) {
-            mSaveType = SaveType.UNPUBLISH;
+            mSaveScenario = SaveScenario.UNPUBLISH_PUBLISHED_POST;
         } else if (Post.PUBLISHED.equals(newStatus)) {
-            mSaveType = SaveType.PUBLISH;
+            mSaveScenario = SaveScenario.PUBLISH_DRAFT;
         }
         return savePost(true, false, newStatus);
     }
@@ -329,9 +329,9 @@ public class PostEditFragment extends BaseFragment {
         if (mPost.isMarkedForDeletion()) {
             return false;
         } else if (Post.DRAFT.equals(mPost.getStatus())) {
-            mSaveType = SaveType.DRAFT_AUTO;
+            mSaveScenario = SaveScenario.AUTO_SAVE_DRAFT;
         } else if (Post.PUBLISHED.equals(mPost.getStatus())) {
-            mSaveType = SaveType.PUBLISHED_AUTO;
+            mSaveScenario = SaveScenario.AUTO_SAVE_EDITS_TO_PUBLISHED_POST;
         }
         return savePost(true, true, null);
     }
@@ -465,11 +465,11 @@ public class PostEditFragment extends BaseFragment {
         if (getView() == null) {
             return;
         }
-        if (mSaveType == SaveType.NONE) {
-            Snackbar.make(getView(), R.string.save_post_generic, Snackbar.LENGTH_SHORT).show();
-        } else if (mSaveType == SaveType.PUBLISHED_AUTO) {
-            Snackbar.make(getView(), R.string.save_published_auto, Snackbar.LENGTH_SHORT).show();
-            mSaveType = SaveType.NONE;
+        if (mSaveScenario == SaveScenario.UNKNOWN) {
+            Snackbar.make(getView(), R.string.save_scenario_unknown, Snackbar.LENGTH_SHORT).show();
+        } else if (mSaveScenario == SaveScenario.AUTO_SAVE_EDITS_TO_PUBLISHED_POST) {
+            Snackbar.make(getView(), R.string.save_scenario_auto_save_edits_to_published_post, Snackbar.LENGTH_SHORT).show();
+            mSaveScenario = SaveScenario.UNKNOWN;
         } else {
             mHandler.postDelayed(mSaveTimeoutRunnable, SAVE_TIMEOUT);
         }
@@ -477,34 +477,37 @@ public class PostEditFragment extends BaseFragment {
 
     @Subscribe
     public void onPostSyncedEvent(PostSyncedEvent event) {
-        SaveType saveType = mSaveType;
-        mSaveType = SaveType.NONE;
+        SaveScenario saveScenario = mSaveScenario;
+        mSaveScenario = SaveScenario.UNKNOWN;
         mHandler.removeCallbacks(mSaveTimeoutRunnable);
         View parent = getView();
         if (parent == null) {
             return;
         }
-        switch (saveType) {
-            case PUBLISH:
-            case PUBLISHED_EXPLICIT:
-                @StringRes int messageId = (saveType == SaveType.PUBLISH)
-                        ? R.string.save_publish
-                        : R.string.save_published_explicit;
+        switch (saveScenario) {
+            case PUBLISH_DRAFT:
+            case EXPLICITLY_PUBLISH_EDITS_TO_PUBLISHED_POST:
+                @StringRes int messageId;
+                if (saveScenario == SaveScenario.PUBLISH_DRAFT) {
+                    messageId = R.string.save_scenario_publish_draft;
+                } else {
+                    messageId = R.string.save_scenario_explicitly_publish_edits_to_published_post;
+                }
                 Snackbar sn = Snackbar.make(parent, messageId, Snackbar.LENGTH_SHORT);
                 sn.setAction(R.string.save_post_view, v -> mActivity.viewPostInBrowser(false));
                 sn.show();
                 break;
-            case UNPUBLISH:
-                Snackbar.make(parent, R.string.save_unpublish, Snackbar.LENGTH_SHORT).show();
+            case UNPUBLISH_PUBLISHED_POST:
+                Snackbar.make(parent, R.string.save_scenario_unpublish_published_post, Snackbar.LENGTH_SHORT).show();
                 break;
-            case DRAFT_AUTO:
-                Snackbar.make(parent, R.string.save_draft_auto, Snackbar.LENGTH_SHORT).show();
+            case AUTO_SAVE_DRAFT:
+                Snackbar.make(parent, R.string.save_scenario_auto_save_draft, Snackbar.LENGTH_SHORT).show();
                 break;
-            case DRAFT_EXPLICIT:
-                Snackbar.make(parent, R.string.save_draft_explicit, Snackbar.LENGTH_SHORT).show();
+            case EXPLICITLY_SAVE_DRAFT:
+                Snackbar.make(parent, R.string.save_scenario_explicitly_save_draft, Snackbar.LENGTH_SHORT).show();
                 break;
-            case PUBLISHED_AUTO:
-            case NONE:
+            case AUTO_SAVE_EDITS_TO_PUBLISHED_POST:
+            case UNKNOWN:
                 break;              // already handled
         }
     }
