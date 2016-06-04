@@ -172,6 +172,13 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+    @Override
+    public void onViewRecycled(RecyclerView.ViewHolder holder) {
+        if (holder instanceof PostViewHolder) {
+            ((PostViewHolder) holder).cleanup();
+        }
+    }
+
     private void bindFooter(FooterViewHolder viewHolder, CharSequence footerText) {
         viewHolder.textView.setText(footerText);
         viewHolder.textView.setMovementMethod(LinkMovementMethod.getInstance());
@@ -196,6 +203,12 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             super(view);
             ButterKnife.bind(this, view);
             view.setOnClickListener(clickListener);
+        }
+
+        // courtesy http://stackoverflow.com/a/33961706/504611
+        public void cleanup() {
+            Picasso.with(image.getContext())
+                    .cancelRequest(image);
         }
     }
 

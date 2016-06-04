@@ -191,6 +191,11 @@ public class PostListActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mPostList != null) {
+            // cancel any ongoing image requests, courtesy http://stackoverflow.com/a/33961706/504611
+            // not doing this in onPause or onStop because there we wouldn't want to clear the list itself
+            mPostList.setAdapter(null);
+        }
         mRefreshDataRunnable = null;    // the runnable holds an implicit reference to the activity!
                                         // allow it to get GC'ed to avoid a memory leak
     }
