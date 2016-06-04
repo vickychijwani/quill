@@ -23,7 +23,7 @@ import butterknife.ButterKnife;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
-import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 
 class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -136,7 +136,7 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private void bindPost(PostViewHolder viewHolder, Post post) {
         viewHolder.title.setText(post.getTitle());
         if (! TextUtils.isEmpty(post.getImage())) {
-            String imageUrl = AppUtils.pathJoin(mBlogUrl, post.getImage());
+            String imageUrl = NetworkUtils.makeAbsoluteUrl(mBlogUrl, post.getImage());
             viewHolder.image.setVisibility(View.VISIBLE);
             mPicasso.load(imageUrl)
                     .fit().centerCrop()

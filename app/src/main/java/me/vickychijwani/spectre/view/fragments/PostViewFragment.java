@@ -14,7 +14,7 @@ import android.webkit.WebView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.view.BundleKeys;
 
 public class PostViewFragment extends BaseFragment
@@ -80,7 +80,7 @@ public class PostViewFragment extends BaseFragment
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // launch links in external browser
-                url = AppUtils.pathJoin(blogUrl, url);
+                url = NetworkUtils.makeAbsoluteUrl(blogUrl, url);
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
                 return true;

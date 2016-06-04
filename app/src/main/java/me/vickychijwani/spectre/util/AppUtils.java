@@ -18,13 +18,6 @@ import me.vickychijwani.spectre.view.BaseActivity;
 
 public class AppUtils {
 
-    public static String pathJoin(@NonNull String basePath, @NonNull String relativePath) {
-        // handling for protocol-relative URLs
-        if (relativePath.startsWith("//")) relativePath = "http:" + relativePath;
-        if (relativePath.startsWith("http")) return relativePath;
-        return Uri.withAppendedPath(Uri.parse(basePath), relativePath).toString();
-    }
-
     public static void emailDeveloper(@NonNull BaseActivity activity) {
         String emailSubject = String.format(activity.getString(R.string.email_subject),
                 activity.getString(R.string.app_name));

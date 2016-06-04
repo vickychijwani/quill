@@ -49,7 +49,7 @@ import me.vickychijwani.spectre.event.TagsLoadedEvent;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.util.AppUtils;
+import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
@@ -327,7 +327,7 @@ public class PostViewActivity extends BaseActivity implements
         String imageUrl = mPost.getImage();
         if (!TextUtils.isEmpty(imageUrl)) {
             mPostImageLayoutManager.setViewState(PostImageLayoutManager.ViewState.PROGRESS_BAR);
-            imageUrl = AppUtils.pathJoin(mBlogUrl, imageUrl);
+            imageUrl = NetworkUtils.makeAbsoluteUrl(mBlogUrl, imageUrl);
             getPicasso()
                     .load(imageUrl)
                     .fit().centerCrop()

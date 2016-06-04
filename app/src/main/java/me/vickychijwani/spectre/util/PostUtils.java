@@ -73,9 +73,9 @@ public class PostUtils {
         UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
         String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
         if (Post.PUBLISHED.equals(post.getStatus())) {
-            return AppUtils.pathJoin(blogUrl, post.getSlug());
+            return NetworkUtils.makeAbsoluteUrl(blogUrl, post.getSlug());
         } else if (Post.DRAFT.equals(post.getStatus())) {
-            return AppUtils.pathJoin(blogUrl, "p/" + post.getUuid());
+            return NetworkUtils.makeAbsoluteUrl(blogUrl, "p/" + post.getUuid());
         } else {
             throw new IllegalArgumentException("URLs only available for drafts and published posts!");
         }

@@ -92,7 +92,6 @@ import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
@@ -987,7 +986,7 @@ public class NetworkService {
                 ? RestAdapter.LogLevel.HEADERS
                 : RestAdapter.LogLevel.NONE;
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(AppUtils.pathJoin(blogUrl, "ghost/api/v0.1"))
+                .setEndpoint(NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/api/v0.1"))
                 .setClient(new OkClient(mOkHttpClient))
                 .setConverter(mGsonConverter)
                 .setRequestInterceptor(mAuthInterceptor)

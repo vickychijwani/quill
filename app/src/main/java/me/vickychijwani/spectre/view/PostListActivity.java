@@ -269,7 +269,7 @@ public class PostListActivity extends BaseActivity {
                 return;
             }
             String blogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
-            String imageUrl = AppUtils.pathJoin(blogUrl, event.user.getImage());
+            String imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, event.user.getImage());
             getPicasso()
                     .load(imageUrl)
                     .transform(new BorderedCircleTransformation())
