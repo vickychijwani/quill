@@ -124,9 +124,11 @@ public class LoginActivity extends BaseActivity implements
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (actionId == getResources().getInteger(R.integer.ime_action_id_signin)
-                || actionId == EditorInfo.IME_NULL) {
+                || actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_NULL) {
             attemptLogin();
-            return true;
+            // don't consume the event, so the keyboard can also be hidden
+            // http://stackoverflow.com/questions/2342620/how-to-hide-keyboard-after-typing-in-edittext-in-android#comment20849208_10184099
+            return false;
         }
         return false;
     }
