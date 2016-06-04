@@ -6,12 +6,22 @@ import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringDef;
 
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
+import java.util.concurrent.TimeUnit;
 
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+import rx.subscriptions.Subscriptions;
 
 public class NetworkUtils {
 
@@ -66,6 +76,38 @@ public class NetworkUtils {
         } else {
             return baseUrl + "/" + relativePath;
         }
+    }
+
+    public static Observable<String> checkGhostBlog(@NonNull String blogUrl) {
+        String ghostApiEndpointThatMustExist = makeAbsoluteUrl(blogUrl, "/ghost/");
+        return checkUrl(ghostApiEndpointThatMustExist)
+                .flatMap(response -> Observable.just(blogUrl));
+    }
+
+    public static Observable<com.squareup.okhttp.Response> checkUrl(@NonNull String url) {
+        OkHttpClient client = new OkHttpClient();
+        client.setConnectTimeout(10, TimeUnit.SECONDS);
+        client.setReadTimeout(3, TimeUnit.SECONDS);
+        Request request = new Request.Builder()
+                .url(url)
+                .head()     // make a HEAD request because we only want the response code
+                .build();
+        return networkCall(client.newCall(request))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public static Observable<com.squareup.okhttp.Response> networkCall(@NonNull Call call) {
+        return Observable.create(subscriber -> {
+            // cancel the request when there are no subscribers
+            subscriber.add(Subscriptions.create(call::cancel));
+            try {
+                subscriber.onNext(call.execute());
+                subscriber.onCompleted();
+            } catch (IOException e) {
+                subscriber.onError(e);
+            }
+        });
     }
 
 }

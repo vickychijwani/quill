@@ -3,9 +3,10 @@
     <string name="app_name" translatable="false">Quill</string>
 
     <!-- login -->
-    <string name="no_such_blog">There is no Ghost blog at %s/ghost.</string>
+    <string name="no_such_blog">There is no Ghost admin at %s/ghost.</string>
     <string name="login_unexpected_error">Unexpected error during sign in. Please try again.</string>
     <string name="login_connection_error">Could not connect to %s/ghost. Please try again.</string>
+    <string name="login_ssl_unsupported">Your blog does not support https:// (SSL). Try changing it to http://.</string>
     <string name="logout">Logout</string>
     <string name="password_changed">Has your password changed? Couldn\'t login with that password.</string>
     <string name="unsynced_changes_msg">You will lose all unsynced changes if you log out now</string>
@@ -47,7 +48,7 @@
     <string name="save_post_failed">Couldn\'t save post</string>
     <string name="save_post_view">View on blog</string>
     <string name="save_post_timeout">Saved on device</string>
-    
+
     <string name="save_scenario_unknown">Saved</string>
     <string name="save_scenario_publish_draft">Post published!</string>
     <string name="save_scenario_unpublish_published_post">Post unpublished</string>

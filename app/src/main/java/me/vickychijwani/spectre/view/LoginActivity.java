@@ -4,6 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.text.Html;
 import android.text.TextUtils;
@@ -15,6 +17,8 @@ import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +29,10 @@ import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.net.ssl.SSLHandshakeException;
 
 import butterknife.Bind;
 import me.vickychijwani.spectre.R;
@@ -37,25 +45,37 @@ import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import retrofit.RetrofitError;
+import rx.Subscription;
+import rx.functions.Action1;
 
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends BaseActivity implements OnClickListener, TextView.OnEditorActionListener {
+public class LoginActivity extends BaseActivity implements
+        OnClickListener,
+        TextView.OnEditorActionListener,
+        View.OnFocusChangeListener {
 
     private final String TAG = "LoginActivity";
 
     // UI references
-    @Bind(R.id.blog_url_layout) TextInputLayout mBlogUrlLayout;
-    @Bind(R.id.blog_url)        EditText mBlogUrlView;
-    @Bind(R.id.email_layout)    TextInputLayout mEmailLayout;
-    @Bind(R.id.email)           EditText mEmailView;
-    @Bind(R.id.password_layout) TextInputLayout mPasswordLayout;
-    @Bind(R.id.password)        EditText mPasswordView;
-    @Bind(R.id.sign_in_btn)     Button mSignInBtn;
-    @Bind(R.id.login_progress)  View mProgressView;
-    @Bind(R.id.login_form)      View mLoginFormView;
+    @Bind(R.id.blog_url_layout)         TextInputLayout mBlogUrlLayout;
+    @Bind(R.id.blog_url)                EditText mBlogUrlView;
+    @Bind(R.id.blog_url_progress_bar)   ProgressBar mBlogUrlProgressView;
+    @Bind(R.id.blog_url_valid)          ImageView mBlogUrlValidView;
+    @Bind(R.id.email_layout)            TextInputLayout mEmailLayout;
+    @Bind(R.id.email)                   EditText mEmailView;
+    @Bind(R.id.password_layout)         TextInputLayout mPasswordLayout;
+    @Bind(R.id.password)                EditText mPasswordView;
+    @Bind(R.id.sign_in_btn)             Button mSignInBtn;
+    @Bind(R.id.login_progress)          View mProgressView;
+    @Bind(R.id.login_form)              View mLoginFormView;
+
+    // we proactively check the URL and store it if it is valid
+    private String mValidGhostBlogUrl = null;
+    // all listeners that monitor the state of the "check blog url" request
+    private List<CheckBlogUrlListener> mCheckBlogUrlListeners = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +85,35 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         mPasswordView.setOnEditorActionListener(this);
 
         UserPrefs prefs = UserPrefs.getInstance(this);
-        mBlogUrlView.setText(prefs.getString(UserPrefs.Key.BLOG_URL));
+        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
+        mBlogUrlView.setText(blogUrl);
         mEmailView.setText(prefs.getString(UserPrefs.Key.USERNAME));
         mPasswordView.setText(prefs.getString(UserPrefs.Key.PASSWORD));
 
         mSignInBtn.setOnClickListener(this);
+        mBlogUrlView.setOnFocusChangeListener(this);
+
+        if (!TextUtils.isEmpty(blogUrl)) {
+            checkBlogUrl(new TextChangeCheckBlogUrlListener());
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopCheckingBlogUrl();
+    }
+
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        if (v == mBlogUrlView) {
+            if (!hasFocus) {
+                stopCheckingBlogUrl();
+                checkBlogUrl(new TextChangeCheckBlogUrlListener());
+            } else {
+                stopCheckingBlogUrl();
+            }
+        }
     }
 
     @Override
@@ -87,6 +131,121 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         return false;
     }
 
+    // check if the url points to a valid Ghost blog, and store it if yes
+    private void checkBlogUrl(@NonNull CheckBlogUrlListener listener) {
+        if (! NetworkUtils.isConnected(this)) {
+            Toast.makeText(this, R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String blogUrl = mBlogUrlView.getText().toString().trim().replace("/ghost", "");
+        if (TextUtils.isEmpty(blogUrl)) {
+            return;
+        }
+        if (mValidGhostBlogUrl != null && blogUrl.equals(mValidGhostBlogUrl)) {
+            // we already have a valid url, skip checking
+            listener.setCheckBlogUrlSubscription(null);
+            listener.onSuccess();
+            return;
+        }
+        mValidGhostBlogUrl = null;
+        mCheckBlogUrlListeners.add(listener);
+        listener.onCheckStarted();
+        Action1<Throwable> invalidGhostUrlHandler = (e) -> {
+            mValidGhostBlogUrl = null;
+            listener.setCheckBlogUrlSubscription(null);
+            listener.onError(blogUrl, e);
+            mCheckBlogUrlListeners.remove(listener);
+        };
+
+        // try HTTPS and HTTP, in that order, if none is given
+        if (hasScheme(blogUrl)) {
+            tryUrl(null, blogUrl, listener, invalidGhostUrlHandler);
+        } else {
+            tryUrl(NetworkUtils.SCHEME_HTTPS, blogUrl, listener, (e) -> {
+                tryUrl(NetworkUtils.SCHEME_HTTP, blogUrl, listener, invalidGhostUrlHandler);
+            });
+        }
+    }
+
+    private abstract class CheckBlogUrlListener {
+        private Subscription mCheckBlogUrlSubscription = null;
+        public Subscription getCheckBlogUrlSubscription() {
+            return mCheckBlogUrlSubscription;
+        }
+        public void setCheckBlogUrlSubscription(@Nullable Subscription s) {
+            mCheckBlogUrlSubscription = s;
+        }
+        abstract void onReset();
+        abstract void onCheckStarted();
+        abstract void onSuccess();
+        abstract void onError(@NonNull String blogUrl, Throwable e);
+    }
+
+    private void tryUrl(@Nullable @NetworkUtils.Scheme String scheme, @NonNull String blogUrl,
+                        @NonNull CheckBlogUrlListener listener, @NonNull Action1<Throwable> errorHandler) {
+        if (scheme != null) {
+            blogUrl = scheme + blogUrl;
+        }
+        Subscription subscription = NetworkUtils.checkGhostBlog(blogUrl)
+                .subscribe((validGhostBlogUrl) -> {
+                    mValidGhostBlogUrl = validGhostBlogUrl;
+                    listener.setCheckBlogUrlSubscription(null);
+                    listener.onSuccess();
+                    mCheckBlogUrlListeners.remove(listener);
+                }, errorHandler);
+        listener.setCheckBlogUrlSubscription(subscription);
+    }
+
+    private void stopCheckingBlogUrl() {
+        for (CheckBlogUrlListener listener : mCheckBlogUrlListeners) {
+            Subscription subscription = listener.getCheckBlogUrlSubscription();
+            if (subscription != null && !subscription.isUnsubscribed()) {
+                mValidGhostBlogUrl = null;
+                // cancel any ongoing network requests
+                subscription.unsubscribe();
+                listener.setCheckBlogUrlSubscription(null);
+                listener.onReset();
+                mCheckBlogUrlListeners.remove(listener);
+            }
+        }
+    }
+
+    // intentionally not static
+    // used for checking the blog url on focus out
+    private class TextChangeCheckBlogUrlListener extends CheckBlogUrlListener {
+        @Override
+        public void onReset() {
+            mBlogUrlLayout.setErrorEnabled(false);
+            mBlogUrlLayout.setError(null);
+            mBlogUrlProgressView.setVisibility(View.INVISIBLE);
+            mBlogUrlValidView.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
+        public void onCheckStarted() {
+            mBlogUrlLayout.setErrorEnabled(false);
+            mBlogUrlLayout.setError(null);
+            mBlogUrlProgressView.setVisibility(View.VISIBLE);
+            mBlogUrlValidView.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
+        public void onSuccess() {
+            mBlogUrlLayout.setErrorEnabled(false);
+            mBlogUrlLayout.setError(null);
+            mBlogUrlProgressView.setVisibility(View.INVISIBLE);
+            mBlogUrlValidView.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public void onError(@NonNull String blogUrl, Throwable e) {
+            displayErrorResponse(blogUrl, e);
+            mBlogUrlProgressView.setVisibility(View.INVISIBLE);
+            mBlogUrlValidView.setVisibility(View.INVISIBLE);
+        }
+    }
+
     /**
      * Attempts to sign in the account specified by the login form. If there are form errors
      * (invalid email, missing fields, etc.), the errors are presented and no actual login attempt
@@ -94,64 +253,92 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
      */
     @SuppressWarnings("OverlyLongMethod")
     private void attemptLogin() {
-        if (! NetworkUtils.isConnected(this)) {
-            Toast.makeText(this, R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
-            return;
+        checkBlogUrl(new CheckBlogUrlListener() {
+            @Override
+            public void onReset() {
+                showProgress(false);
+            }
+
+            @Override
+            public void onCheckStarted() {
+                showProgress(true);
+                KeyboardUtils.defocusAndHideKeyboard(LoginActivity.this);
+            }
+
+            @Override
+            public void onSuccess() {
+                attemptLoginWithValidUrl();
+            }
+
+            @Override
+            public void onError(@NonNull String blogUrl, Throwable e) {
+                showProgress(false);
+                displayErrorResponse(blogUrl, e);
+            }
+        });
+    }
+
+    private void displayErrorResponse(@NonNull String blogUrl, Throwable e) {
+        mBlogUrlLayout.setErrorEnabled(true);
+        String errorStr;
+        if (isUserNetworkError(e)) {
+            errorStr = getString(R.string.no_such_blog, blogUrl);
+        } else if (isConnectionError(e)) {
+            errorStr = getString(R.string.login_connection_error, blogUrl);
+        } else if (e instanceof SSLHandshakeException) {
+            errorStr = getString(R.string.login_ssl_unsupported);
+        } else {
+            errorStr = getString(R.string.login_unexpected_error);
+        }
+        mBlogUrlLayout.setError(errorStr);
+    }
+
+    private void attemptLoginWithValidUrl() {
+        // by the time this is called, mValidGhostBlogUrl MUST be valid
+        if (TextUtils.isEmpty(mValidGhostBlogUrl) || !hasScheme(mValidGhostBlogUrl)) {
+            throw new IllegalStateException("the \"valid ghost blog url\" is not actually valid, " +
+                    "value = " + String.valueOf(mValidGhostBlogUrl));
         }
 
-        // Reset errors.
+        // reset errors
         mEmailLayout.setError(null);
         mPasswordLayout.setError(null);
 
-        // Store values at the time of the login attempt.
-        String blogUrl = mBlogUrlView.getText().toString().trim().replace("/ghost", "");
+        // store values at the time of the login attempt
+        String blogUrl = mValidGhostBlogUrl;
         String email = mEmailView.getText().toString().trim();
         String password = mPasswordView.getText().toString().trim();
 
-        // FIXME try defaulting to a secure connection first
-        if (!blogUrl.startsWith("http://") && !blogUrl.startsWith("https://")) {
-            blogUrl = "http://" + blogUrl;
-        }
-
-        boolean cancel = false;
+        boolean hasError = false;
         View focusView = null;
-
-        // check for a valid url
-        if (TextUtils.isEmpty(blogUrl)) {
-            mBlogUrlLayout.setError(getString(R.string.error_field_required));
-            focusView = mBlogUrlView;
-            cancel = true;
-        }
 
         // check for a valid password
         if (TextUtils.isEmpty(password)) {
             mPasswordLayout.setError(getString(R.string.error_field_required));
             focusView = mPasswordView;
-            cancel = true;
+            hasError = true;
         } else if (! isPasswordValid(password)) {
             mPasswordLayout.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
-            cancel = true;
+            hasError = true;
         }
 
         // check for a valid email address
         if (TextUtils.isEmpty(email)) {
             mEmailLayout.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
-            cancel = true;
+            hasError = true;
         } else if (! isEmailValid(email)) {
             mEmailLayout.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
-            cancel = true;
+            hasError = true;
         }
 
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
+        if (hasError) {
+            // there was an error; focus the first form field with an error
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
+            // actual login attempt
             showProgress(true);
             KeyboardUtils.defocusAndHideKeyboard(this);
             sendLoginRequest(blogUrl, email, password);
@@ -194,43 +381,55 @@ public class LoginActivity extends BaseActivity implements OnClickListener, Text
         } catch (Exception ignored) {
             // errors in url: invalid / unknown hostname or ip
             boolean userNetworkError = error.getKind() == RetrofitError.Kind.NETWORK
-                    && (error.getCause() instanceof UnknownHostException
-                    || error.getCause() instanceof MalformedURLException);
+                    && isUserNetworkError(error.getCause());
             // connection error: timeout, etc
             boolean connectionError = error.getKind() == RetrofitError.Kind.NETWORK
-                    && (error.getCause() instanceof ConnectException
-                    || error.getCause() instanceof SocketTimeoutException);
+                    && isConnectionError(error.getCause());
             // don't remember when this happens, but it does happen consistently in one error scenario
             boolean conversionError = error.getKind() == RetrofitError.Kind.CONVERSION;
             String blogUrl = event.blogUrl;
             if (userNetworkError || conversionError) {
+                mBlogUrlLayout.setErrorEnabled(true);
                 mBlogUrlLayout.setError(String.format(getString(R.string.no_such_blog), blogUrl));
                 mBlogUrlView.requestFocus();
             } else if (connectionError) {
                 Toast.makeText(this, String.format(getString(R.string.login_connection_error), blogUrl),
                         Toast.LENGTH_SHORT).show();
+                mBlogUrlLayout.setErrorEnabled(false);
                 mBlogUrlLayout.setError(null);
             } else {
                 Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during login!");
                 Crashlytics.logException(error);
                 Toast.makeText(this, getString(R.string.login_unexpected_error),
                         Toast.LENGTH_SHORT).show();
+                mBlogUrlLayout.setErrorEnabled(false);
                 mBlogUrlLayout.setError(null);
             }
         }
     }
 
-    private boolean isEmailValid(String email) {
+
+    public static boolean isUserNetworkError(Throwable error) {
+        // user provided a malformed / non-existent URL
+        return error instanceof UnknownHostException || error instanceof MalformedURLException;
+    }
+
+    public static boolean isConnectionError(Throwable error) {
+        return error instanceof ConnectException || error instanceof SocketTimeoutException;
+    }
+
+    private static boolean isEmailValid(String email) {
         return Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
-    private boolean isPasswordValid(String password) {
+    private static boolean isPasswordValid(String password) {
         return password.length() >= 8;
     }
 
-    /**
-     * Shows the progress UI and hides the login form.
-     */
+    private static boolean hasScheme(String url) {
+        return url.startsWith(NetworkUtils.SCHEME_HTTP) || url.startsWith(NetworkUtils.SCHEME_HTTPS);
+    }
+
     private void showProgress(final boolean show) {
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
