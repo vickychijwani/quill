@@ -67,7 +67,10 @@ import me.vickychijwani.spectre.network.entity.ConfigurationList;
             throws JsonParseException {
         ConfigurationParam param = new ConfigurationParam();
         String valueStr;
-        if (value == null) {
+        if (value == null && "mail".equals(key)) {
+            valueStr = "";  // Ghost 0.8.0 gives an empty string instead of null, when no mail transport is set
+                            // we don't care about the mail transport anyhow
+        } else if (value == null) {
             // FIXME temp log to help debug Crashlytics issue #87
             throw new NullPointerException("value for key '" + key + "' is null!");
         } else if (value.isString()) {
