@@ -55,6 +55,14 @@ public class NetworkUtils {
         return true;
     }
 
+    public static boolean isUnauthorized(@NonNull RetrofitError retrofitError) {
+        Response response = retrofitError.getResponse();
+        // Ghost returns 403 Forbidden in some cases, inappropriately
+        // see this for what 401 vs 403 should mean: http://stackoverflow.com/a/3297081/504611
+        return response != null && (response.getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED
+                        || response.getStatus() == HttpURLConnection.HTTP_FORBIDDEN);
+    }
+
     public static String makeAbsoluteUrl(@NonNull String baseUrl, @NonNull String relativePath) {
         // handling for protocol-relative URLs
         // can't remember which scenario actually produces these URLs except maybe the Markdown preview

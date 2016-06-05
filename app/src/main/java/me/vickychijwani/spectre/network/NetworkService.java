@@ -209,12 +209,9 @@ public class NetworkService {
             @Override
             public void failure(RetrofitError error) {
                 mbAuthRequestOnGoing = false;
-                // if the response is 401 Unauthorized, we can recover from it by asking for the
-                // password again
-                if (!event.initiatedByUser && error.getResponse() != null &&
-                        error.getResponse().getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    // FIXME actually this can also happen if the access token is manually revoked OR
-                    // if the expiration time is changed inside Ghost (#92)
+                // if this request was not initiated by the user and the response is 401 Unauthorized,
+                // it means the password changed - ask for the password again
+                if (!event.initiatedByUser && NetworkUtils.isUnauthorized(error)) {
                     clearSavedPassword();
                     getBus().post(new PasswordChangedEvent());
                 } else {
@@ -363,9 +360,10 @@ public class NetworkService {
                 if (users.size() > 0) {
                     getBus().post(new UserLoadedEvent(users.first()));
                 }
-                // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
-                // login with the password if that doesn't work either (#92)
-                if (NetworkUtils.isRealError(error)) {
+                if (NetworkUtils.isUnauthorized(error)) {
+                    // defer the event and try to re-authorize
+                    refreshAccessToken(event);
+                } else if (NetworkUtils.isRealError(error)) {
                     getBus().post(new ApiErrorEvent(error));
                     refreshFailed(event, error);
                 } else {
@@ -404,9 +402,10 @@ public class NetworkService {
                 if (settings.size() > 0) {
                     getBus().post(new BlogSettingsLoadedEvent(settings));
                 }
-                // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
-                // login with the password if that doesn't work either (#92)
-                if (NetworkUtils.isRealError(error)) {
+                if (NetworkUtils.isUnauthorized(error)) {
+                    // defer the event and try to re-authorize
+                    refreshAccessToken(event);
+                } else if (NetworkUtils.isRealError(error)) {
                     getBus().post(new ApiErrorEvent(error));
                     refreshFailed(event, error);
                 } else {
@@ -428,7 +427,7 @@ public class NetworkService {
             if (params.size() > 0) {
                 getBus().post(new ConfigurationLoadedEvent(params));
             }
-            if (NetworkUtils.isRealError(error)) {
+            if (!NetworkUtils.isUnauthorized(error) && NetworkUtils.isRealError(error)) {
                 refreshFailed(event, error);
             } else {
                 refreshSucceeded(event);
@@ -460,9 +459,10 @@ public class NetworkService {
 
             @Override
             public void failure(RetrofitError error) {
-                // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
-                // login with the password if that doesn't work either (#92)
-                if (NetworkUtils.isRealError(error)) {
+                if (NetworkUtils.isUnauthorized(error)) {
+                    // defer the event and try to re-authorize
+                    refreshAccessToken(event);
+                } else if (NetworkUtils.isRealError(error)) {
                     getBus().post(new ApiErrorEvent(error));
                 }
                 failureCallback.call(error);
@@ -523,9 +523,10 @@ public class NetworkService {
             public void failure(RetrofitError error) {
                 // fallback to cached data
                 getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
-                if (NetworkUtils.isRealError(error)) {
-                    // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
-                    // login with the password if that doesn't work either (#92)
+                if (NetworkUtils.isUnauthorized(error)) {
+                    // defer the event and try to re-authorize
+                    refreshAccessToken(event);
+                } else if (NetworkUtils.isRealError(error)) {
                     getBus().post(new ApiErrorEvent(error));
                     refreshFailed(event, error);
                 } else {
@@ -585,24 +586,30 @@ public class NetworkService {
 
         final Action0 syncFinishedCB = () -> {
             RetrofitError retrofitError = uploadErrorOccurred[0];
-            // TODO log uploaded new drafts and published posts via AnalyticsService
             // delete local copies of only those new posts that were successfully uploaded
             deleteModels(localNewPostsUploaded);
             // if forceNetworkCall is true, first load from the db, AND only then from the network,
             // to avoid a crash because local posts have been deleted above but are still being
             // displayed, so we need to refresh the UI first
-            getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
-            if (event.forceNetworkCall) {
-                LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
-                mRefreshEventsQueue.add(loadPostsEvent);
-                getBus().post(loadPostsEvent);
+            if (retrofitError != null && NetworkUtils.isUnauthorized(retrofitError)) {
+                // defer the event and try to re-authorize
+                refreshAccessToken(event);
+            } else {
+                if (retrofitError != null && NetworkUtils.isRealError(retrofitError)) {
+                    refreshFailed(event, retrofitError);
+                } else {
+                    refreshSucceeded(event);
+                }
+                getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
+                if (event.forceNetworkCall) {
+                    LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
+                    mRefreshEventsQueue.add(loadPostsEvent);
+                    getBus().post(loadPostsEvent);
+                }
             }
-            refreshDone(event, retrofitError);
         };
 
         final Action2<Post, RetrofitError> onFailure = (post, retrofitError) -> {
-            // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
-            // login with the password if that doesn't work either (#92)
             uploadErrorOccurred[0] = retrofitError;
             mPostUploadQueue.removeFirstOccurrence(post);
             getBus().post(new ApiErrorEvent(retrofitError));
@@ -769,10 +776,13 @@ public class NetworkService {
 
             @Override
             public void failure(RetrofitError error) {
-                // FIXME if status is 401 Unauthorized, try to refresh the access token, OR
-                // login with the password if that doesn't work either (#92)
-
                 getBus().post(new FileUploadErrorEvent(error));
+                if (NetworkUtils.isUnauthorized(error)) {
+                    // defer the event and try to re-authorize
+                    refreshAccessToken(event);
+                } else if (NetworkUtils.isRealError(error)) {
+                    getBus().post(new ApiErrorEvent(error));
+                }
             }
         });
     }
@@ -898,10 +908,10 @@ public class NetworkService {
                 // if the response is 401 Unauthorized, we can recover from it by logging in anew
                 // this should only happen if the refresh token is manually revoked or the
                 // expiration time is changed inside Ghost (#92)
-                if (error.getResponse() != null &&
-                        error.getResponse().getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                if (NetworkUtils.isUnauthorized(error)) {
                     postLoginStartEvent();
-                    Log.e(TAG, "Expired refresh token used! You're wasting bandwidth / battery!");
+                    Crashlytics.log(Log.WARN, TAG, "Expired refresh token used! You're wasting bandwidth / battery!");
+                    Crashlytics.logException(error);
                 } else {
                     getBus().post(new LoginErrorEvent(error, null, false));
                     flushApiEventQueue(true);

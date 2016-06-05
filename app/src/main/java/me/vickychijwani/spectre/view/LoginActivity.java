@@ -395,10 +395,8 @@ public class LoginActivity extends BaseActivity implements
                 mBlogUrlLayout.setError(String.format(getString(R.string.no_such_blog), blogUrl));
                 mBlogUrlView.requestFocus();
             } else if (connectionError) {
-                Toast.makeText(this, String.format(getString(R.string.login_connection_error), blogUrl),
-                        Toast.LENGTH_SHORT).show();
                 mBlogUrlLayout.setErrorEnabled(false);
-                mBlogUrlLayout.setError(null);
+                mBlogUrlLayout.setError(String.format(getString(R.string.login_connection_error), blogUrl));
             } else {
                 Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during login!");
                 Crashlytics.logException(error);
