@@ -130,17 +130,40 @@ public class PostViewActivity extends BaseActivity implements
             }
         };
 
-        mPost = getIntent().getExtras().getParcelable(BundleKeys.POST);
-        mbFileStorageEnabled = getIntent().getExtras().getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
-        mViewPager.setAdapter(new PostViewFragmentPagerAdapter(getSupportFragmentManager(),
+        Bundle bundle;
+        if (savedInstanceState != null) {
+            bundle = savedInstanceState;
+        } else {
+            bundle = getIntent().getExtras();
+        }
+        @PostViewFragmentPagerAdapter.TabPosition int startingTabPosition =
+                PostViewFragmentPagerAdapter.TAB_POSITION_PREVIEW;
+        if (bundle.getBoolean(BundleKeys.START_EDITING)) {
+            startingTabPosition = PostViewFragmentPagerAdapter.TAB_POSITION_EDIT;
+        }
+        mPost = bundle.getParcelable(BundleKeys.POST);
+        mbFileStorageEnabled = bundle.getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
+        mViewPager.setAdapter(new PostViewFragmentPagerAdapter(this, getSupportFragmentManager(),
                 mPost, mbFileStorageEnabled, this));
         mViewPager.removeOnPageChangeListener(this);
         mViewPager.addOnPageChangeListener(this);
+        mViewPager.setCurrentItem(startingTabPosition);
         mTabLayout.setupWithViewPager(mViewPager);
         updatePostSettings();
         mPostImageLayoutManager.setOnClickListener(this);
 
         getBus().post(new LoadTagsEvent());
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // if the post is replaced (e.g., right after new post creation) followed by an
+        // orientation change, make sure we have the updated post after being re-created
+        outState.putParcelable(BundleKeys.POST, mPost);
+        outState.putBoolean(BundleKeys.FILE_STORAGE_ENABLED, mbFileStorageEnabled);
+        outState.putBoolean(BundleKeys.START_EDITING,
+                mViewPager.getCurrentItem() == PostViewFragmentPagerAdapter.TAB_POSITION_EDIT);
     }
 
     @Override

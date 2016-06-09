@@ -1,11 +1,17 @@
 package me.vickychijwani.spectre.view;
 
+import android.content.Context;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.view.fragments.BaseFragment;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
@@ -18,16 +24,26 @@ class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
         void onPostEditFragmentInitialized(PostEditFragment postEditFragment);
     }
 
-    private static final String[] TAB_TITLES = new String[] { "Preview", "Edit" };
-    private static final int TAB_COUNT = TAB_TITLES.length;
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({ TAB_POSITION_PREVIEW, TAB_POSITION_EDIT })
+    public @interface TabPosition {}
+
+    public static final int         TAB_POSITION_PREVIEW = 0;
+    public static final int         TAB_POSITION_EDIT = 1;
+
+    private static final int        TAB_COUNT = 2;
+    private static final String[]   TAB_TITLES = new String[TAB_COUNT];
 
     private Post mPost;
     private final boolean mFileStorageEnabled;
     private final OnFragmentsInitializedListener mFragmentsInitializedListener;
 
-    public PostViewFragmentPagerAdapter(FragmentManager fm, Post post, boolean fileStorageEnabled,
+    public PostViewFragmentPagerAdapter(Context context, FragmentManager fm,
+                                        Post post, boolean fileStorageEnabled,
                                         OnFragmentsInitializedListener listener) {
         super(fm);
+        TAB_TITLES[TAB_POSITION_PREVIEW] = context.getString(R.string.preview);
+        TAB_TITLES[TAB_POSITION_EDIT] = context.getString(R.string.edit);
         mPost = post;
         mFileStorageEnabled = fileStorageEnabled;
         mFragmentsInitializedListener = listener;
@@ -50,11 +66,11 @@ class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
         return object;
     }
 
-    public Class<? extends BaseFragment> getFragmentType(int position) {
+    public Class<? extends BaseFragment> getFragmentType(@TabPosition int position) {
         switch (position) {
-            case 0:
+            case TAB_POSITION_PREVIEW:
                 return PostViewFragment.class;
-            case 1:
+            case TAB_POSITION_EDIT:
                 return PostEditFragment.class;
             default:
                 throw new IllegalArgumentException("No fragment exists at position " + position);
@@ -63,11 +79,11 @@ class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
 
     // FragmentPagerAdapter#instantiateItem() calls getItem() to create a new instance
     @Override
-    public Fragment getItem(int position) {
+    public Fragment getItem(@TabPosition int position) {
         switch (position) {
-            case 0:
+            case TAB_POSITION_PREVIEW:
                 return PostViewFragment.newInstance(mPost);
-            case 1:
+            case TAB_POSITION_EDIT:
                 return PostEditFragment.newInstance(mPost, mFileStorageEnabled);
             default:
                 throw new IllegalArgumentException("No fragment exists at position " + position);

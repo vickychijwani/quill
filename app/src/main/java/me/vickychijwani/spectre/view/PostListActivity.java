@@ -154,6 +154,7 @@ public class PostListActivity extends BaseActivity {
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
             intent.putExtra(BundleKeys.POST, post);
             intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
+            intent.putExtra(BundleKeys.START_EDITING, false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 Bundle activityOptions = ActivityOptions.makeScaleUpAnimation(v, 0, 0,
                         v.getWidth(), v.getHeight()).toBundle();
@@ -425,6 +426,7 @@ public class PostListActivity extends BaseActivity {
         Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
         intent.putExtra(BundleKeys.POST, event.newPost);
         intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
+        intent.putExtra(BundleKeys.START_EDITING, true);
         startActivityForResult(intent, REQUEST_CODE_VIEW_POST);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
