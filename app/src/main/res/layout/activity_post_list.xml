@@ -101,4 +101,26 @@
 
     </LinearLayout>
 
+    <!-- for circular reveal animation -->
+    <FrameLayout
+        android:id="@+id/new_post_reveal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:attr/windowBackground"
+        android:visibility="invisible">
+
+        <!-- for the 2nd part of the animation that shrinks to match the toolbar height of PostViewActivity -->
+        <View
+            android:id="@+id/new_post_reveal_shrink"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:elevation="@dimen/toolbar_elevation"
+            android:background="?attr/colorAccent"
+            android:transformPivotX="0dp"
+            android:transformPivotY="0dp"
+            tools:targetApi="lollipop"
+            />
+
+    </FrameLayout>
+
 </FrameLayout>

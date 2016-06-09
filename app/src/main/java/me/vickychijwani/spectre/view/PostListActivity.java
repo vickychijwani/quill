@@ -1,10 +1,18 @@
 package me.vickychijwani.spectre.view;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -17,9 +25,13 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewAnimationUtils;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -34,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
+import butterknife.BindDimen;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
@@ -90,6 +103,13 @@ public class PostListActivity extends BaseActivity {
     @Bind(R.id.post_list_container)         FrameLayout mPostListContainer;
     @Bind(R.id.post_list)                   RecyclerView mPostList;
 
+    @Bind(R.id.new_post_reveal)             View mNewPostRevealView;
+    @Bind(R.id.new_post_reveal_shrink)      View mNewPostRevealShrinkView;
+    @BindDimen(R.dimen.toolbar_height)      int mToolbarHeight;
+    @BindDimen(R.dimen.tabbar_height)       int mTabbarHeight;
+    @ColorInt private                       int mColorAccent;
+    @ColorInt private                       int mColorPrimary;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +130,13 @@ public class PostListActivity extends BaseActivity {
         // get rid of the default action bar confetti
         //noinspection ConstantConditions
         getSupportActionBar().setDisplayOptions(0);
+
+        // constants for animation
+        TypedValue typedColorValue = new TypedValue();
+        getTheme().resolveAttribute(R.attr.colorAccent, typedColorValue, true);
+        mColorAccent = typedColorValue.data;
+        getTheme().resolveAttribute(R.attr.colorPrimary, typedColorValue, true);
+        mColorPrimary = typedColorValue.data;
 
         // initialize post list UI
         UserPrefs prefs = UserPrefs.getInstance(this);
@@ -174,6 +201,15 @@ public class PostListActivity extends BaseActivity {
 
         // load cached data immediately
         refreshData(true);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // reset views involved in new post animation
+        mNewPostRevealView.setVisibility(View.INVISIBLE);
+        mNewPostRevealShrinkView.setScaleY(1f);
+        mNewPostRevealShrinkView.setBackgroundColor(mColorAccent);
     }
 
     @Override
@@ -323,8 +359,58 @@ public class PostListActivity extends BaseActivity {
     }
 
     @OnClick(R.id.new_post_btn)
-    public void onNewPostBtnClicked() {
-        getBus().post(new CreatePostEvent());
+    public void onNewPostBtnClicked(View btn) {
+        Runnable createPost = () -> getBus().post(new CreatePostEvent());
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            // circular reveal animation
+            int[] revealViewLocation = new int[2], btnLocation = new int[2];
+            mNewPostRevealView.getLocationOnScreen(revealViewLocation);
+            btn.getLocationOnScreen(btnLocation);
+            int centerX = btnLocation[0] - revealViewLocation[0] + btn.getWidth()/2;
+            int centerY = btnLocation[1] - revealViewLocation[1] + btn.getHeight()/2;
+            float endRadius = (float) Math.hypot(centerX, centerY);
+            Animator revealAnimator = ViewAnimationUtils.createCircularReveal(
+                    mNewPostRevealView, centerX, centerY, 0, endRadius);
+            revealAnimator.setDuration(500);
+            revealAnimator.setInterpolator(new AccelerateInterpolator());
+            mNewPostRevealView.setVisibility(View.VISIBLE);
+
+            // background color animation
+            ValueAnimator colorAnimator = ValueAnimator
+                    .ofObject(new ArgbEvaluator(), mColorAccent, mColorPrimary);
+            colorAnimator.addUpdateListener(animator ->
+                    mNewPostRevealShrinkView.setBackgroundColor((int) animator.getAnimatedValue()));
+            colorAnimator.setDuration(500);
+            colorAnimator.setInterpolator(new AccelerateInterpolator());
+
+            // shrink animation
+            float startHeight = mNewPostRevealShrinkView.getHeight();
+            float targetScaleY = (mToolbarHeight + mTabbarHeight) / startHeight;
+            ObjectAnimator shrinkAnimator = ObjectAnimator.ofFloat(mNewPostRevealShrinkView,
+                    "scaleY", targetScaleY);
+            shrinkAnimator.setStartDelay(150);
+            shrinkAnimator.setDuration(300);
+            shrinkAnimator.setInterpolator(new DecelerateInterpolator());
+
+            // play reveal + color change together, followed by shrink
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.play(revealAnimator).with(colorAnimator);
+            animatorSet.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    shrinkAnimator.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            createPost.run();
+                        }
+                    });
+                    shrinkAnimator.start();
+                }
+            });
+            animatorSet.start();
+        } else {
+            createPost.run();
+        }
     }
 
     @Subscribe
@@ -332,7 +418,12 @@ public class PostListActivity extends BaseActivity {
         Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
         intent.putExtra(BundleKeys.POST, event.newPost);
         intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_CODE_VIEW_POST);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            // setup the next Activity to fade-in, since we just finished the circular reveal
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        }
     }
 
     @Subscribe
