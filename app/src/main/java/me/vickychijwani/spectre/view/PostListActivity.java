@@ -6,6 +6,7 @@ import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -153,7 +154,13 @@ public class PostListActivity extends BaseActivity {
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
             intent.putExtra(BundleKeys.POST, post);
             intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
-            startActivityForResult(intent, REQUEST_CODE_VIEW_POST);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                Bundle activityOptions = ActivityOptions.makeScaleUpAnimation(v, 0, 0,
+                        v.getWidth(), v.getHeight()).toBundle();
+                startActivityForResult(intent, REQUEST_CODE_VIEW_POST, activityOptions);
+            } else {
+                startActivityForResult(intent, REQUEST_CODE_VIEW_POST);
+            }
         });
         mPostList.setAdapter(mPostAdapter);
         mPostList.setLayoutManager(new StaggeredGridLayoutManager(
