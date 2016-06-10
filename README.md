@@ -1,5 +1,7 @@
 [![](https://dl.dropboxusercontent.com/u/3037831/quill-github/feature-graphic.png)][playstore]
 
+<img src="screenshots/demo.gif" width="320" align="right" hspace="20">
+
 [![](https://img.shields.io/circleci/project/vickychijwani/quill.svg)](https://circleci.com/gh/vickychijwani/quill)
 [![Join the chat at https://gitter.im/vickychijwani/quill](https://badges.gitter.im/vickychijwani/quill.svg)](https://gitter.im/vickychijwani/quill?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![](https://img.shields.io/github/tag/vickychijwani/quill.svg)
