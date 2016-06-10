@@ -1,0 +1,5 @@
+<issue id="ResourceType">
+    <!-- Remove this when this is fixed: https://github.com/JakeWharton/butterknife/issues/338 -->
+    <ignore path="**/*$$ViewBinder.java" />
+</issue>
+
