@@ -80,7 +80,7 @@ public class Post implements RealmModel, Parcelable {
 
     public Post() {}
 
-    // TODO remember to update this, Parcelable methods, and DB migration whenever fields are changed!
+    // TODO remember to update this, equals, Parcelable methods, and DB migration whenever fields are changed!
     public Post(@NonNull Post post) {
         this.setUuid(post.getUuid());
         this.setId(post.getId());
@@ -117,6 +117,50 @@ public class Post implements RealmModel, Parcelable {
         for (PendingAction action : post.getPendingActions()) {
             this.addPendingAction(action.getType());
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Post post = (Post) o;
+        if (getId() != post.getId()) return false;
+        if (isFeatured() != post.isFeatured()) return false;
+        if (isPage() != post.isPage()) return false;
+        if (getAuthor() != post.getAuthor()) return false;
+        if (getCreatedBy() != post.getCreatedBy()) return false;
+        if (getUpdatedBy() != post.getUpdatedBy()) return false;
+        if (getPublishedBy() != post.getPublishedBy()) return false;
+        if (getUuid() != null ? !getUuid().equals(post.getUuid()) : post.getUuid() != null)
+            return false;
+        if (getTitle() != null ? !getTitle().equals(post.getTitle()) : post.getTitle() != null)
+            return false;
+        if (getSlug() != null ? !getSlug().equals(post.getSlug()) : post.getSlug() != null)
+            return false;
+        if (getStatus() != null ? !getStatus().equals(post.getStatus()) : post.getStatus() != null)
+            return false;
+        if (getMarkdown() != null ? !getMarkdown().equals(post.getMarkdown()) : post.getMarkdown() != null)
+            return false;
+        if (getHtml() != null ? !getHtml().equals(post.getHtml()) : post.getHtml() != null)
+            return false;
+        if (getTags() != null ? !getTags().equals(post.getTags()) : post.getTags() != null)
+            return false;
+        if (getImage() != null ? !getImage().equals(post.getImage()) : post.getImage() != null)
+            return false;
+        if (getLanguage() != null ? !getLanguage().equals(post.getLanguage()) : post.getLanguage() != null)
+            return false;
+        if (getCreatedAt() != null ? !getCreatedAt().equals(post.getCreatedAt()) : post.getCreatedAt() != null)
+            return false;
+        if (getPublishedAt() != null ? !getPublishedAt().equals(post.getPublishedAt()) : post.getPublishedAt() != null)
+            return false;
+        if (getUpdatedAt() != null ? !getUpdatedAt().equals(post.getUpdatedAt()) : post.getUpdatedAt() != null)
+            return false;
+        if (getMetaTitle() != null ? !getMetaTitle().equals(post.getMetaTitle()) : post.getMetaTitle() != null)
+            return false;
+        if (getMetaDescription() != null ? !getMetaDescription().equals(post.getMetaDescription()) : post.getMetaDescription() != null)
+            return false;
+        return getPendingActions() != null ? getPendingActions().equals(post.getPendingActions()) : post.getPendingActions() == null;
     }
 
     // Parcelable methods

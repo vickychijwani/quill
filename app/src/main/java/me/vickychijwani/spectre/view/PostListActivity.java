@@ -352,6 +352,11 @@ public class PostListActivity extends BaseActivity {
 
     @Subscribe
     public void onPostsLoadedEvent(PostsLoadedEvent event) {
+        // this exists to let animation run to completion because posts are loaded
+        // twice on launch: once cached data, and once from the network
+        if (mPosts.equals(event.posts)) {
+            return;
+        }
         mPosts.clear();
         mPosts.addAll(event.posts);
         if (mPosts.size() >= event.postsFetchLimit) {

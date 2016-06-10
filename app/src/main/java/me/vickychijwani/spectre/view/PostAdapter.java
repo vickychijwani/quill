@@ -3,7 +3,11 @@ package me.vickychijwani.spectre.view;
 import android.content.Context;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.text.TextUtils;
@@ -11,6 +15,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,6 +28,7 @@ import butterknife.ButterKnife;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
+import me.vickychijwani.spectre.util.DeviceUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 
@@ -39,6 +45,13 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final View.OnClickListener mItemClickListener;
     private final Paint mLowAlphaPaint;
     private CharSequence mFooterText;
+
+    // animation stuff
+    private static final DecelerateInterpolator ANIM_INTERPOLATOR = new DecelerateInterpolator();
+    private boolean mAnimateOnAttach = true;
+    // for disabling mAnimateOnAttach after some time
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
+    private int mAnimationDelay = 0; // for staggering
 
     public PostAdapter(Context context, List<Post> posts, String blogUrl, Picasso picasso,
                        View.OnClickListener itemClickListener) {
@@ -169,6 +182,55 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             } else {
                 childView.setLayerType(View.LAYER_TYPE_NONE, null);
             }
+        }
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        // only show card animations when the adapter is initially created
+        mHandler.postDelayed(() -> mAnimateOnAttach = false, 1000);
+    }
+
+    @Override
+    public void onViewAttachedToWindow(RecyclerView.ViewHolder viewHolder) {
+        if (! (viewHolder instanceof PostViewHolder)) {
+            return;
+        }
+        // play a little cards animation similar to Google Now and Google+
+        PostViewHolder postVH = (PostViewHolder) viewHolder;
+        if (mAnimateOnAttach) {
+            View itemView = postVH.itemView;
+            itemView.setTranslationY(DeviceUtils.dpToPx(300));
+            itemView.setRotation(10);
+            itemView.setAlpha(0f);
+            ViewCompat.animate(itemView)
+                    .withLayer()
+                    .translationY(0f)
+                    .rotation(0f)
+                    .alpha(1f)
+                    .setDuration(500)
+                    .setInterpolator(ANIM_INTERPOLATOR)
+                    .setStartDelay(mAnimationDelay)   // stagger the animation
+                    .setListener(new ViewPropertyAnimatorListener() {
+                        @Override
+                        public void onAnimationStart(View view) {
+                            mAnimationDelay += 100;
+                        }
+
+                        @Override
+                        public void onAnimationEnd(View view) {
+                            mAnimationDelay -= 100;
+                        }
+
+                        @Override
+                        public void onAnimationCancel(View view) {
+                            mAnimationDelay -= 100;
+                            itemView.setTranslationY(0f);
+                            itemView.setRotation(0f);
+                            itemView.setAlpha(1f);
+                        }
+                    })
+                    .start();
         }
     }
 

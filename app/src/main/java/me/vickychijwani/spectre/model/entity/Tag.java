@@ -39,7 +39,7 @@ public class Tag implements RealmModel, Parcelable {
         this.name = name;
     }
 
-    // TODO remember to update this, Parcelable methods, and DB migration whenever fields are changed!
+    // TODO remember to update this, equals, Parcelable methods, and DB migration whenever fields are changed!
     public Tag(@NonNull Tag other) {
         this.setUuid(other.getUuid());
         this.setName(other.getName());
@@ -51,6 +51,32 @@ public class Tag implements RealmModel, Parcelable {
         this.setMetaDescription(other.getMetaDescription());
         this.setCreatedAt(other.getCreatedAt());
         this.setUpdatedAt(other.getUpdatedAt());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Tag tag = (Tag) o;
+        if (isHidden() != tag.isHidden()) return false;
+        if (getUuid() != null ? !getUuid().equals(tag.getUuid()) : tag.getUuid() != null)
+            return false;
+        if (getName() != null ? !getName().equals(tag.getName()) : tag.getName() != null)
+            return false;
+        if (getSlug() != null ? !getSlug().equals(tag.getSlug()) : tag.getSlug() != null)
+            return false;
+        if (getDescription() != null ? !getDescription().equals(tag.getDescription()) : tag.getDescription() != null)
+            return false;
+        if (getImage() != null ? !getImage().equals(tag.getImage()) : tag.getImage() != null)
+            return false;
+        if (getMetaTitle() != null ? !getMetaTitle().equals(tag.getMetaTitle()) : tag.getMetaTitle() != null)
+            return false;
+        if (getMetaDescription() != null ? !getMetaDescription().equals(tag.getMetaDescription()) : tag.getMetaDescription() != null)
+            return false;
+        if (getCreatedAt() != null ? !getCreatedAt().equals(tag.getCreatedAt()) : tag.getCreatedAt() != null)
+            return false;
+        return getUpdatedAt() != null ? getUpdatedAt().equals(tag.getUpdatedAt()) : tag.getUpdatedAt() == null;
     }
 
     // parcelable methods

@@ -35,6 +35,15 @@ public class PendingAction implements RealmModel, Parcelable {
         this.type = type;
     }
 
+    // TODO remember to update equals, Parcelable methods, and DB migration whenever fields are changed!
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PendingAction that = (PendingAction) o;
+        return getType() != null ? getType().equals(that.getType()) : that.getType() == null;
+    }
 
     // parcelable methods
     @Override
