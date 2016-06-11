@@ -204,7 +204,7 @@ public class PostListActivity extends BaseActivity {
 
         mRefreshDataRunnable = () -> refreshData(false);
         mRefreshTimeoutRunnable = this::refreshTimedOut;
-        mSwipeRefreshLayout.setColorSchemeResources(R.color.accent, R.color.primary);
+        mSwipeRefreshLayout.setColorSchemeColors(mColorAccent, mColorPrimary);
         mSwipeRefreshLayout.setOnRefreshListener(() -> refreshData(false));
 
         // load cached data immediately

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="BaseAppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- main -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
@@ -15,15 +15,12 @@
         <item name="actionBarSize">@dimen/toolbar_height</item>
     </style>
 
-    <style name="AppTheme" parent="BaseAppTheme">
-    </style>
-
     <style name="BaseLoginTheme" parent="AppTheme">
         <item name="android:buttonStyle">@style/Widget.AppCompat.Button.Colored</item>
         <item name="android:textColorHint">@color/text_primary_inverted_dim</item>
         <item name="colorControlNormal">@color/text_primary_inverted_dim</item>
         <item name="colorControlActivated">@color/text_primary_inverted</item>
-        <item name="textColorError">@color/accent</item>
+        <item name="textColorError">?attr/colorAccent</item>
         <item name="android:windowBackground">@drawable/login_bg</item>
     </style>
 

@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -15,6 +16,7 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -93,6 +95,10 @@ public class PostViewActivity extends BaseActivity implements
         super.onCreate(savedInstanceState);
         setLayout(R.layout.activity_post_view);
 
+        TypedValue typedColorValue = new TypedValue();
+        getTheme().resolveAttribute(R.attr.colorPrimary, typedColorValue, true);
+        @ColorInt int colorPrimary = typedColorValue.data;
+
         // ButterKnife doesn't work with the NavigationView's header because it isn't
         // exposed via findViewById: https://code.google.com/p/android/issues/detail?id=190226
         ViewGroup headerView = (ViewGroup) mNavView.getHeaderView(0);
@@ -111,7 +117,7 @@ public class PostViewActivity extends BaseActivity implements
                 android.R.layout.simple_dropdown_item_1line, Collections.emptyList());
         mPostTagsEditText.setAdapter(tagSuggestionsAdapter);
         mPostTagsEditText.setTokenizer(new ChipsEditText.SpaceTokenizer());
-        mPostTagsEditText.setChipBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+        mPostTagsEditText.setChipBackgroundColor(colorPrimary);
         mPostTagsEditText.setChipTextColor(ContextCompat.getColor(this, R.color.text_primary_inverted));
 
         // make the field single line, but wrapped instead of scrolling horizontally

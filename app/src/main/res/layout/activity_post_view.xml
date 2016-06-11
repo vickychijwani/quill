@@ -17,7 +17,7 @@
             android:id="@+id/appbar"
             android:layout_width="match_parent"
             android:layout_height="@dimen/post_view_appbar_height"
-            android:background="@color/primary">
+            android:background="?attr/colorPrimary">
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
