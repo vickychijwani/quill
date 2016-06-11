@@ -16,8 +16,15 @@ public class EditTextSelectionState {
     public EditTextSelectionState(@NonNull EditText editText) {
         mEditText = editText;
         mFocused = editText.hasFocus();
-        mSelectionStart = editText.getSelectionStart();
-        mSelectionEnd = editText.getSelectionEnd();
+        int selectionStart = editText.getSelectionStart();
+        int selectionEnd = editText.getSelectionEnd();
+        if (selectionStart > selectionEnd && selectionStart != -1 && selectionEnd != -1) {
+            mSelectionStart = selectionEnd;
+            mSelectionEnd = selectionStart;
+        } else {
+            mSelectionStart = selectionStart;
+            mSelectionEnd = selectionEnd;
+        }
     }
 
     public EditText getEditText() {

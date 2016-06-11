@@ -13,7 +13,6 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
@@ -25,11 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import me.vickychijwani.spectre.R;
-import me.vickychijwani.spectre.util.AppUtils;
-import me.vickychijwani.spectre.util.EditTextSelectionState;
-import me.vickychijwani.spectre.util.KeyboardUtils;
 import rx.Observable;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subscriptions.Subscriptions;
 
@@ -94,28 +89,6 @@ public class Observables {
             }
         };
         return Observable.create(onSubscribe);
-    }
-
-    public static class Actions {
-
-        public static Action1<String> insertImageMarkdown(@NonNull Activity activity,
-                                                          EditTextSelectionState selectionState) {
-            return (url) -> {
-                String lhs = "\n\n![", rhs = "](" + url + ")\n\n";
-                EditText editText = selectionState.getEditText();
-                if (selectionState.isFocused()) {
-                    int start = AppUtils.insertTextAtCursorOrEnd(selectionState, lhs + rhs);
-                    // position the cursor between the square brackets: ![|](http://...)
-                    editText.setSelection(start + lhs.length());
-                } else {
-                    editText.getText().append(lhs).append(rhs);
-                    // position the cursor between the square brackets: ![|](http://...)
-                    editText.setSelection(editText.getText().length() - rhs.length());
-                }
-                KeyboardUtils.focusAndShowKeyboard(activity, editText);
-            };
-        }
-
     }
 
     public static class Funcs {

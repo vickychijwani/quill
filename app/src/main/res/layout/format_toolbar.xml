@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    android:id="@+id/format_toolbar"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/format_toolbar_height"
+    android:background="@color/format_toolbar_background"
+    android:elevation="@dimen/format_toolbar_elevation"
+    tools:targetApi="lollipop">
+
+    <LinearLayout
+        style="@style/MyFormatToolbar"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        tools:ignore="UselessParent">
+
+        <ImageButton
+            android:id="@+id/format_bold"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/format_bold"
+            android:src="@drawable/format_bold"
+            />
+
+        <ImageButton
+            android:id="@+id/format_italic"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/format_italic"
+            android:src="@drawable/format_italic"
+            />
+
+        <ImageButton
+            android:id="@+id/format_link"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/format_link"
+            android:src="@drawable/format_link"
+            />
+
+        <ImageButton
+            android:id="@+id/format_image"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/format_image"
+            android:src="@drawable/format_image"
+            />
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -1,14 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <item
-        android:id="@+id/action_insert_image_url"
-        android:icon="@drawable/image_insert"
-        android:title="@string/insert_image_url"
-        android:orderInCategory="50"
-        app:showAsAction="always"
-        />
+<menu>
 
     <!--<item-->
     <!--android:id="@+id/action_discard"-->

@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Set;
 
 import butterknife.Bind;
+import butterknife.BindDimen;
+import butterknife.ButterKnife;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.DeletePostEvent;
@@ -76,6 +78,7 @@ public class PostViewActivity extends BaseActivity implements
     @Bind(R.id.drawer_layout)                   DrawerLayout mDrawerLayout;
     @Bind(R.id.nav_view)                        NavigationView mNavView;
 
+    private FormattingToolbarManager mFormattingToolbarManager = null;
     private PostImageLayoutManager mPostImageLayoutManager = null;
     private ChipsEditText mPostTagsEditText;
 
@@ -110,6 +113,8 @@ public class PostViewActivity extends BaseActivity implements
         //noinspection ConstantConditions
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        mFormattingToolbarManager = new FormattingToolbarManager((ViewGroup) findViewById(R.id.format_toolbar));
 
         mBlogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
 
@@ -146,6 +151,9 @@ public class PostViewActivity extends BaseActivity implements
                 PostViewFragmentPagerAdapter.TAB_POSITION_PREVIEW;
         if (bundle.getBoolean(BundleKeys.START_EDITING)) {
             startingTabPosition = PostViewFragmentPagerAdapter.TAB_POSITION_EDIT;
+        } else {
+            // hide the formatting toolbar in the preview
+            mFormattingToolbarManager.hide();
         }
         mPost = bundle.getParcelable(BundleKeys.POST);
         mbFileStorageEnabled = bundle.getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
@@ -180,6 +188,7 @@ public class PostViewActivity extends BaseActivity implements
     @Override
     public void onPostEditFragmentInitialized(PostEditFragment postEditFragment) {
         mPostEditFragment = postEditFragment;
+        mFormattingToolbarManager.setFormatOptionClickListener(mPostEditFragment);
     }
 
     @Override
@@ -440,7 +449,11 @@ public class PostViewActivity extends BaseActivity implements
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        // no-op
+        if (position == PostViewFragmentPagerAdapter.TAB_POSITION_EDIT) {
+            mFormattingToolbarManager.translateToolbar(positionOffset);
+        } else if (position == PostViewFragmentPagerAdapter.TAB_POSITION_PREVIEW) {
+            mFormattingToolbarManager.translateToolbar(1-positionOffset);
+        }
     }
 
     @Override
@@ -466,6 +479,59 @@ public class PostViewActivity extends BaseActivity implements
     @Override
     public void setTitle(int titleId) {
         mToolbarTitle.setText(titleId);
+    }
+
+
+
+    public final static class FormattingToolbarManager implements View.OnClickListener {
+        @BindDimen(R.dimen.format_toolbar_height)   int mFormattingToolbarHeight;
+
+        final ViewGroup mFormattingToolbar;
+        FormatOptionClickListener mFormatOptionClickListener = null;
+
+        public FormattingToolbarManager(ViewGroup formattingToolbar) {
+            ButterKnife.bind(this, formattingToolbar);
+            mFormattingToolbar = formattingToolbar;
+            ViewGroup buttonContainer = mFormattingToolbar;
+            while (buttonContainer.getChildAt(0) instanceof ViewGroup) {
+                buttonContainer = (ViewGroup) mFormattingToolbar.getChildAt(0);
+            }
+            for (int i = 0, childCount = buttonContainer.getChildCount(); i < childCount; ++i) {
+                buttonContainer.getChildAt(i).setOnClickListener(this);
+            }
+        }
+
+        public void translateToolbar(float offset) {
+            mFormattingToolbar.setTranslationY(mFormattingToolbarHeight * offset);
+        }
+
+        public void hide() {
+            translateToolbar(1f);
+        }
+
+        public void setFormatOptionClickListener(@NonNull FormatOptionClickListener listener) {
+            mFormatOptionClickListener = listener;
+        }
+
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+                case R.id.format_bold:
+                    mFormatOptionClickListener.onFormatBoldClicked(v);
+                    break;
+                case R.id.format_italic:
+                    mFormatOptionClickListener.onFormatItalicClicked(v);
+                    break;
+                case R.id.format_link:
+                    mFormatOptionClickListener.onFormatLinkClicked(v);
+                    break;
+                case R.id.format_image:
+                    mFormatOptionClickListener.onFormatImageClicked(v);
+                    break;
+                default:
+                    throw new IllegalArgumentException("No listener method assigned to this view!");
+            }
+        }
     }
 
 

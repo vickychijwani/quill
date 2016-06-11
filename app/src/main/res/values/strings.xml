@@ -65,6 +65,12 @@
     <string name="post_body_hint">Type something here…</string>
     <string name="post_image_load_error">Error loading post image</string>
 
+    <!-- formatting toolbar -->
+    <string name="format_bold">Bold</string>
+    <string name="format_italic">Italic</string>
+    <string name="format_link">Insert link</string>
+    <string name="format_image">Insert image</string>
+
     <!-- image insert / upload -->
     <string name="insert_image">Insert Image</string>
     <string name="insert_image_url">Insert URL</string>

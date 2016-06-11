@@ -7,8 +7,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.Editable;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -31,20 +29,6 @@ public class AppUtils {
             Toast.makeText(activity, R.string.intent_no_apps, Toast.LENGTH_LONG)
                     .show();
         }
-    }
-
-    public static int insertTextAtCursorOrEnd(@NonNull EditTextSelectionState selectionState,
-                                              @NonNull String textToInsert) {
-        EditText editText = selectionState.getEditText();
-        Editable editable = editText.getText();
-        int editableLen = editable.length();
-        int selStart = selectionState.getSelectionStart();
-        int selEnd = selectionState.getSelectionEnd();
-        int start = (selStart >= 0) ? selStart : editableLen-1;
-        int end = (selEnd >= 0) ? selEnd : editableLen-1;
-        editable.replace(Math.min(start, end), Math.max(start, end),
-                textToInsert, 0, textToInsert.length());
-        return Math.min(start, end);
     }
 
     /**

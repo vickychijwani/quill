@@ -33,6 +33,11 @@
     <dimen name="toolbar_container_height">96dp</dimen>
     <dimen name="toolbar_elevation">4dp</dimen>
     <dimen name="tabbar_height">48dp</dimen>
+
+    <dimen name="format_toolbar_height">48dp</dimen>
+    <dimen name="format_toolbar_elevation">8dp</dimen>
+    <dimen name="format_toolbar_max_width">384dp</dimen>  <!-- width of my Nexus 4 -->
+
     <dimen name="post_view_appbar_height">104dp</dimen>   <!-- toolbar_height + tabbar_height -->
     <dimen name="post_image_height">192dp</dimen>
     <dimen name="post_grid_max_width">1200dp</dimen>

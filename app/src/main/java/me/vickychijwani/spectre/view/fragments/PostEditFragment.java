@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -45,8 +46,11 @@ import me.vickychijwani.spectre.model.entity.PendingAction;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
+import me.vickychijwani.spectre.util.EditTextUtils;
+import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.BundleKeys;
+import me.vickychijwani.spectre.view.FormatOptionClickListener;
 import me.vickychijwani.spectre.view.Observables;
 import me.vickychijwani.spectre.view.PostViewActivity;
 import rx.Observable;
@@ -57,7 +61,8 @@ import rx.functions.Actions;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
-public class PostEditFragment extends BaseFragment {
+public class PostEditFragment extends BaseFragment implements
+        FormatOptionClickListener {
 
     private static final String TAG = "PostEditFragment";
 
@@ -216,23 +221,67 @@ public class PostEditFragment extends BaseFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_insert_image_url:
-            case R.id.action_insert_image_upload:
-                mMarkdownEditSelectionState = new EditTextSelectionState(mPostEditView);
-                Action1<String> insertMarkdownAction = Observables.Actions
-                        .insertImageMarkdown(mActivity, mMarkdownEditSelectionState);
-                if (item.getItemId() == R.id.action_insert_image_url) {
-                    onInsertImageUrlClicked(insertMarkdownAction);
-                } else {
-                    onInsertImageUploadClicked(insertMarkdownAction);
-                }
-                return true;
 //            case R.id.action_discard:
 //                onDiscardChangesClicked();
 //                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public void onFormatBoldClicked(View v) {
+        EditTextUtils.insertMarkdownBoldMarkers(new EditTextSelectionState(mPostEditView));
+        KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
+    }
+
+    @Override
+    public void onFormatItalicClicked(View v) {
+        EditTextUtils.insertMarkdownItalicMarkers(new EditTextSelectionState(mPostEditView));
+        KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
+    }
+
+    @Override
+    public void onFormatLinkClicked(View v) {
+        EditTextUtils.insertMarkdownLinkMarkers(new EditTextSelectionState(mPostEditView));
+        KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
+    }
+
+    @Override
+    public void onFormatImageClicked(View v) {
+        PopupMenu popupMenu = new PopupMenu(mActivity, v);
+        if (mbFileStorageEnabled) {
+            popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
+        } else {
+            popupMenu.inflate(R.menu.insert_image_file_storage_disabled);
+        }
+        // hide the "Remove This Image" option
+        MenuItem removeImageItem = popupMenu.getMenu().findItem(R.id.action_image_remove);
+        if (removeImageItem != null) {
+            removeImageItem.setVisible(false);
+        }
+
+        popupMenu.setOnMenuItemClickListener(item -> {
+            mMarkdownEditSelectionState = new EditTextSelectionState(mPostEditView);
+            Action1<String> insertMarkdownAction = (imageUrl) -> {
+                EditTextUtils.insertMarkdownImageMarkers(imageUrl, mMarkdownEditSelectionState);
+            };
+            if (item.getItemId() == R.id.action_insert_image_url) {
+                onInsertImageUrlClicked(insertMarkdownAction);
+            } else if (item.getItemId() == R.id.action_insert_image_upload) {
+                onInsertImageUploadClicked(insertMarkdownAction);
+            }
+            return true;
+        });
+        popupMenu.show();
+    }
+
+    public void onInsertImageUrlClicked(Action1<String> resultAction) {
+        Observables.getImageUrlDialog(mActivity).subscribe((imageUrl) -> {
+            resultAction.call(imageUrl);
+            mMarkdownEditSelectionState = null;
+            KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
+        });
     }
 
     public void onInsertImageUploadClicked(Action1<String> uploadDoneAction) {
@@ -287,6 +336,7 @@ public class PostEditFragment extends BaseFragment {
         }
         mImageUploadDoneAction.call(event.relativeUrl);
         mImageUploadDoneAction = null;
+        KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
     }
 
     @Subscribe
@@ -294,13 +344,6 @@ public class PostEditFragment extends BaseFragment {
         Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
         mUploadProgress.dismiss();
         mUploadProgress = null;
-    }
-
-    public void onInsertImageUrlClicked(Action1<String> resultAction) {
-        Observables.getImageUrlDialog(mActivity).subscribe((url) -> {
-            resultAction.call(url);
-            mMarkdownEditSelectionState = null;
-        });
     }
 
     private boolean saveToServerExplicitly() {

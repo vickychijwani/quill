@@ -34,6 +34,11 @@
         <item name="tabIndicatorHeight">3dp</item>
     </style>
 
+    <style name="MyFormatToolbar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/format_toolbar_height</item>
+    </style>
+
     <!-- About screen -->
     <style name="AboutCardStyle" parent="MyCardView">
         <item name="android:layout_width">match_parent</item>
