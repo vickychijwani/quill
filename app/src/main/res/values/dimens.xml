@@ -35,7 +35,7 @@
     <dimen name="tabbar_height">48dp</dimen>
 
     <dimen name="format_toolbar_height">48dp</dimen>
-    <dimen name="format_toolbar_elevation">8dp</dimen>
+    <dimen name="format_toolbar_elevation">5dp</dimen>    <!-- must be < 6dp (snackbar elevation) so it doesn't hide snackbars -->
     <dimen name="format_toolbar_max_width">384dp</dimen>  <!-- width of my Nexus 4 -->
 
     <dimen name="post_view_appbar_height">104dp</dimen>   <!-- toolbar_height + tabbar_height -->
