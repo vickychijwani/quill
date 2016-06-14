@@ -200,6 +200,7 @@ public class LoginActivity extends BaseActivity implements
     }
 
     private void stopCheckingBlogUrl() {
+        List<CheckBlogUrlListener> listenersToRemove = new ArrayList<>();
         for (CheckBlogUrlListener listener : mCheckBlogUrlListeners) {
             Subscription subscription = listener.getCheckBlogUrlSubscription();
             if (subscription != null && !subscription.isUnsubscribed()) {
@@ -208,8 +209,11 @@ public class LoginActivity extends BaseActivity implements
                 subscription.unsubscribe();
                 listener.setCheckBlogUrlSubscription(null);
                 listener.onReset();
-                mCheckBlogUrlListeners.remove(listener);
+                listenersToRemove.add(listener); // can't remove directly, produces ConcurrentModificationException on next iteration
             }
+        }
+        for (CheckBlogUrlListener listener : listenersToRemove) {
+            mCheckBlogUrlListeners.remove(listener);
         }
     }
 
