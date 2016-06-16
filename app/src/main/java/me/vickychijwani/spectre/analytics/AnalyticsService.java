@@ -95,7 +95,7 @@ public class AnalyticsService {
     private String getBlogTypeFromUrl(@Nullable String blogUrl) {
         if (blogUrl == null) {
             return "Unknown";
-        } else if (blogUrl.matches("ghost.io")) {
+        } else if (blogUrl.matches("^.*\\.ghost.io(/.*)?$")) {
             return "Ghost Pro";
         } else {
             return "Self-hosted";
