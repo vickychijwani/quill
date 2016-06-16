@@ -102,7 +102,10 @@ public class NetworkUtils {
                 .build();
         return networkCall(client.newCall(request))
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+                .observeOn(AndroidSchedulers.mainThread())
+                // FIXME remove this when we move to Retrofit2 / OkHttp3, see https://github.com/square/okhttp/issues/1592
+                // prevents a NetworkOnMainThreadException due to an OkHttp2 bug
+                .unsubscribeOn(Schedulers.io());
     }
 
     public static Observable<com.squareup.okhttp.Response> networkCall(@NonNull Call call) {
