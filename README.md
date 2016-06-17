@@ -4,6 +4,7 @@
 
 [![](https://img.shields.io/circleci/project/vickychijwani/quill.svg)](https://circleci.com/gh/vickychijwani/quill)
 [![Join the chat at https://gitter.im/vickychijwani/quill](https://badges.gitter.im/vickychijwani/quill.svg)](https://gitter.im/vickychijwani/quill?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-Quill-green.svg?style=true)](https://android-arsenal.com/details/3/3729)
 ![](https://img.shields.io/github/tag/vickychijwani/quill.svg)
 [![](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
