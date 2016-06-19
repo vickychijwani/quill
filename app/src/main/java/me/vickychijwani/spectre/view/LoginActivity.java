@@ -140,7 +140,7 @@ public class LoginActivity extends BaseActivity implements
             return;
         }
 
-        String blogUrl = mBlogUrlView.getText().toString().trim().replace("/ghost", "");
+        String blogUrl = mBlogUrlView.getText().toString().trim().replaceFirst("^(.*)/ghost$", "$1");
         if (TextUtils.isEmpty(blogUrl)) {
             return;
         }

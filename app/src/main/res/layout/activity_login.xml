@@ -91,6 +91,9 @@
                         android:id="@+id/blog_url"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:paddingRight="24dp"
+                        android:paddingEnd="24dp"
+                        android:requiresFadingEdge="horizontal"
                         android:hint="@string/prompt_blog_url"
                         android:imeOptions="actionNext"
                         android:inputType="textUri"
@@ -99,6 +102,7 @@
                         android:includeFontPadding="false"
                         android:textColor="@color/text_primary_inverted"
                         tools:text="http://blog.example.com"
+                        tools:ignore="RtlSymmetry"
                         />
 
                 </android.support.design.widget.TextInputLayout>
