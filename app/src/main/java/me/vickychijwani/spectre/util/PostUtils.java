@@ -22,6 +22,8 @@ public class PostUtils {
      * 1. New posts that are yet to be created on the server, sorted by updatedAt
      * 2. Drafts, sorted by updatedAt
      * 3. Published posts, sorted by publishedAt
+     *
+     * See Ghost Admin's sort order in the file core/server/models/post.js, search for 'orderDefaultOptions'
      */
     @SuppressWarnings("unused")
     public static Comparator<Post> COMPARATOR_MAIN_LIST = (lhs, rhs) -> {
