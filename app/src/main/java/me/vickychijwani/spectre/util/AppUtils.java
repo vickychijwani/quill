@@ -16,6 +16,8 @@ import me.vickychijwani.spectre.view.BaseActivity;
 
 public class AppUtils {
 
+    private static final String TAG = AppUtils.class.getSimpleName();
+
     public static void emailDeveloper(@NonNull BaseActivity activity) {
         String emailSubject = String.format(activity.getString(R.string.email_subject),
                 activity.getString(R.string.app_name));
@@ -39,7 +41,8 @@ public class AppUtils {
         try {
             return context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e) {
-            Crashlytics.logException(e);
+            Crashlytics.logException(new RuntimeException("Failed to get package info, " +
+                    "see previous exception for details", e));
             return null;
         }
     }

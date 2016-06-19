@@ -36,6 +36,7 @@ import javax.net.ssl.SSLHandshakeException;
 
 import butterknife.Bind;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.error.LoginFailedException;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
@@ -370,8 +371,6 @@ public class LoginActivity extends BaseActivity implements
     @Subscribe
     public void onLoginErrorEvent(LoginErrorEvent event) {
         RetrofitError error = event.error;
-        Crashlytics.logException(error);        // report login failures to Crashlytics
-        Log.e(TAG, Log.getStackTraceString(error));
         showProgress(false);
         try {
             ApiErrorList errorList = (ApiErrorList) error.getBodyAs(ApiErrorList.class);
@@ -403,12 +402,15 @@ public class LoginActivity extends BaseActivity implements
                 mBlogUrlLayout.setError(String.format(getString(R.string.login_connection_error), blogUrl));
             } else {
                 Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during login!");
-                Crashlytics.logException(error);
                 Toast.makeText(this, getString(R.string.login_unexpected_error),
                         Toast.LENGTH_SHORT).show();
                 mBlogUrlLayout.setErrorEnabled(false);
                 mBlogUrlLayout.setError(null);
             }
+        } finally {
+            Crashlytics.log(Log.ERROR, TAG, "Blog URL: " + mValidGhostBlogUrl);
+            Crashlytics.logException(new LoginFailedException(error));        // report login failures to Crashlytics
+            Log.e(TAG, Log.getStackTraceString(error));
         }
     }
 
@@ -455,5 +457,6 @@ public class LoginActivity extends BaseActivity implements
             }
         });
     }
+
 
 }

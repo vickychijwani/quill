@@ -19,7 +19,6 @@ import com.squareup.picasso.Picasso;
 import com.tsengvn.typekit.Typekit;
 
 import java.io.File;
-import java.net.HttpURLConnection;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric.sdk.android.Fabric;
@@ -30,8 +29,8 @@ import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.model.DatabaseMigration;
 import me.vickychijwani.spectre.network.NetworkService;
+import me.vickychijwani.spectre.util.NetworkUtils;
 import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 public class SpectreApplication extends Application {
 
@@ -159,9 +158,8 @@ public class SpectreApplication extends Application {
     @Subscribe
     public void onApiErrorEvent(ApiErrorEvent event) {
         RetrofitError error = event.error;
-        Response response = error.getResponse();
-        if (response == null || response.getStatus() != HttpURLConnection.HTTP_NOT_MODIFIED) {
-            Log.e(TAG, Log.getStackTraceString(event.error));
+        if (NetworkUtils.isRealError(error)) {
+            Log.e(TAG, Log.getStackTraceString(error));
         }
     }
 

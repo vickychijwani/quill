@@ -52,6 +52,7 @@ import butterknife.OnClick;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.error.SyncException;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.ConfigurationLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
@@ -302,11 +303,17 @@ public class PostListActivity extends BaseActivity {
             Toast.makeText(this, R.string.network_timeout, Toast.LENGTH_LONG).show();
         } else {
             Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during refresh");
-            if (response != null) {
-                Crashlytics.log(Log.ERROR, TAG, "response: " +
-                        new String(((TypedByteArray) response.getBody()).getBytes()));
+            try {
+                if (response != null) {
+                    Crashlytics.log(Log.ERROR, TAG, "URL: " + response.getUrl());
+                    Crashlytics.log(Log.ERROR, TAG, "response: " +
+                            new String(((TypedByteArray) response.getBody()).getBytes()));
+                }
+                Crashlytics.logException(new SyncException("sync failed", error));
+            } catch (Exception exception) {
+                Crashlytics.logException(new SyncException("sync failed, but threw when " +
+                        "trying to log URL and response", error));
             }
-            Crashlytics.logException(error);
             Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
         }
     }

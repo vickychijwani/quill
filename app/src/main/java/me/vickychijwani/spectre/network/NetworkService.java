@@ -38,6 +38,8 @@ import io.realm.Sort;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
+import me.vickychijwani.spectre.error.ExpiredTokenUsedException;
+import me.vickychijwani.spectre.error.TokenRevocationFailedException;
 import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
@@ -820,15 +822,15 @@ public class NetworkService {
                 @Override
                 public void onSuccess(JSONObject json, Response response) {
                     if (json.has("error")) {
-                        Crashlytics.log(Log.ERROR, TAG, "Failed to revoke "
-                                + reqBody.tokenTypeHint + ": " + json.optString("error"));
+                        Crashlytics.logException(new TokenRevocationFailedException(
+                                reqBody.tokenTypeHint, json.optString("error")));
                     }
                 }
 
                 @Override
                 public void onFailure(RetrofitError error) {
-                    Crashlytics.log(Log.ERROR, TAG, "Failed to revoke " + reqBody.tokenTypeHint);
-                    Crashlytics.logException(error);
+                    Crashlytics.logException(new TokenRevocationFailedException(
+                            reqBody.tokenTypeHint, error));
                 }
             });
         }
@@ -910,8 +912,7 @@ public class NetworkService {
                 // expiration time is changed inside Ghost (#92)
                 if (NetworkUtils.isUnauthorized(error)) {
                     postLoginStartEvent();
-                    Crashlytics.log(Log.WARN, TAG, "Expired refresh token used! You're wasting bandwidth / battery!");
-                    Crashlytics.logException(error);
+                    Crashlytics.logException(new ExpiredTokenUsedException(error));
                 } else {
                     getBus().post(new LoginErrorEvent(error, null, false));
                     flushApiEventQueue(true);

@@ -82,7 +82,8 @@ public class Observables {
                 subscriber.onNext(bitmap);
             } catch (IOException e) {
                 subscriber.onError(e);
-                Crashlytics.logException(e);
+                Crashlytics.logException(new Exception("Failed to load bitmap, see previous " +
+                        "exception for details", e));
                 Log.e(TAG, Log.getStackTraceString(e));
             } finally {
                 subscriber.onCompleted();
