@@ -329,13 +329,13 @@ public class PostEditFragment extends BaseFragment implements
     public void onFileUploadedEvent(FileUploadedEvent event) {
         mUploadProgress.dismiss();
         mUploadProgress = null;
-        mMarkdownEditSelectionState = null;
         if (mImageUploadDoneAction == null) {
             Crashlytics.log(Log.ERROR, TAG, "No 'image upload done action' found!");
             return;
         }
         mImageUploadDoneAction.call(event.relativeUrl);
         mImageUploadDoneAction = null;
+        mMarkdownEditSelectionState = null;
         KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
     }
 
