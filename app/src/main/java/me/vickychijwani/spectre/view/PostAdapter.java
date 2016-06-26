@@ -158,8 +158,9 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             viewHolder.image.setVisibility(View.GONE);
             viewHolder.image.setImageResource(android.R.color.transparent);
         }
-        viewHolder.published.setText(PostUtils.getStatusString(post, mContext));
-        viewHolder.published.setTextColor(PostUtils.getStatusColor(post, mContext));
+        viewHolder.statusIcon.setImageResource(PostUtils.getStatusIconResId(post));
+        viewHolder.statusText.setText(PostUtils.getStatusString(post, mContext));
+        viewHolder.statusText.setTextColor(PostUtils.getStatusColor(post, mContext));
         List<Tag> tags = post.getTags();
         if (tags.size() > 0) {
             String tagsStr = "#" + tags.get(0).getName();
@@ -257,7 +258,8 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     static class PostViewHolder extends RecyclerView.ViewHolder {
         @Bind(R.id.post_title)          TextView title;
-        @Bind(R.id.post_published)      TextView published;
+        @Bind(R.id.post_status_text)    TextView statusText;
+        @Bind(R.id.post_status_icon)    ImageView statusIcon;
         @Bind(R.id.post_image)          ImageView image;
         @Bind(R.id.post_tags)           TextView tags;
 

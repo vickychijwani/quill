@@ -1,6 +1,8 @@
 package me.vickychijwani.spectre.util;
 
 import android.content.Context;
+import android.support.annotation.ColorInt;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -118,6 +120,7 @@ public class PostUtils {
         return status;
     }
 
+    @ColorInt
     public static int getStatusColor(@Nullable Post post, @NonNull Context context) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         int colorId;
@@ -137,6 +140,20 @@ public class PostUtils {
             throw new IllegalArgumentException("unknown post status!");
         }
         return ContextCompat.getColor(context, colorId);
+    }
+
+    @DrawableRes
+    public static int getStatusIconResId(@Nullable Post post) {
+        if (post == null) throw new IllegalArgumentException("post cannot be null!");
+        if (post.isDraft()) {
+            return R.drawable.status_draft;
+        } else if (post.isScheduled()) {
+            return R.drawable.status_scheduled;
+        } else if (post.isPublished()) {
+            return R.drawable.status_published;
+        } else {
+            throw new IllegalArgumentException("unknown post status!");
+        }
     }
 
 

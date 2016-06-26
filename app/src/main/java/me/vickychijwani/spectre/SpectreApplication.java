@@ -81,7 +81,8 @@ public class SpectreApplication extends Application {
                 .addNormal(Typekit.createFromAsset(this, "fonts/OpenSans-Regular.ttf"))
                 .addItalic(Typekit.createFromAsset(this, "fonts/OpenSans-Italic.ttf"))
                 .addBold(Typekit.createFromAsset(this, "fonts/OpenSans-Bold.ttf"))
-                .addBoldItalic(Typekit.createFromAsset(this, "fonts/OpenSans-BoldItalic.ttf"));
+                .addBoldItalic(Typekit.createFromAsset(this, "fonts/OpenSans-BoldItalic.ttf"))
+                .addCustom1(Typekit.createFromAsset(this, "fonts/OpenSans-CondBold.ttf"));
     }
 
     public static SpectreApplication getInstance() {

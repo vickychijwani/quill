@@ -40,24 +40,40 @@
             tools:text="This is a very, very, very, very loooooong post title"
             />
 
-        <TextView
-            android:id="@+id/post_published"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageView
+            android:id="@+id/post_status_icon"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
             android:layout_below="@id/post_title"
             android:layout_alignLeft="@id/post_title"
             android:layout_alignStart="@id/post_title"
+            android:layout_marginLeft="@dimen/padding_large"
+            android:layout_marginStart="@dimen/padding_large"
+            android:layout_marginTop="3dp"
+            android:scaleType="fitStart"
+            tools:src="@drawable/status_draft"
+            tools:ignore="ContentDescription"
+            />
+
+        <TextView
+            android:id="@+id/post_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/post_title"
+            android:layout_toRightOf="@id/post_status_icon"
+            android:layout_toEndOf="@id/post_status_icon"
             android:layout_toLeftOf="@+id/post_tags"
             android:layout_toStartOf="@+id/post_tags"
             android:paddingBottom="@dimen/padding_large"
             android:paddingEnd="@dimen/padding_large"
-            android:paddingLeft="@dimen/padding_large"
+            android:paddingLeft="@dimen/padding_inline"
             android:paddingRight="@dimen/padding_large"
-            android:paddingStart="@dimen/padding_large"
+            android:paddingStart="@dimen/padding_inline"
             android:gravity="start"
             android:maxLines="2"
             android:textAppearance="@style/TextAppearance.Small.Dim"
             android:textColor="@color/status_published"
+            app:font="custom1"
             tools:text="Published 5 days ago"
             />
 
@@ -74,6 +90,8 @@
             android:maxLines="1"
             android:ellipsize="none"
             android:textAppearance="@style/TextAppearance.Small.Dim"
+            android:textColor="@color/text_tertiary"
+            app:font="custom1"
             tools:text="#android +2"
             tools:ignore="RtlSymmetry"
             />
