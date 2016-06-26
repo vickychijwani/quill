@@ -395,11 +395,11 @@ public class LoginActivity extends BaseActivity implements
             String blogUrl = event.blogUrl;
             if (userNetworkError || conversionError) {
                 mBlogUrlLayout.setErrorEnabled(true);
-                mBlogUrlLayout.setError(String.format(getString(R.string.no_such_blog), blogUrl));
+                mBlogUrlLayout.setError(getString(R.string.no_such_blog, blogUrl));
                 mBlogUrlView.requestFocus();
             } else if (connectionError) {
                 mBlogUrlLayout.setErrorEnabled(false);
-                mBlogUrlLayout.setError(String.format(getString(R.string.login_connection_error), blogUrl));
+                mBlogUrlLayout.setError(getString(R.string.login_connection_error, blogUrl));
             } else {
                 Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during login!");
                 Toast.makeText(this, getString(R.string.login_unexpected_error),
