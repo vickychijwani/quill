@@ -3,8 +3,10 @@ package me.vickychijwani.spectre.view;
 import android.content.Context;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
@@ -158,9 +160,11 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             viewHolder.image.setVisibility(View.GONE);
             viewHolder.image.setImageResource(android.R.color.transparent);
         }
+        @ColorInt int postStatusColor = PostUtils.getStatusColor(post, mContext);
         viewHolder.statusIcon.setImageResource(PostUtils.getStatusIconResId(post));
+        viewHolder.statusIcon.setColorFilter(postStatusColor, PorterDuff.Mode.SRC_IN);
         viewHolder.statusText.setText(PostUtils.getStatusString(post, mContext));
-        viewHolder.statusText.setTextColor(PostUtils.getStatusColor(post, mContext));
+        viewHolder.statusText.setTextColor(postStatusColor);
         List<Tag> tags = post.getTags();
         if (tags.size() > 0) {
             String tagsStr = "#" + tags.get(0).getName();

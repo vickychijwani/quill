@@ -3,6 +3,7 @@
     android:id="@+id/format_toolbar"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="@dimen/format_toolbar_height"
     android:background="@color/format_toolbar_background"
@@ -23,7 +24,8 @@
             android:layout_weight="1"
             android:background="?attr/selectableItemBackground"
             android:contentDescription="@string/format_bold"
-            android:src="@drawable/format_bold"
+            app:srcCompat="@drawable/format_bold"
+            android:tint="#6E6E6E"
             />
 
         <ImageButton
@@ -34,7 +36,8 @@
             android:layout_weight="1"
             android:background="?attr/selectableItemBackground"
             android:contentDescription="@string/format_italic"
-            android:src="@drawable/format_italic"
+            app:srcCompat="@drawable/format_italic"
+            android:tint="#6E6E6E"
             />
 
         <ImageButton
@@ -45,7 +48,8 @@
             android:layout_weight="1"
             android:background="?attr/selectableItemBackground"
             android:contentDescription="@string/format_link"
-            android:src="@drawable/format_link"
+            app:srcCompat="@drawable/format_link"
+            android:tint="#6E6E6E"
             />
 
         <ImageButton
@@ -56,7 +60,8 @@
             android:layout_weight="1"
             android:background="?attr/selectableItemBackground"
             android:contentDescription="@string/format_image"
-            android:src="@drawable/format_image"
+            app:srcCompat="@drawable/format_image"
+            android:tint="#6E6E6E"
             />
 
     </LinearLayout>

@@ -123,8 +123,9 @@
                     android:layout_height="16dp"
                     android:layout_marginTop="26dp"
                     android:layout_gravity="top|end"
-                    android:src="@drawable/checkbox_marked_circle_outline"
+                    app:srcCompat="@drawable/checkbox_marked_circle_outline"
                     android:visibility="invisible"
+                    android:tint="@color/text_primary_inverted"
                     tools:visibility="visible"
                     tools:ignore="ContentDescription"
                     />

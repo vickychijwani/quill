@@ -95,6 +95,7 @@
         <item name="android:layout_marginRight">@dimen/padding_large</item>
         <item name="android:layout_marginEnd" tools:targetApi="jelly_bean_mr1">@dimen/padding_large</item>
         <item name="android:scaleType">centerInside</item>
+        <item name="android:tint">@color/text_secondary</item>
     </style>
 
     <style name="AboutTitleStyle">

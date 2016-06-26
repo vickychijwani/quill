@@ -45,6 +45,9 @@ android {
         targetSdkVersion 23
         versionCode 102020      // 2 digits each for major, minor, patch
         versionName '1.2.2'
+
+        // enable support for vector drawables on API < 21
+        vectorDrawables.useSupportLibrary = true
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

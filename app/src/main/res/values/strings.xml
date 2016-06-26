@@ -91,7 +91,7 @@
     <string name="version_placeholder">%s</string>
     <string name="open_source_libs">Open-source libraries</string>
 
-    <string name="category_author">Author</string>
+    <string name="category_developer">Developer</string>
     <string name="vicky_chijwani" translatable="false">Vicky Chijwani</string>
     <string name="fork_on_github">Fork on Github</string>
     <string name="follow_on_twitter">Follow on Twitter</string>
@@ -106,7 +106,7 @@
     <string name="email_developer_subtitle">Contact the developer directly</string>
     <string name="email_subject">%s - Feedback</string>
 
-    <string name="about_icon_credits">Launcher icon \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a>.</string>
+    <string name="about_icon_credits">Launcher icon \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
 
     <!-- network -->
     <string name="no_internet_connection">No Internet connection</string>
