@@ -730,12 +730,12 @@ public class NetworkService {
         //noinspection StatementWithEmptyBody
         if (realmPost.hasPendingAction(PendingAction.CREATE)) {
             // no-op; if the post is yet to be created, we DO NOT change the PendingAction on it
-        } else if (Post.DRAFT.equals(realmPost.getStatus())) {
+        } else if (realmPost.isDraft()) {
             clearAndSetPendingActionOnPost(realmPost, PendingAction.EDIT);
-        } else if (Post.PUBLISHED.equals(realmPost.getStatus()) && event.isAutoSave) {
+        } else if ((realmPost.isScheduled() || realmPost.isPublished()) && event.isAutoSave) {
             clearAndSetPendingActionOnPost(realmPost, PendingAction.EDIT_LOCAL);
         } else {
-            // user hit "publish changes" explicitly, on a published post, so mark it for uploading
+            // user hit "update" explicitly, on a scheduled or published post, so mark it for uploading
             clearAndSetPendingActionOnPost(realmPost, PendingAction.EDIT);
         }
 

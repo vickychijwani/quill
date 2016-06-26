@@ -20,8 +20,9 @@ public class PostUtils {
     /**
      * Sort order:
      * 1. New posts that are yet to be created on the server, sorted by updatedAt
-     * 2. Drafts, sorted by updatedAt
-     * 3. Published posts, sorted by publishedAt
+     * 2. Scheduled posts, sorted by publishedAt
+     * 3. Drafts, sorted by updatedAt
+     * 4. Published posts, sorted by publishedAt
      *
      * See Ghost Admin's sort order in the file core/server/models/post.js, search for 'orderDefaultOptions'
      */
@@ -29,18 +30,29 @@ public class PostUtils {
     public static Comparator<Post> COMPARATOR_MAIN_LIST = (lhs, rhs) -> {
         boolean isLhsNew = lhs.hasPendingAction(PendingAction.CREATE);
         boolean isRhsNew = rhs.hasPendingAction(PendingAction.CREATE);
-        boolean isLhsDraft = Post.DRAFT.equals(lhs.getStatus());
-        boolean isRhsDraft = Post.DRAFT.equals(rhs.getStatus());
-        boolean isLhsPublished = Post.PUBLISHED.equals(lhs.getStatus());
-        boolean isRhsPublished = Post.PUBLISHED.equals(rhs.getStatus());
+        boolean isLhsScheduled = lhs.isScheduled();
+        boolean isRhsScheduled = rhs.isScheduled();
+        boolean isLhsDraft = lhs.isDraft();
+        boolean isRhsDraft = rhs.isDraft();
+        boolean isLhsPublished = lhs.isPublished();
+        boolean isRhsPublished = rhs.isPublished();
+
         if (isLhsNew && !isRhsNew) return -1;
         if (isRhsNew && !isLhsNew) return 1;
+
+        if (isLhsScheduled && !isRhsScheduled) return -1;
+        if (isRhsScheduled && !isLhsScheduled) return 1;
+
         if (isLhsDraft && !isRhsDraft) return -1;
         if (isRhsDraft && !isLhsDraft) return 1;
-        // at this point, we know both lhs and rhs belong to the same group (new, drafts, published)
-        // NOTE: (-) sign because we want to sort in reverse chronological order
-        if (isLhsPublished && isRhsPublished) {
-            // use date published for sorting published posts ...
+
+        if (isLhsPublished && !isRhsPublished) return -1;
+        if (isRhsPublished && !isLhsPublished) return 1;
+
+        // at this point, we know both lhs and rhs belong to the same group (new, scheduled, drafts,
+        // published). NOTE: (-) sign because we want to sort in reverse chronological order.
+        if (isLhsPublished || isLhsScheduled) {
+            // use date published for sorting scheduled or published posts ...
             return -lhs.getPublishedAt().compareTo(rhs.getPublishedAt());
         }
         // ... else use date modified (for drafts and new posts)
@@ -74,12 +86,12 @@ public class PostUtils {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
         UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
         String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
-        if (Post.PUBLISHED.equals(post.getStatus())) {
+        if (post.isPublished()) {
             return NetworkUtils.makeAbsoluteUrl(blogUrl, post.getSlug());
-        } else if (Post.DRAFT.equals(post.getStatus())) {
+        } else if (post.isDraft() || post.isScheduled()) {
             return NetworkUtils.makeAbsoluteUrl(blogUrl, "p/" + post.getUuid());
         } else {
-            throw new IllegalArgumentException("URLs only available for drafts and published posts!");
+            throw new IllegalArgumentException("URL not available for this post!");
         }
     }
 
@@ -92,11 +104,14 @@ public class PostUtils {
             status = context.getString(R.string.status_published_auto_saved);
         } else if (! post.isPendingActionsEmpty()) {
             status = context.getString(R.string.status_offline_changes);
-        } else if (Post.PUBLISHED.equals(post.getStatus())) {
+        } else if (post.isPublished()) {
             String dateStr = DateTimeUtils.formatRelative(post.getPublishedAt());
-            status = String.format(context.getString(R.string.status_published), dateStr);
-        } else if (Post.DRAFT.equals(post.getStatus())) {
+            status = context.getString(R.string.status_published, dateStr);
+        } else if (post.isDraft()) {
             status = context.getString(R.string.status_draft);
+        } else if (post.isScheduled()) {
+            String dateStr = DateTimeUtils.formatRelative(post.getPublishedAt());
+            status = context.getString(R.string.status_scheduled, dateStr);
         } else {
             throw new IllegalArgumentException("unknown post status!");
         }
@@ -112,10 +127,12 @@ public class PostUtils {
             colorId = R.color.status_published_auto_saved;
         } else if (! post.isPendingActionsEmpty()) {
             colorId = R.color.status_offline_changes;
-        } else if (Post.PUBLISHED.equals(post.getStatus())) {
+        } else if (post.isPublished()) {
             colorId = R.color.status_published;
-        } else if (Post.DRAFT.equals(post.getStatus())) {
+        } else if (post.isDraft()) {
             colorId = R.color.status_draft;
+        } else if (post.isScheduled()) {
+            colorId = R.color.status_scheduled;
         } else {
             throw new IllegalArgumentException("unknown post status!");
         }

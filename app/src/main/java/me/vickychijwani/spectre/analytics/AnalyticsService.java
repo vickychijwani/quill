@@ -112,8 +112,12 @@ public class AnalyticsService {
         logPostAction("Published draft", postUrl);
     }
 
-    public static void logEditsPublished(String postUrl) {
-        logPostAction("Published edits to post", postUrl);
+    public static void logScheduledPostUpdated(String postUrl) {
+        logPostAction("Scheduled post updated", postUrl);
+    }
+
+    public static void logPublishedPostUpdated(String postUrl) {
+        logPostAction("Published post updated", postUrl);
     }
 
     public static void logPostUnpublished() {
@@ -132,8 +136,12 @@ public class AnalyticsService {
         logPostAction("Unknown scenario", null);
     }
 
-    public static void logEditsAutoSavedLocally() {
+    public static void logPublishedPostAutoSavedLocally() {
         logPostAction("Auto-saved edits to published post", null);
+    }
+
+    public static void logScheduledPostAutoSavedLocally() {
+        logPostAction("Auto-saved edits to scheduled post", null);
     }
 
     public static void logDraftDeleted() {

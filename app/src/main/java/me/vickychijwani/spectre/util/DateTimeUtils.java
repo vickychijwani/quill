@@ -18,7 +18,8 @@ public class DateTimeUtils {
     }
 
     /**
-     * Formats a {@link Date} relative to now. Examples: "moments ago", "3 days ago".
+     * Formats a past or future {@link Date} relative to now.
+     * Examples: "moments from now", "3 days ago".
      *
      * @param date  the {@link Date} to format. Must not be {@code null}.
      * @return      a relative datetime string like "3 weeks ago"

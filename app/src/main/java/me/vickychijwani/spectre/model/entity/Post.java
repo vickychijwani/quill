@@ -22,10 +22,11 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 public class Post implements RealmModel, Parcelable {
 
     @Retention(RetentionPolicy.SOURCE)
-    @StringDef({ DRAFT, PUBLISHED })
+    @StringDef({ DRAFT, SCHEDULED, PUBLISHED })
     public @interface Status {}
 
     public static final String DRAFT = "draft";
+    public static final String SCHEDULED = "scheduled";
     public static final String PUBLISHED = "published";
 
     private static final String DEFAULT_TITLE = "(Untitled)";
@@ -443,6 +444,18 @@ public class Post implements RealmModel, Parcelable {
 
     public boolean isMarkedForDeletion() {
         return hasPendingAction(PendingAction.DELETE);
+    }
+
+    public boolean isDraft() {
+        return getStatus().equals(DRAFT);
+    }
+
+    public boolean isScheduled() {
+        return getStatus().equals(SCHEDULED);
+    }
+
+    public boolean isPublished() {
+        return getStatus().equals(PUBLISHED);
     }
 
 }

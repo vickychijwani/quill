@@ -217,10 +217,13 @@ public class PostViewActivity extends BaseActivity implements
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.findItem(R.id.action_publish).setVisible(mPostEditFragment.shouldShowPublishAction());
+        MenuItem publishItem = menu.findItem(R.id.action_publish);
+        publishItem.setTitle(mPost.isDraft() ? R.string.publish : R.string.update_post);
+        publishItem.setVisible(mPostEditFragment.shouldShowPublishAction());
         menu.findItem(R.id.action_unpublish).setVisible(mPostEditFragment.shouldShowUnpublishAction());
-        // only drafts can be deleted
-        boolean shouldShowDeleteAction = Post.DRAFT.equals(mPost.getStatus());
+        // only drafts can be deleted (scheduled or published posts cannot be deleted at all,
+        // to avoid all risk of accidental deletion)
+        boolean shouldShowDeleteAction = mPost.isDraft();
         menu.findItem(R.id.action_delete).setVisible(shouldShowDeleteAction);
         return true;
     }

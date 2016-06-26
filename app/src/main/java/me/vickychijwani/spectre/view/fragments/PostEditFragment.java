@@ -70,10 +70,12 @@ public class PostEditFragment extends BaseFragment implements
         UNKNOWN,
         PUBLISH_DRAFT,
         UNPUBLISH_PUBLISHED_POST,
-        AUTO_SAVE_EDITS_TO_PUBLISHED_POST,
-        EXPLICITLY_PUBLISH_EDITS_TO_PUBLISHED_POST,
+        AUTO_SAVE_PUBLISHED_POST,
+        EXPLICITLY_UPDATE_PUBLISHED_POST,
         AUTO_SAVE_DRAFT,
-        EXPLICITLY_SAVE_DRAFT,      // unused; feature was removed from UI as it seemed unnecessary
+        EXPLICITLY_SAVE_DRAFT,                      // unused; feature was removed from UI as it seemed unnecessary
+        AUTO_SAVE_SCHEDULED_POST,
+        EXPLICITLY_UPDATE_SCHEDULED_POST,
     }
 
     @Bind(R.id.post_title_edit)             EditText mPostTitleEditView;
@@ -215,7 +217,7 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     public boolean shouldShowUnpublishAction() {
-        return Post.PUBLISHED.equals(mPost.getStatus());
+        return mPost.isPublished();
     }
 
     @Override
@@ -352,15 +354,21 @@ public class PostEditFragment extends BaseFragment implements
 
     private boolean saveToServerExplicitly(@Nullable @Post.Status String newStatus) {
         if (newStatus == null) {
-            if (Post.DRAFT.equals(mPost.getStatus())) {
+            if (mPost.isDraft()) {
                 mSaveScenario = SaveScenario.EXPLICITLY_SAVE_DRAFT;
-            } else if (Post.PUBLISHED.equals(mPost.getStatus())) {
-                mSaveScenario = SaveScenario.EXPLICITLY_PUBLISH_EDITS_TO_PUBLISHED_POST;
+            } else if (mPost.isScheduled()) {
+                mSaveScenario = SaveScenario.EXPLICITLY_UPDATE_SCHEDULED_POST;
+            } else if (mPost.isPublished()) {
+                mSaveScenario = SaveScenario.EXPLICITLY_UPDATE_PUBLISHED_POST;
+            } else {
+                throw new IllegalArgumentException("unknown post status!");
             }
         } else if (Post.DRAFT.equals(newStatus)) {
             mSaveScenario = SaveScenario.UNPUBLISH_PUBLISHED_POST;
         } else if (Post.PUBLISHED.equals(newStatus)) {
             mSaveScenario = SaveScenario.PUBLISH_DRAFT;
+        } else {
+            throw new IllegalArgumentException("unknown post status!");
         }
         return savePost(true, false, newStatus);
     }
@@ -372,10 +380,14 @@ public class PostEditFragment extends BaseFragment implements
     private boolean saveAutomatically() {
         if (mPost.isMarkedForDeletion()) {
             return false;
-        } else if (Post.DRAFT.equals(mPost.getStatus())) {
+        } else if (mPost.isDraft()) {
             mSaveScenario = SaveScenario.AUTO_SAVE_DRAFT;
-        } else if (Post.PUBLISHED.equals(mPost.getStatus())) {
-            mSaveScenario = SaveScenario.AUTO_SAVE_EDITS_TO_PUBLISHED_POST;
+        } else if (mPost.isScheduled()) {
+            mSaveScenario = SaveScenario.AUTO_SAVE_SCHEDULED_POST;
+        } else if (mPost.isPublished()) {
+            mSaveScenario = SaveScenario.AUTO_SAVE_PUBLISHED_POST;
+        } else {
+            throw new IllegalArgumentException("unknown post status!");
         }
         return savePost(true, true, null);
     }
@@ -415,11 +427,11 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     public void onPublishClicked() {
-        if (Post.DRAFT.equals(mPost.getStatus())) {
+        if (mPost.isDraft()) {
             // case (1): publishing a draft
             onPublishUnpublishClicked();
         } else {
-            // case (2): saving edits to a published post
+            // case (2): saving edits to a scheduled or published post
             onSaveClicked().subscribe(Actions.empty());
         }
     }
@@ -430,11 +442,11 @@ public class PostEditFragment extends BaseFragment implements
         // in this case we will end up not asking for confirmation! here again, we're conflating 2
         // kinds of "dirtiness": (1) dirty relative to auto-saved post, and, (2) dirty relative to
         // post on server TODO fix this behaviour!
-        if (Post.DRAFT.equals(mPost.getStatus())) {
+        if (mPost.isDraft()) {
             return Observable.just(saveToServerExplicitly());
         }
         return Observable.create((subscriber) -> {
-            // confirm save for published posts
+            // confirm save for scheduled and published posts
             final AlertDialog alertDialog = new AlertDialog.Builder(mActivity)
                     .setMessage(getString(R.string.alert_save_msg))
                     .setPositiveButton(R.string.alert_save_yes, (dialog, which) -> {
@@ -456,7 +468,7 @@ public class PostEditFragment extends BaseFragment implements
     public void onPublishUnpublishClicked() {
         int msg = R.string.alert_publish;
         String targetStatus = Post.PUBLISHED;
-        if (Post.PUBLISHED.equals(mPost.getStatus())) {
+        if (mPost.isPublished()) {
             msg = R.string.alert_unpublish;
             targetStatus = Post.DRAFT;
         }
@@ -512,9 +524,13 @@ public class PostEditFragment extends BaseFragment implements
         if (mSaveScenario == SaveScenario.UNKNOWN) {
             AnalyticsService.logPostSavedInUnknownScenario();
             Snackbar.make(getView(), R.string.save_scenario_unknown, Snackbar.LENGTH_SHORT).show();
-        } else if (mSaveScenario == SaveScenario.AUTO_SAVE_EDITS_TO_PUBLISHED_POST) {
-            AnalyticsService.logEditsAutoSavedLocally();
-            Snackbar.make(getView(), R.string.save_scenario_auto_save_edits_to_published_post, Snackbar.LENGTH_SHORT).show();
+        } else if (mSaveScenario == SaveScenario.AUTO_SAVE_PUBLISHED_POST) {
+            AnalyticsService.logPublishedPostAutoSavedLocally();
+            Snackbar.make(getView(), R.string.save_scenario_auto_save_scheduled_or_published_post, Snackbar.LENGTH_SHORT).show();
+            mSaveScenario = SaveScenario.UNKNOWN;
+        } else if (mSaveScenario == SaveScenario.AUTO_SAVE_SCHEDULED_POST) {
+            AnalyticsService.logScheduledPostAutoSavedLocally();
+            Snackbar.make(getView(), R.string.save_scenario_auto_save_scheduled_or_published_post, Snackbar.LENGTH_SHORT).show();
             mSaveScenario = SaveScenario.UNKNOWN;
         } else {
             mHandler.postDelayed(mSaveTimeoutRunnable, SAVE_TIMEOUT);
@@ -532,7 +548,7 @@ public class PostEditFragment extends BaseFragment implements
         }
         switch (saveScenario) {
             case PUBLISH_DRAFT:
-            case EXPLICITLY_PUBLISH_EDITS_TO_PUBLISHED_POST:
+            case EXPLICITLY_UPDATE_PUBLISHED_POST:
                 @StringRes int messageId;
                 String postUrl = PostUtils.getPostUrl(mPost);
                 if (saveScenario == SaveScenario.PUBLISH_DRAFT) {
@@ -541,8 +557,8 @@ public class PostEditFragment extends BaseFragment implements
                     // FIXME or, what if the user publishes offline and syncs later - save scenario would be unknown then!
                     AnalyticsService.logDraftPublished(postUrl);
                 } else {
-                    messageId = R.string.save_scenario_explicitly_publish_edits_to_published_post;
-                    AnalyticsService.logEditsPublished(postUrl);
+                    messageId = R.string.save_scenario_explicitly_update_scheduled_or_published_post;
+                    AnalyticsService.logPublishedPostUpdated(postUrl);
                 }
                 Snackbar sn = Snackbar.make(parent, messageId, Snackbar.LENGTH_LONG);
                 sn.setAction(R.string.save_post_view, v -> mActivity.viewPostInBrowser(false));
@@ -560,7 +576,12 @@ public class PostEditFragment extends BaseFragment implements
                 AnalyticsService.logDraftSavedExplicitly();
                 Snackbar.make(parent, R.string.save_scenario_explicitly_save_draft, Snackbar.LENGTH_SHORT).show();
                 break;
-            case AUTO_SAVE_EDITS_TO_PUBLISHED_POST:
+            case EXPLICITLY_UPDATE_SCHEDULED_POST:
+                AnalyticsService.logScheduledPostUpdated(PostUtils.getPostUrl(mPost));
+                Snackbar.make(parent, R.string.save_scenario_explicitly_update_scheduled_or_published_post, Snackbar.LENGTH_SHORT).show();
+                break;
+            case AUTO_SAVE_SCHEDULED_POST:
+            case AUTO_SAVE_PUBLISHED_POST:
             case UNKNOWN:
                 break;              // already handled
         }

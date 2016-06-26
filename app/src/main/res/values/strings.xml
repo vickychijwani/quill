@@ -15,6 +15,7 @@
     <!-- posts -->
     <string name="status_published">Published %s</string>
     <string name="status_draft">Draft</string>
+    <string name="status_scheduled">Scheduled - %s</string>
     <string name="status_offline_changes">Saved on device, waiting to go online…</string>
     <string name="status_published_auto_saved">Changes auto-saved, not published yet</string>
     <string name="status_marked_for_deletion">Marked for deletion, waiting to go online…</string>
@@ -26,6 +27,7 @@
     <string name="preview">Preview</string>
     <string name="edit">Edit</string>
     <string name="publish">Publish</string>
+    <string name="update_post">Update Post</string>
     <string name="unpublish">Unpublish</string>
     <string name="alert_publish">Publish draft?</string>
     <string name="alert_unpublish">Unpublish post?</string>
@@ -35,8 +37,8 @@
     <string name="alert_delete_yes">Delete</string>
     <string name="alert_delete_no">Keep</string>
     <string name="post_deleted">Post deleted</string>
-    <string name="alert_save_msg">Publish changes?</string>
-    <string name="alert_save_yes">Yes, publish</string>
+    <string name="alert_save_msg">Update post with changes?</string>
+    <string name="alert_save_yes">Yes, update</string>
     <string name="alert_save_no">Not yet</string>
     <string name="discard_changes">Discard changes</string>
     <string name="alert_discard_changes_title">Discard ALL changes since you opened this post?</string>
@@ -54,8 +56,8 @@
     <string name="save_scenario_unknown">Saved</string>
     <string name="save_scenario_publish_draft">Post published!</string>
     <string name="save_scenario_unpublish_published_post">Post unpublished</string>
-    <string name="save_scenario_auto_save_edits_to_published_post">Changes saved on device</string>
-    <string name="save_scenario_explicitly_publish_edits_to_published_post">Changes published</string>
+    <string name="save_scenario_auto_save_scheduled_or_published_post">Changes saved on device</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">Post updated</string>
     <string name="save_scenario_auto_save_draft">Draft saved</string>
     <string name="save_scenario_explicitly_save_draft">Draft saved</string>
 
