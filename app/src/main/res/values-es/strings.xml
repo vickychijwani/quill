@@ -1,8 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <string name="app_name" translatable="false">Quill</string>
-
     <!-- login -->
+    <string name="login_heading1">Iniciar sesión en su</string>
+    <string name="login_heading2">blog</string>
+
+    <string name="prompt_blog_url">Dirección del blog (http://blog.example.com)</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Iniciar sesión</string>
+
+    <string name="error_invalid_url">La URL es inválida.</string>
+    <string name="error_invalid_email">La dirección de email es inválida.</string>
+    <string name="error_invalid_password">La contraseña es demasiado corta.</string>
+    <string name="error_field_required">Este campos es obligatorio.</string>
+
     <string name="no_such_blog">No se encuentra el panel de administración de Ghost en %s/ghost</string>
     <string name="login_unexpected_error">Error inesperado durante el acceso. Por favor, vuelva a intentarlo.</string>
     <string name="login_connection_error">No se ha podido conectar a %s/ghost. Por favor, vuelva a intentarlo.</string>
@@ -23,7 +34,6 @@
     <string name="post_limit_exceeded" tools:ignore="PluralsCandidate"><![CDATA[%1$s solo carga los últimos %2$d artículos de su blog. Si le gustaría que se soportara la carga de artículos más antiguos, <a href="%3$s">vote por esta característica en Github</a> y ayúdeme a priorizar el desarrollo.]]></string>
     <string name="send_feedback">Mandar Feedback…</string>
 
-    <string name="lorem_ipsum" translatable="false">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages.\n\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source.</string>
     <string name="preview">Previsualizar</string>
     <string name="edit">Editar</string>
     <string name="publish">Publicar</string>
@@ -88,11 +98,9 @@
 
     <string name="version">Versión</string>
     <string name="version_unknown">Desconocido</string>
-    <string name="version_placeholder">%s</string>
     <string name="open_source_libs">Librerías Open Source</string>
 
     <string name="category_developer">Desarrollador</string>
-    <string name="vicky_chijwani" translatable="false">Vicky Chijwani</string>
     <string name="fork_on_github">Fork en Github</string>
     <string name="follow_on_twitter">Seguir en Twitter</string>
     <string name="visit_website">Visitar web</string>
@@ -114,7 +122,6 @@
     <string name="refresh_failed">No se han podido actualizar los datos</string>
 
     <!-- generic -->
-    <string name="ghost" translatable="false">ghost</string>
     <string name="done">Hecho</string>
     <string name="save">Guardar</string>
     <string name="refresh">Actualizar</string>

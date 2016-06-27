@@ -1,8 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <string name="app_name" translatable="false">Quill</string>
-
     <!-- login -->
+    <string name="login_heading1">Sign in to your</string>
+    <string name="login_heading2">blog</string>
+
+    <string name="prompt_blog_url">Blog address (http://blog.example.com)</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+
+    <string name="error_invalid_url">This URL is invalid.</string>
+    <string name="error_invalid_email">This email address is invalid.</string>
+    <string name="error_invalid_password">This password is too short.</string>
+    <string name="error_field_required">This field is required.</string>
+
     <string name="no_such_blog">There is no Ghost admin at %s/ghost.</string>
     <string name="login_unexpected_error">Unexpected error during sign in. Please try again.</string>
     <string name="login_connection_error">Could not connect to %s/ghost. Please try again.</string>
@@ -23,7 +34,6 @@
     <string name="post_limit_exceeded" tools:ignore="PluralsCandidate"><![CDATA[%1$s currently only loads the latest %2$d posts from your blog. If you would like to see support for loading older posts, <a href="%3$s">vote for this feature on Github</a> and help me prioritize development.]]></string>
     <string name="send_feedback">Send Feedback…</string>
 
-    <string name="lorem_ipsum" translatable="false">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages.\n\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source.</string>
     <string name="preview">Preview</string>
     <string name="edit">Edit</string>
     <string name="publish">Publish</string>
@@ -88,11 +98,9 @@
 
     <string name="version">Version</string>
     <string name="version_unknown">Unknown</string>
-    <string name="version_placeholder">%s</string>
     <string name="open_source_libs">Open-source libraries</string>
 
     <string name="category_developer">Developer</string>
-    <string name="vicky_chijwani" translatable="false">Vicky Chijwani</string>
     <string name="fork_on_github">Fork on Github</string>
     <string name="follow_on_twitter">Follow on Twitter</string>
     <string name="visit_website">Visit website</string>
@@ -114,7 +122,6 @@
     <string name="refresh_failed">Couldn\'t refresh data</string>
 
     <!-- generic -->
-    <string name="ghost" translatable="false">ghost</string>
     <string name="done">Done</string>
     <string name="save">Save</string>
     <string name="refresh">Refresh</string>

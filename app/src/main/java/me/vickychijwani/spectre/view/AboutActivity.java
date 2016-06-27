@@ -41,7 +41,7 @@ public class AboutActivity extends BaseActivity {
         if (packageInfo != null) {
             version = packageInfo.versionName;
         }
-        mVersionView.setText(String.format(getString(R.string.version_placeholder), version));
+        mVersionView.setText(version);
 
         mIconCreditsView.setMovementMethod(LinkMovementMethod.getInstance());
     }

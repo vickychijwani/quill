@@ -4,12 +4,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+
+import java.util.Locale;
 
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.view.BaseActivity;
@@ -45,6 +49,21 @@ public class AppUtils {
                     "see previous exception for details", e));
             return null;
         }
+    }
+
+    /**
+     * Set the app to use the given locale. Useful for testing translations. This is normally
+     * not needed because the device locale is applied automatically.
+     * @param context - context from which to get resources
+     * @param locale - the locale to use
+     */
+    public static void setLocale(@NonNull Context context, @NonNull Locale locale) {
+        Locale.setDefault(locale);
+        Resources res = context.getResources();
+        DisplayMetrics dm = res.getDisplayMetrics();
+        android.content.res.Configuration conf = res.getConfiguration();
+        conf.locale = Locale.getDefault();
+        res.updateConfiguration(conf, dm);
     }
 
 }
