@@ -42,5 +42,10 @@ apiSecret=YOUR_API_SECRET_HERE
 
 If you face any issues setting this up, please let me know by [filing a new issue](/issues/new).
 
+### Contributors
+
+- [@vickychijwani](https://github.com/vickychijwani)
+- [@dexafree](https://github.com/dexafree) (Spanish translation)
+
 
 [playstore]: https://play.google.com/store/apps/details?id=me.vickychijwani.spectre
