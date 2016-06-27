@@ -363,10 +363,10 @@ public class PostViewActivity extends BaseActivity implements
         // after this screen is opened, but *before* the fragments could be initialized.
         // No need to handle this separately, as the ViewPager's adapter will correctly pass
         // the new post to these fragments when creating them later.
-        if (mPostViewFragment == null) {
+        if (mPostViewFragment != null) {
             mPostViewFragment.setPost(mPost);
         }
-        if (mPostEditFragment == null) {
+        if (mPostEditFragment != null) {
             mPostEditFragment.setPost(mPost, true);
         }
         updatePostSettings();
