@@ -1,17 +1,18 @@
 package me.vickychijwani.spectre.util;
 
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 
 import org.ocpsoft.prettytime.PrettyTime;
 
 import java.util.Date;
+import java.util.Locale;
 
 public class DateTimeUtils {
 
     // 2114380800 seconds in epoch time == 01/01/2037 @ 12:00am (UTC)
     public static final Date FAR_FUTURE = new Date(2114380800L * 1000);
 
-    private static final PrettyTime prettyTime = new PrettyTime();
+    private static PrettyTime prettyTime = null;
 
     public static long getEpochSeconds() {
         return System.currentTimeMillis() / 1000L;
@@ -24,8 +25,10 @@ public class DateTimeUtils {
      * @param date  the {@link Date} to format. Must not be {@code null}.
      * @return      a relative datetime string like "3 weeks ago"
      */
-    public static String formatRelative(@Nullable Date date) {
-        if (date == null) throw new IllegalArgumentException("date cannot be null!");
+    public static String formatRelative(@NonNull Date date) {
+        if (prettyTime == null) {
+            prettyTime = new PrettyTime(Locale.getDefault());
+        }
         return prettyTime.format(date);
     }
 
