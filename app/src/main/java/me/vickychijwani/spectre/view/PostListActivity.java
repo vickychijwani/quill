@@ -367,8 +367,7 @@ public class PostListActivity extends BaseActivity {
         mPosts.clear();
         mPosts.addAll(event.posts);
         if (mPosts.size() >= event.postsFetchLimit) {
-            CharSequence message = Html.fromHtml(String.format(
-                    getString(R.string.post_limit_exceeded),
+            CharSequence message = Html.fromHtml(getString(R.string.post_limit_exceeded,
                     getString(R.string.app_name), event.postsFetchLimit,
                     "https://github.com/vickychijwani/quill/issues/81"));
             mPostAdapter.showFooter(message);

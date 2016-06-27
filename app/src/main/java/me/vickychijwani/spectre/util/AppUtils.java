@@ -23,7 +23,7 @@ public class AppUtils {
     private static final String TAG = AppUtils.class.getSimpleName();
 
     public static void emailDeveloper(@NonNull BaseActivity activity) {
-        String emailSubject = String.format(activity.getString(R.string.email_subject),
+        String emailSubject = activity.getString(R.string.email_subject,
                 activity.getString(R.string.app_name));
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this
