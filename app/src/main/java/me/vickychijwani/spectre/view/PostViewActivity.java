@@ -359,8 +359,16 @@ public class PostViewActivity extends BaseActivity implements
     private void updatePost(@NonNull Post newPost) {
         mPost = newPost;
         ((PostViewFragmentPagerAdapter) mViewPager.getAdapter()).setPost(mPost);
-        mPostViewFragment.setPost(mPost);
-        mPostEditFragment.setPost(mPost, true);
+        // Crashlytics issue 104: fragments can be null when a draft gets uploaded right
+        // after this screen is opened, but *before* the fragments could be initialized.
+        // No need to handle this separately, as the ViewPager's adapter will correctly pass
+        // the new post to these fragments when creating them later.
+        if (mPostViewFragment == null) {
+            mPostViewFragment.setPost(mPost);
+        }
+        if (mPostEditFragment == null) {
+            mPostEditFragment.setPost(mPost, true);
+        }
         updatePostSettings();
     }
 
