@@ -1,0 +1,130 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string name="app_name" translatable="false">Quill</string>
+
+    <!-- login -->
+    <string name="no_such_blog">No se encuentra el panel de administración de Ghost en %s/ghost</string>
+    <string name="login_unexpected_error">Error inesperado durante el acceso. Por favor, vuelva a intentarlo.</string>
+    <string name="login_connection_error">No se ha podido conectar a %s/ghost. Por favor, vuelva a intentarlo.</string>
+    <string name="login_ssl_unsupported">Su blog no soporta https:// (SSL). Intente cambiarlo a http://.</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="password_changed">¿Ha cambiado su contraseña? No se ha podido iniciar sesión con esa contraseña.</string>
+    <string name="unsynced_changes_msg">Se perderán todos sus cambios si cierra la sesión ahora.</string>
+    <string name="dont_logout">No cerrar sesión</string>
+
+    <!-- posts -->
+    <string name="status_published">Publicado %s</string>
+    <string name="status_draft">Borrador</string>
+    <string name="status_scheduled">Programado - %s</string>
+    <string name="status_offline_changes">Guardado en dispositivo, esperando a tener conexión…</string>
+    <string name="status_published_auto_saved">Cambios auto-guardados, no publicados todavía</string>
+    <string name="status_marked_for_deletion">Marcado para borrar, esperando a tener conexión…</string>
+    <string name="status_marked_for_deletion_open_error">Este artículo ha sido marcado para ser borrado, no puede ser abierto</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate"><![CDATA[%1$s solo carga los últimos %2$d artículos de su blog. Si le gustaría que se soportara la carga de artículos más antiguos, <a href="%3$s">vote por esta característica en Github</a> y ayúdeme a priorizar el desarrollo.]]></string>
+    <string name="send_feedback">Mandar Feedback…</string>
+
+    <string name="lorem_ipsum" translatable="false">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages.\n\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source.</string>
+    <string name="preview">Previsualizar</string>
+    <string name="edit">Editar</string>
+    <string name="publish">Publicar</string>
+    <string name="update_post">Actualizar Artículo</string>
+    <string name="unpublish">Despublicar</string>
+    <string name="alert_publish">Publicar borrador?</string>
+    <string name="alert_unpublish">Despublicar artículo?</string>
+    <string name="delete_draft">Eliminar borrador</string>
+    <string name="alert_delete_draft_title">Eliminar este borrador?</string>
+    <string name="alert_delete_draft_msg">No se podrá deshacer la acción!</string>
+    <string name="alert_delete_yes">Eliminar</string>
+    <string name="alert_delete_no">Mantener</string>
+    <string name="post_deleted">Artículo eliminado</string>
+    <string name="alert_save_msg">Actualizar artículo con los cambios?</string>
+    <string name="alert_save_yes">Sí, actualizar</string>
+    <string name="alert_save_no">Aún no</string>
+    <string name="discard_changes">Descartar cambios</string>
+    <string name="alert_discard_changes_title">Descartar TODOS los cambios desde que abrió el artículo?</string>
+    <string name="alert_discard_changes_msg">No hay vuelta atrás!</string>
+    <string name="discard">Descartar</string>
+    <string name="view_homepage">Ver página principal</string>
+    <string name="view_post_on_blog">Ver artículo en el blog</string>
+    <string name="post_settings">Ajustes del artículo</string>
+
+    <string name="save_post_progress">Guardando artículo…</string>
+    <string name="save_post_failed">No se ha podido guardar el artículo</string>
+    <string name="save_post_view">Ver en blog</string>
+    <string name="save_post_timeout">Guardado en el dispositivo</string>
+
+    <string name="save_scenario_unknown">Guardado</string>
+    <string name="save_scenario_publish_draft">Artículo publicado!</string>
+    <string name="save_scenario_unpublish_published_post">Artículo despublicado</string>
+    <string name="save_scenario_auto_save_scheduled_or_published_post">Cambios guardados en el dispositivo</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">Artículo actualizado</string>
+    <string name="save_scenario_auto_save_draft">Borrador guardado</string>
+    <string name="save_scenario_explicitly_save_draft">Draft guardado</string>
+
+    <string name="post_title_hint">Título del artículo…</string>
+    <string name="post_image_hint">Añadir imágen al artículo</string>
+    <string name="post_tags_hint">Añadir etiquetas…</string>
+    <string name="post_body_hint">Contenido del artículo…</string>
+    <string name="post_image_load_error">Error cargando la imagen del artículo</string>
+
+    <!-- formatting toolbar -->
+    <string name="format_bold">Negrita</string>
+    <string name="format_italic">Cursiva</string>
+    <string name="format_link">Insertar enlace</string>
+    <string name="format_image">Insertar imagen</string>
+
+    <!-- image insert / upload -->
+    <string name="insert_image">Insertar Imagen</string>
+    <string name="insert_image_url">Insertar URL</string>
+    <string name="image_url">URL de la imagen</string>
+    <string name="insert_image_upload">Subir imagen</string>
+    <string name="uploading">Subiendo…</string>
+    <string name="image_upload_failed">No se ha podido subir la imagen</string>
+    <string name="remove_image">Eliminar la imagen</string>
+
+    <!-- about -->
+    <string name="about_action">Acerca de…</string>
+    <string name="about">Acerca de</string>
+
+    <string name="version">Versión</string>
+    <string name="version_unknown">Desconocido</string>
+    <string name="version_placeholder">%s</string>
+    <string name="open_source_libs">Librerías Open Source</string>
+
+    <string name="category_developer">Desarrollador</string>
+    <string name="vicky_chijwani" translatable="false">Vicky Chijwani</string>
+    <string name="fork_on_github">Fork en Github</string>
+    <string name="follow_on_twitter">Seguir en Twitter</string>
+    <string name="visit_website">Visitar web</string>
+
+    <string name="category_support_development">Apoyar desarrollo</string>
+    <string name="report_bugs">Reportar fallos</string>
+    <string name="report_bugs_subtitle">Reportar fallos o proponer nuevas características</string>
+    <string name="play_store">Puntuar en Play Store</string>
+    <string name="play_store_subtitle">Gracias por su apoyo!</string>
+    <string name="email_developer">Enviar un email al desarrollador</string>
+    <string name="email_developer_subtitle">Contactar directamente con el desarrollador</string>
+    <string name="email_subject">%s - Feedback</string>
+
+    <string name="about_icon_credits">Icono \"Feather\" hecho por <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
+
+    <!-- network -->
+    <string name="no_internet_connection">No hay conexión a Internet</string>
+    <string name="network_timeout">Ha expirado el tiempo de conexión</string>
+    <string name="refresh_failed">No se han podido actualizar los datos</string>
+
+    <!-- generic -->
+    <string name="ghost" translatable="false">ghost</string>
+    <string name="done">Hecho</string>
+    <string name="save">Guardar</string>
+    <string name="refresh">Actualizar</string>
+    <string name="share">Compartir</string>
+    <string name="loading">Cargando…</string>
+    <string name="insert">Insertar</string>
+    <string name="intent_no_apps">No se ha encontrado ninguna aplicación que pueda realizar esta acción</string>
+
+    <!-- content descriptions -->
+    <string name="user_image">Imagen del usuario</string>
+    <string name="cdesc_post_image">Imagen del artículo</string>
+
+</resources>
