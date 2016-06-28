@@ -703,8 +703,7 @@ public class NetworkService {
 
         if (realmPost.hasPendingAction(PendingAction.DELETE)) {
             RuntimeException e = new IllegalArgumentException("Trying to save deleted post with id = " + realmPost.getId());
-            Crashlytics.log(Log.ERROR, TAG, e.getMessage());
-            throw e;
+            Crashlytics.logException(e);
         }
 
         // TODO bug in edge-case:
@@ -750,8 +749,7 @@ public class NetworkService {
         Post realmPost = mRealm.where(Post.class).equalTo("id", postId).findFirst();
         if (realmPost == null) {
             RuntimeException e = new IllegalArgumentException("Trying to delete post with non-existent id = " + postId);
-            Crashlytics.log(Log.ERROR, TAG, e.getMessage());
-            throw e;
+            Crashlytics.logException(e);
         } else if (realmPost.hasPendingAction(PendingAction.CREATE)) {
             deleteModel(realmPost);
             getBus().post(new PostDeletedEvent(postId));
