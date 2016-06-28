@@ -68,7 +68,7 @@ public class PostViewActivity extends BaseActivity implements
         PostEditFragment.PostTagsManager
 {
 
-    private static final String TAG = "PostViewActivity";
+    private static final String TAG = PostViewActivity.class.getSimpleName();
     public static final int RESULT_CODE_DELETED = 1;
 
     @Bind(R.id.toolbar)                         Toolbar mToolbar;
@@ -147,6 +147,10 @@ public class PostViewActivity extends BaseActivity implements
         } else {
             bundle = getIntent().getExtras();
         }
+        mPost = bundle.getParcelable(BundleKeys.POST);
+        //noinspection ConstantConditions
+        Crashlytics.log(Log.DEBUG, TAG, "[onCreate] post id = " + mPost.getId());
+
         @PostViewFragmentPagerAdapter.TabPosition int startingTabPosition =
                 PostViewFragmentPagerAdapter.TAB_POSITION_PREVIEW;
         if (bundle.getBoolean(BundleKeys.START_EDITING)) {
@@ -155,7 +159,6 @@ public class PostViewActivity extends BaseActivity implements
             // hide the formatting toolbar in the preview
             mFormattingToolbarManager.hide();
         }
-        mPost = bundle.getParcelable(BundleKeys.POST);
         mbFileStorageEnabled = bundle.getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
         mViewPager.setAdapter(new PostViewFragmentPagerAdapter(this, getSupportFragmentManager(),
                 mPost, mbFileStorageEnabled, this));

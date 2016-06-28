@@ -349,6 +349,14 @@ public class NetworkService {
         mApi.getCurrentUser(loadEtag(ETag.TYPE_CURRENT_USER), new Callback<UserList>() {
             @Override
             public void success(UserList userList, Response response) {
+                try {
+                    // FIXME temp log for debugging issue #124
+                    Crashlytics.log(Log.DEBUG, TAG, "USER JSON = " +
+                            new String(((TypedByteArray) response.getBody()).getBytes()));
+                } catch (Exception e) {
+                    Crashlytics.log(Log.ERROR, TAG, "Exception thrown while logging user json!");
+                    Crashlytics.logException(e);
+                }
                 storeEtag(response.getHeaders(), ETag.TYPE_CURRENT_USER);
                 createOrUpdateModel(userList.users);
                 getBus().post(new UserLoadedEvent(userList.users.get(0)));
@@ -540,6 +548,7 @@ public class NetworkService {
 
     @Subscribe
     public void onCreatePostEvent(final CreatePostEvent event) {
+        Crashlytics.log(Log.DEBUG, TAG, "[onCreatePostEvent] creating new post");
         Post newPost = new Post();
         newPost.addPendingAction(PendingAction.CREATE);
         newPost.setUuid(getTempUniqueId(Post.class));
@@ -628,6 +637,7 @@ public class NetworkService {
         // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localDeletedPosts) {
             if (! validateAccessToken(event)) return;
+            Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] deleting post id = " + localPost.getId());
             mApi.deletePost(localPost.getId(), new ResponseCallback() {
                 @Override
                 public void success(Response response) {
@@ -650,6 +660,7 @@ public class NetworkService {
         // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localNewPosts) {
             if (! validateAccessToken(event)) return;
+            Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] creating post");    // local new posts don't have an id
             mApi.createPost(PostStubList.from(localPost), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
@@ -675,6 +686,7 @@ public class NetworkService {
         // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localEditedPosts) {
             if (! validateAccessToken(event)) return;
+            Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] updating post id = " + localPost.getId());
             PostStubList postStubList = PostStubList.from(localPost);
             mApi.updatePost(localPost.getId(), postStubList, new Callback<PostList>() {
                 @Override
@@ -700,6 +712,7 @@ public class NetworkService {
         Post realmPost = mRealm.where(Post.class)
                 .equalTo("id", event.post.getId())
                 .findFirst();
+        Crashlytics.log(Log.DEBUG, TAG, "[onSavePostEvent] post id = " + event.post.getId());
 
         if (realmPost.hasPendingAction(PendingAction.DELETE)) {
             RuntimeException e = new IllegalArgumentException("Trying to save deleted post with id = " + realmPost.getId());
@@ -746,6 +759,8 @@ public class NetworkService {
     @Subscribe
     public void onDeletePostEvent(DeletePostEvent event) {
         int postId = event.post.getId();
+        Crashlytics.log(Log.DEBUG, TAG, "[onDeletePostEvent] post id = " + postId);
+
         Post realmPost = mRealm.where(Post.class).equalTo("id", postId).findFirst();
         if (realmPost == null) {
             RuntimeException e = new IllegalArgumentException("Trying to delete post with non-existent id = " + postId);
@@ -767,6 +782,8 @@ public class NetworkService {
     @Subscribe
     public void onFileUploadEvent(FileUploadEvent event) {
         if (! validateAccessToken(event)) return;
+        Crashlytics.log(Log.DEBUG, TAG, "[onFileUploadEvent] uploading file");
+
         TypedFile typedFile = new TypedFile(event.mimeType, new File(event.path));
         mApi.uploadFile(typedFile, new Callback<String>() {
             @Override

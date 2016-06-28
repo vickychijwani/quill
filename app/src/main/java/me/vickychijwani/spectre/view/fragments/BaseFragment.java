@@ -34,59 +34,59 @@ public abstract class BaseFragment extends RxFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onCreateView()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onCreateView()");
         return null;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onStart()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onStart()");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onResume()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onResume()");
         getBus().register(this);
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onAttach()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onAttach()");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDetach()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onDetach()");
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onPause()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onPause()");
         getBus().unregister(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onStop()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onStop()");
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDestroyView()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onDestroyView()");
         ButterKnife.unbind(this);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getName() + "#onDestroy()");
+        Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onDestroy()");
     }
 
     /**
