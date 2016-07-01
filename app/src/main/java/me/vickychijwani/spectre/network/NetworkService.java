@@ -523,6 +523,7 @@ public class NetworkService {
                         .forEach(post -> post.setPublishedAt(DateTimeUtils.FAR_FUTURE));
 
                 // now create / update received posts
+                // TODO use Realm#insertOrUpdate() for faster insertion here: https://realm.io/news/realm-java-1.1.0/
                 createOrUpdateModel(postList.posts);
                 getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
 
