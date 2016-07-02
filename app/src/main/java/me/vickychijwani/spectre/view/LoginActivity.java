@@ -156,6 +156,7 @@ public class LoginActivity extends BaseActivity implements
         listener.onCheckStarted();
         Action1<Throwable> invalidGhostUrlHandler = (e) -> {
             mValidGhostBlogUrl = null;
+            Log.e(TAG, Log.getStackTraceString(e));
             listener.setCheckBlogUrlSubscription(null);
             listener.onError(blogUrl, e);
             mCheckBlogUrlListeners.remove(listener);
@@ -294,8 +295,10 @@ public class LoginActivity extends BaseActivity implements
             errorStr = getString(R.string.login_connection_error, blogUrl);
         } else if (e instanceof SSLHandshakeException) {
             errorStr = getString(R.string.login_ssl_unsupported);
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         } else {
             errorStr = getString(R.string.login_unexpected_error);
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
         }
         mBlogUrlLayout.setError(errorStr);
     }
