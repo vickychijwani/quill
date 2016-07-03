@@ -121,7 +121,7 @@ public class PostViewActivity extends BaseActivity implements
         ArrayAdapter<String> tagSuggestionsAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, Collections.emptyList());
         mPostTagsEditText.setAdapter(tagSuggestionsAdapter);
-        mPostTagsEditText.setTokenizer(new ChipsEditText.SpaceTokenizer());
+        mPostTagsEditText.setTokenizer(new ChipsEditText.CommaTokenizer());
         mPostTagsEditText.setChipBackgroundColor(colorPrimary);
         mPostTagsEditText.setChipTextColor(ContextCompat.getColor(this, R.color.text_primary_inverted));
 

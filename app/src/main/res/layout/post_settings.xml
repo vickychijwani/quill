@@ -8,6 +8,7 @@
     android:orientation="vertical"
     android:theme="@style/ThemeOverlay.AppCompat">
 
+    <!-- cover image -->
     <FrameLayout
         android:id="@+id/post_image_edit_layout"
         android:layout_width="match_parent"
@@ -59,6 +60,8 @@
 
     </FrameLayout>
 
+
+    <!-- tags -->
     <me.vickychijwani.spectre.view.widget.ChipsEditText
         android:id="@+id/post_tags_edit"
         android:layout_width="match_parent"
@@ -71,6 +74,19 @@
         android:scrollHorizontally="false"
         android:hint="@string/post_tags_hint"
         android:imeOptions="actionDone"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-4dp"
+        android:layout_marginLeft="@dimen/padding_large"
+        android:layout_marginRight="@dimen/padding_large"
+        android:paddingLeft="@dimen/padding_inline"
+        android:paddingStart="@dimen/padding_inline"
+        android:textAppearance="@style/TextAppearance.XSmall.Dim"
+        android:text="@string/post_tags_format_hint"
+        tools:ignore="RtlSymmetry"
         />
 
 </LinearLayout>

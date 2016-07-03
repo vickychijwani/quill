@@ -31,7 +31,7 @@ import me.vickychijwani.spectre.util.DeviceUtils;
  */
 public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterView.OnItemClickListener {
 
-    private Pattern mDelimiter;
+    private Pattern mTokenPattern;
     @ColorInt private int mChipBgColor;
     @ColorInt private int mChipTextColor;
 
@@ -51,7 +51,7 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
     }
 
     private void init() {
-        mDelimiter = Pattern.compile("\\S+");
+        mTokenPattern = Pattern.compile("[^,]+");
         setOnItemClickListener(this);
         addTextChangedListener(mTextWatcher);
 
@@ -79,7 +79,7 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
     private final TextWatcher mTextWatcher = new TextWatcher() {
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (count >= 1 && s.charAt(start) == ' ') {
+            if (count >= 1 && s.charAt(start) == ',') {
                 updateChips();
             }
         }
@@ -92,14 +92,16 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
     };
 
     private void updateChips() {
-        if (! getText().toString().contains(" ")) {
-            return;
-        }
-        SpannableStringBuilder ssb = new SpannableStringBuilder(getText());
-        Matcher matcher = mDelimiter.matcher(getText().toString().trim());
+        List<String> tokens = getTokens();
+        String sanitizedText = joinStrings(tokens, ",");
+        SpannableStringBuilder ssb = new SpannableStringBuilder(sanitizedText);
+        Matcher matcher = mTokenPattern.matcher(sanitizedText);
         while (matcher.find()) {
-            ssb.setSpan(new RoundedBackgroundSpan(mChipBgColor, mChipTextColor), matcher.start(),
-                    matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            // SPAN_EXCLUSIVE_EXCLUSIVE spans cannot have a zero length
+            if (matcher.end() > matcher.start()) {
+                ssb.setSpan(new RoundedBackgroundSpan(mChipBgColor, mChipTextColor), matcher.start(),
+                        matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
         }
         setText(ssb);
         setSelection(getText().length());   // move cursor to end
@@ -108,21 +110,30 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
     public List<String> getTokens() {
         List<String> tokens = new ArrayList<>();
         String fullText = getText().toString().trim();
-        Matcher matcher = mDelimiter.matcher(fullText);
+        Matcher matcher = mTokenPattern.matcher(fullText);
         while (matcher.find()) {
-            tokens.add(fullText.substring(matcher.start(), matcher.end()));
+            String token = matcher.group().trim();
+            if (token.length() > 0) {
+                tokens.add(token);
+            }
         }
         return tokens;
     }
 
     public void setTokens(List<String> tokens) {
-        StringBuilder fullText = new StringBuilder();
-        for (String token : tokens) {
-            // intentionally appending a space at the end so the user can type after it
-            fullText.append(token).append(" ");
-        }
-        setText(fullText.toString());
+        setText(joinStrings(tokens, ","));
         updateChips();
+    }
+
+    private static String joinStrings(List<String> strs, String delimiter) {
+        StringBuilder joined = new StringBuilder();
+        int numStrs = strs.size();
+        for (int i = 0; i < numStrs; ++i) {
+            String str = strs.get(i);
+            // intentionally appending to end of string so the user can type after it
+            joined.append(str).append(delimiter);
+        }
+        return joined.toString();
     }
 
     @Override
@@ -198,15 +209,18 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
         }
     }
 
-    /**
-     * This simple Tokenizer can be used for lists where the items are separated by one or more
-     * spaces.
-     */
-    public static class SpaceTokenizer implements Tokenizer {
+
+
+    public static class CommaTokenizer implements Tokenizer {
         public int findTokenStart(CharSequence text, int cursor) {
             int i = cursor;
-            while (i > 0 && text.charAt(i-1) != ' ') {
+            while (i > 0 && text.charAt(i-1) != ',') {
                 i--;
+            }
+            // ignore spaces after comma, or at the beginning of text
+            int len = text.length();
+            while (i < len && text.charAt(i) == ' ') {
+                i++;
             }
             return i;
         }
@@ -215,7 +229,11 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
             int i = cursor;
             int len = text.length();
             while (i < len) {
-                if (text.charAt(i) == ' ') {
+                if (text.charAt(i) == ',') {
+                    // ignore spaces before comma and after cursor
+                    while (i > cursor && text.charAt(i-1) == ' ') {
+                        --i;
+                    }
                     return i;
                 } else {
                     i++;
@@ -226,14 +244,18 @@ public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterV
 
         public CharSequence terminateToken(CharSequence text) {
             int i = text.length();
-            if (i > 0 && text.charAt(i-1) == ' ') {
+            int lastNonSpaceIdx = i-1;
+            while (lastNonSpaceIdx >= 0 && text.charAt(lastNonSpaceIdx) == ' ') {
+                --lastNonSpaceIdx;
+            }
+            if (lastNonSpaceIdx >= 0 && text.charAt(lastNonSpaceIdx-1) == ',') {
                 return text;
             } else if (text instanceof Spanned) {
-                SpannableString sp = new SpannableString(text + " ");
+                SpannableString sp = new SpannableString(text + ",");
                 TextUtils.copySpansFrom((Spanned) text, 0, text.length(), Object.class, sp, 0);
                 return sp;
             } else {
-                return text + " ";
+                return text + ",";
             }
         }
     }
