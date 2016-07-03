@@ -124,13 +124,21 @@ public class PostEditFragment extends BaseFragment implements
         View view = inflater.inflate(R.layout.fragment_post_edit, container, false);
         ButterKnife.bind(this, view);
 
+        Bundle args = new Bundle(getArguments());   // defaults, given during original Fragment construction
+        if (savedInstanceState != null) {
+            args.putAll(savedInstanceState);        // overrides, for things that could've changed, and for new things like custom UI state
+        }
+
         mActivity = ((PostViewActivity) getActivity());
         mPostTagsManager = mActivity;
-        mbFileStorageEnabled = getArguments().getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
+        mbFileStorageEnabled = args.getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
                 mbFileStorageEnabled);
+        if (args.containsKey(BundleKeys.POST_EDITED)) {
+            mPostTitleOrBodyTextChanged = args.getBoolean(BundleKeys.POST_EDITED);
+        }
 
         //noinspection ConstantConditions
-        setPost(getArguments().getParcelable(BundleKeys.POST), true);
+        setPost(args.getParcelable(BundleKeys.POST), true);
 
         mSaveTimeoutRunnable = () -> {
             View parent = PostEditFragment.this.getView();
@@ -155,6 +163,13 @@ public class PostEditFragment extends BaseFragment implements
     public void onResume() {
         super.onResume();
         setPost(mPost, false);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(BundleKeys.POST, mPost);
+        outState.putBoolean(BundleKeys.POST_EDITED, mPostTitleOrBodyTextChanged);
     }
 
     @Override
@@ -196,7 +211,7 @@ public class PostEditFragment extends BaseFragment implements
     // TODO consider moving this and other logic out into a View-Model
     public boolean shouldShowPublishAction() {
         // show the publish action for drafts and for locally-edited published posts
-        if (Post.DRAFT.equals(mPost.getStatus())
+        if (mPost.isDraft()
                 || mPost.hasPendingAction(PendingAction.EDIT_LOCAL)
                 || mPostTitleOrBodyTextChanged) {
             if (mPostTextWatcher != null) {
