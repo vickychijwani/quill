@@ -1,7 +1,8 @@
 machine:
   environment:
-    TOOLS_VERSION: 25.1.6
-    BUILD_TOOLS_VERSION: 23.0.3
+    TARGET_SDK_VERSION: 24
+    TOOLS_VERSION: 25.1.7
+    BUILD_TOOLS_VERSION: 24.0.0
   java:
     version: oraclejdk8
 
@@ -9,7 +10,7 @@ dependencies:
   pre:
     - if ! $(grep -q "Revision="$TOOLS_VERSION $ANDROID_HOME/tools/source.properties); then echo y | android update sdk --no-ui --all --filter "tools"; fi
     - if [ ! -e $ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION ]; then echo y | android update sdk --no-ui --all --filter "build-tools-"$BUILD_TOOLS_VERSION; fi
-    - echo y | android update sdk --no-ui --all --filter extra-android-m2repository
+    - echo y | android update sdk --no-ui --all --filter "extra-android-m2repository,android-"$TARGET_SDK_VERSION
   cache_directories:
     - /usr/local/android-sdk-linux/tools
     - /usr/local/android-sdk-linux/build-tools/$BUILD_TOOLS_VERSION
