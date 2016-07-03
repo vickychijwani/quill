@@ -136,6 +136,8 @@ public class NetworkService {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class, new DateDeserializer())
+                // FIXME temporary, for debugging issue #124
+                .registerTypeAdapter(UserList.class, new UserListDeserializer())
                 .registerTypeAdapter(ConfigurationList.class, new ConfigurationListDeserializer())
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setExclusionStrategies(new RealmExclusionStrategy(), new AnnotationExclusionStrategy())
@@ -349,14 +351,6 @@ public class NetworkService {
         mApi.getCurrentUser(loadEtag(ETag.TYPE_CURRENT_USER), new Callback<UserList>() {
             @Override
             public void success(UserList userList, Response response) {
-                try {
-                    // FIXME temp log for debugging issue #124
-                    Crashlytics.log(Log.DEBUG, TAG, "USER JSON = " +
-                            new String(((TypedByteArray) response.getBody()).getBytes()));
-                } catch (Exception e) {
-                    Crashlytics.log(Log.ERROR, TAG, "Exception thrown while logging user json!");
-                    Crashlytics.logException(e);
-                }
                 storeEtag(response.getHeaders(), ETag.TYPE_CURRENT_USER);
                 createOrUpdateModel(userList.users);
                 getBus().post(new UserLoadedEvent(userList.users.get(0)));
