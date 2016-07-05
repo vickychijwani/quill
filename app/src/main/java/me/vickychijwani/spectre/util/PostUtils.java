@@ -81,6 +81,8 @@ public class PostUtils {
             return true;
         if (! tagListsMatch(original.getTags(), current.getTags()))
             return true;
+        if (original.isFeatured() != current.isFeatured())
+            return true;
         return false;
     }
 

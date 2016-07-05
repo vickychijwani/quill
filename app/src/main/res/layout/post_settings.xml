@@ -89,4 +89,17 @@
         tools:ignore="RtlSymmetry"
         />
 
+
+    <!-- feature this post -->
+    <CheckBox
+        android:id="@+id/post_feature"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_large"
+        android:layout_marginLeft="@dimen/padding_large"
+        android:layout_marginRight="@dimen/padding_large"
+        android:textAppearance="@style/TextAppearance.Dim"
+        android:text="@string/post_feature_hint"
+        />
+
 </LinearLayout>

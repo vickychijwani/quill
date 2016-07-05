@@ -13,6 +13,9 @@
         <item name="windowActionBar">false</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="actionBarSize">@dimen/toolbar_height</item>
+
+        <!-- widgets -->
+        <item name="android:checkboxStyle">@style/MyCheckBox</item>
     </style>
 
     <style name="BaseLoginTheme" parent="AppTheme">

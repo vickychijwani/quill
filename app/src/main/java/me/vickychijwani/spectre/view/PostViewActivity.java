@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -65,7 +66,7 @@ public class PostViewActivity extends BaseActivity implements
         ViewPager.OnPageChangeListener,
         PostViewFragmentPagerAdapter.OnFragmentsInitializedListener,
         View.OnClickListener,
-        PostEditFragment.PostTagsManager
+        PostEditFragment.PostSettingsManager
 {
 
     private static final String TAG = PostViewActivity.class.getSimpleName();
@@ -81,6 +82,7 @@ public class PostViewActivity extends BaseActivity implements
     private FormattingToolbarManager mFormattingToolbarManager = null;
     private PostImageLayoutManager mPostImageLayoutManager = null;
     private ChipsEditText mPostTagsEditText;
+    private CheckBox mPostFeatureCheckBox;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
@@ -108,6 +110,7 @@ public class PostViewActivity extends BaseActivity implements
         ViewGroup postImageLayout = (ViewGroup) headerView.findViewById(R.id.post_image_edit_layout);
         mPostImageLayoutManager = new PostImageLayoutManager(postImageLayout);
         mPostTagsEditText = (ChipsEditText) headerView.findViewById(R.id.post_tags_edit);
+        mPostFeatureCheckBox = (CheckBox) headerView.findViewById(R.id.post_feature);
 
         setSupportActionBar(mToolbar);
         //noinspection ConstantConditions
@@ -407,6 +410,7 @@ public class PostViewActivity extends BaseActivity implements
             tagStrs.add(tag.getName());
         }
         mPostTagsEditText.setTokens(tagStrs);
+        mPostFeatureCheckBox.setChecked(mPost.isFeatured());
     }
 
     @Override
@@ -450,6 +454,11 @@ public class PostViewActivity extends BaseActivity implements
             tags.add(new Tag(tagStr));
         }
         return tags;
+    }
+
+    @Override
+    public boolean isFeatured() {
+        return mPostFeatureCheckBox.isChecked();
     }
 
     @Override

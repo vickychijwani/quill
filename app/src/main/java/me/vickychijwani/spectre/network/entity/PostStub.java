@@ -11,12 +11,14 @@ import me.vickychijwani.spectre.model.entity.Tag;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public final class PostStub {
 
+    // field names should EXACTLY match those in Post class
     public final String title;
     public final String slug;
     public final String status;
     public final String markdown;
     public final List<TagStub> tags;
     public final String image;
+    public final boolean featured;
 
     public PostStub(@NonNull Post post) {
         this.title = post.getTitle();
@@ -28,6 +30,7 @@ public final class PostStub {
             this.tags.add(new TagStub(tag));
         }
         this.image = post.getImage();
+        this.featured = post.isFeatured();
     }
 
 }

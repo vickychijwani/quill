@@ -82,7 +82,7 @@ public class PostEditFragment extends BaseFragment implements
     @Bind(R.id.post_markdown)               EditText mPostEditView;
 
     private PostViewActivity mActivity;
-    private PostTagsManager mPostTagsManager;
+    private PostSettingsManager mPostSettingsManager;
 
     private Post mOriginalPost;     // copy of post since the time it was opened for editing
     private Post mLastSavedPost;    // copy of post since it was last saved
@@ -130,7 +130,7 @@ public class PostEditFragment extends BaseFragment implements
         }
 
         mActivity = ((PostViewActivity) getActivity());
-        mPostTagsManager = mActivity;
+        mPostSettingsManager = mActivity;
         mbFileStorageEnabled = args.getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
                 mbFileStorageEnabled);
         if (args.containsKey(BundleKeys.POST_EDITED)) {
@@ -418,7 +418,8 @@ public class PostEditFragment extends BaseFragment implements
         mPost.setTitle(mPostTitleEditView.getText().toString());
         mPost.setMarkdown(mPostEditView.getText().toString());
         mPost.setHtml(null);   // omit stale HTML from request body
-        mPost.setTags(mPostTagsManager.getTags());
+        mPost.setTags(mPostSettingsManager.getTags());
+        mPost.setFeatured(mPostSettingsManager.isFeatured());
         if (newStatus != null) {
             mPost.setStatus(newStatus);
         }
@@ -630,8 +631,9 @@ public class PostEditFragment extends BaseFragment implements
         public void afterTextChanged(Editable s) {}
     }
 
-    public interface PostTagsManager {
+    public interface PostSettingsManager {
         RealmList<Tag> getTags();
+        boolean isFeatured();
     }
 
 }

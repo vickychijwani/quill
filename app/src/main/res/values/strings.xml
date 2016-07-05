@@ -77,6 +77,7 @@
     <string name="post_tags_format_hint">Use commas to separate tags</string>
     <string name="post_body_hint">Type something here…</string>
     <string name="post_image_load_error">Error loading post image</string>
+    <string name="post_feature_hint">Feature this post</string>
 
     <!-- formatting toolbar -->
     <string name="format_bold">Bold</string>
