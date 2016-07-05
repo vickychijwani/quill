@@ -95,7 +95,7 @@ public class PostEditFragment extends BaseFragment implements
     private Runnable mSaveTimeoutRunnable;
     private static final int SAVE_TIMEOUT = 5 * 1000;       // milliseconds
 
-    private boolean mPostTitleOrBodyTextChanged = false;
+    private boolean mPostChangedInMemory = false;
     private PostTextWatcher mPostTextWatcher = null;
 
     // image insert / upload
@@ -124,21 +124,24 @@ public class PostEditFragment extends BaseFragment implements
         View view = inflater.inflate(R.layout.fragment_post_edit, container, false);
         ButterKnife.bind(this, view);
 
+        mActivity = ((PostViewActivity) getActivity());
+        mPostSettingsManager = mActivity;
+
         Bundle args = new Bundle(getArguments());   // defaults, given during original Fragment construction
         if (savedInstanceState != null) {
             args.putAll(savedInstanceState);        // overrides, for things that could've changed, and for new things like custom UI state
         }
-
-        mActivity = ((PostViewActivity) getActivity());
-        mPostSettingsManager = mActivity;
         mbFileStorageEnabled = args.getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
                 mbFileStorageEnabled);
         if (args.containsKey(BundleKeys.POST_EDITED)) {
-            mPostTitleOrBodyTextChanged = args.getBoolean(BundleKeys.POST_EDITED);
+            mPostChangedInMemory = args.getBoolean(BundleKeys.POST_EDITED);
         }
 
         //noinspection ConstantConditions
         setPost(args.getParcelable(BundleKeys.POST), true);
+
+        // must occur after setPost() to prevent being triggered when setting the post initially
+        startMonitoringPostSettings();
 
         mSaveTimeoutRunnable = () -> {
             View parent = PostEditFragment.this.getView();
@@ -169,7 +172,7 @@ public class PostEditFragment extends BaseFragment implements
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(BundleKeys.POST, mPost);
-        outState.putBoolean(BundleKeys.POST_EDITED, mPostTitleOrBodyTextChanged);
+        outState.putBoolean(BundleKeys.POST_EDITED, mPostChangedInMemory);
     }
 
     @Override
@@ -193,6 +196,13 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     @Override
+    public void onDestroyView() {
+        // avoid leaking the activity (listeners hold a strong reference to it)
+        stopMonitoringPostSettings();
+        super.onDestroyView();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         if (mbFileStorageEnabled) {
             inflater.inflate(R.menu.post_edit_file_storage_enabled, menu);
@@ -213,26 +223,38 @@ public class PostEditFragment extends BaseFragment implements
         // show the publish action for drafts and for locally-edited published posts
         if (mPost.isDraft()
                 || mPost.hasPendingAction(PendingAction.EDIT_LOCAL)
-                || mPostTitleOrBodyTextChanged) {
-            if (mPostTextWatcher != null) {
-                mPostTitleEditView.removeTextChangedListener(mPostTextWatcher);
-                mPostEditView.removeTextChangedListener(mPostTextWatcher);
-                mPostTextWatcher = null;
-            }
+                || mPostChangedInMemory) {
+            stopMonitoringPostSettings();
             return true;
         } else {
             // published post with no auto-saved edits (may have unsynced published edits though)
-            if (mPostTextWatcher == null) {
-                mPostTextWatcher = new PostTextWatcher();
-                mPostTitleEditView.addTextChangedListener(mPostTextWatcher);
-                mPostEditView.addTextChangedListener(mPostTextWatcher);
-            }
+            startMonitoringPostSettings();
             return false;
         }
     }
 
     public boolean shouldShowUnpublishAction() {
         return mPost.isPublished();
+    }
+
+    private void startMonitoringPostSettings() {
+        if (mPostTextWatcher == null) {
+            mPostTextWatcher = new PostTextWatcher();
+            mPostTitleEditView.addTextChangedListener(mPostTextWatcher);
+            mPostEditView.addTextChangedListener(mPostTextWatcher);
+        }
+        // this is safe to do multiple times as it is idempotent (even though a new instance is created)
+        mPostSettingsManager.setOnPostSettingsChangedListener(new PostSettingsChangedListener());
+    }
+
+    private void stopMonitoringPostSettings() {
+        if (mPostTextWatcher != null) {
+            mPostTitleEditView.removeTextChangedListener(mPostTextWatcher);
+            mPostEditView.removeTextChangedListener(mPostTextWatcher);
+            mPostTextWatcher = null;
+        }
+        // this is safe to do multiple times as it is idempotent
+        mPostSettingsManager.removeOnPostSettingsChangedListener();
     }
 
     @Override
@@ -531,7 +553,7 @@ public class PostEditFragment extends BaseFragment implements
         }
 
         // hide the Publish / Unpublish actions if appropriate
-        mPostTitleOrBodyTextChanged = false;
+        mPostChangedInMemory = false;
         mActivity.supportInvalidateOptionsMenu();
 
         if (getView() == null) {
@@ -618,9 +640,10 @@ public class PostEditFragment extends BaseFragment implements
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             // count == after indicates high probability of no change
             if (count != after) {
-                mPostTitleOrBodyTextChanged = true;
+                mPostChangedInMemory = true;
                 mActivity.supportInvalidateOptionsMenu();
                 // the TextWatcher is removed later, can't remove it here because it crashes
+                // https://code.google.com/p/android/issues/detail?id=190399
             }
         }
 
@@ -631,7 +654,17 @@ public class PostEditFragment extends BaseFragment implements
         public void afterTextChanged(Editable s) {}
     }
 
+    class PostSettingsChangedListener implements PostViewActivity.PostSettingsChangedListener {
+        @Override
+        public void onPostSettingsChanged() {
+            mPostChangedInMemory = true;
+            mActivity.supportInvalidateOptionsMenu();
+        }
+    }
+
     public interface PostSettingsManager {
+        void setOnPostSettingsChangedListener(PostViewActivity.PostSettingsChangedListener listener);
+        void removeOnPostSettingsChangedListener();
         RealmList<Tag> getTags();
         boolean isFeatured();
     }

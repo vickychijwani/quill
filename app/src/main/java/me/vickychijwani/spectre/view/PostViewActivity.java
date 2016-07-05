@@ -14,7 +14,9 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -94,6 +96,7 @@ public class PostViewActivity extends BaseActivity implements
     private Runnable mSaveTimeoutRunnable;
     private String mBlogUrl;
     private boolean mbFileStorageEnabled = false;
+    private PostSettingsChangedListener mPostSettingsChangedListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,6 +138,26 @@ public class PostViewActivity extends BaseActivity implements
         mPostTagsEditText.setMaxLines(4);
         mPostTagsEditText.setHorizontallyScrolling(false);
         mPostTagsEditText.setImeOptions(EditorInfo.IME_ACTION_DONE);
+
+        mPostTagsEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable e) {
+                if (mPostSettingsChangedListener != null) {
+                    mPostSettingsChangedListener.onPostSettingsChanged();
+                }
+            }
+        });
+        mPostFeatureCheckBox.setOnCheckedChangeListener((btn, checked) -> {
+            if (mPostSettingsChangedListener != null) {
+                mPostSettingsChangedListener.onPostSettingsChanged();
+            }
+        });
 
         mSaveTimeoutRunnable = () -> {
             if (mbPreviewPost) {
@@ -447,6 +470,16 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     @Override
+    public void setOnPostSettingsChangedListener(@NonNull PostSettingsChangedListener listener) {
+        mPostSettingsChangedListener = listener;
+    }
+
+    @Override
+    public void removeOnPostSettingsChangedListener() {
+        mPostSettingsChangedListener = null;
+    }
+
+    @Override
     public RealmList<Tag> getTags() {
         RealmList<Tag> tags = new RealmList<>();
         List<String> tagStrs = mPostTagsEditText.getTokens();
@@ -618,6 +651,11 @@ public class PostViewActivity extends BaseActivity implements
             }
         }
 
+    }
+
+
+    public interface PostSettingsChangedListener {
+        void onPostSettingsChanged();
     }
 
 }
