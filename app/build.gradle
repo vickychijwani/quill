@@ -115,7 +115,7 @@ dependencies {
     compile 'com.android.support:design:24.0.0'
     compile 'com.android.support:percent:24.0.0'
     compile 'org.ocpsoft.prettytime:prettytime:4.0.0.Final'
-    compile 'com.tsengvn:Typekit:1.0.0'
+    compile 'com.tsengvn:typekit:1.0.1'
 
     // misc
     compile 'com.jakewharton:butterknife:7.0.0'

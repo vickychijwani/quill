@@ -73,7 +73,7 @@
             android:maxLines="2"
             android:textAppearance="@style/TextAppearance.Small.Dim"
             android:textColor="@color/status_published"
-            app:font="custom1"
+            app:font="narrow-bold"
             tools:text="Published 5 days ago"
             />
 
@@ -91,7 +91,7 @@
             android:ellipsize="none"
             android:textAppearance="@style/TextAppearance.Small.Dim"
             android:textColor="@color/text_tertiary"
-            app:font="custom1"
+            app:font="narrow-bold"
             tools:text="#android +2"
             tools:ignore="RtlSymmetry"
             />
