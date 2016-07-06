@@ -46,6 +46,7 @@ If you face any issues setting this up, please let me know by [filing a new issu
 
 - [@vickychijwani](https://github.com/vickychijwani)
 - [@dexafree](https://github.com/dexafree) (Spanish translation)
+- [@Dennis-Mayk](https://github.com/Dennis-Mayk) (German translation)
 
 
 [playstore]: https://play.google.com/store/apps/details?id=me.vickychijwani.spectre

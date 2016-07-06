@@ -1,0 +1,139 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- login -->
+    <string name="login_heading1">Einloggen in deinen</string>
+    <string name="login_heading2">Blog</string>
+
+    <string name="prompt_blog_url">Blogadresse (http://blog.beispiel.de)</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Passwort</string>
+    <string name="action_sign_in">Anmelden</string>
+
+    <string name="error_invalid_url">Diese Url ist ungültig.</string>
+    <string name="error_invalid_email">Diese Emailadresse ist ungültig.</string>
+    <string name="error_invalid_password">Dieses Passwort ist zu kurz.</string>
+    <string name="error_field_required">Bitte fülle dieses Feld aus.</string>
+
+    <string name="no_such_blog">Es konnte kein Ghost Admin-Panel in %s/ghost gefunden werden.</string>
+    <string name="login_unexpected_error">Unerwarteter Fehler beim Anmelden. Bitte versuche es erneut.</string>
+    <string name="login_connection_error">Es konnte keine Verbindung zu %s/ghost erstellt werden. Bitte versuche es erneut.</string>
+    <string name="login_ssl_unsupported">Dein Blog unterstützt leider kein https:// (SSL). Versuch es stattdessen mit http://.</string>
+    <string name="logout">Abmelden</string>
+    <string name="password_changed">Hat sich dein Passwort geändert? Anmeldung mit diesem Passwort nicht möglich.</string>
+    <string name="unsynced_changes_msg">Alle nicht synchronisierten Änderungen gehen verloren, wenn du dich jetzt abmeldest</string>
+    <string name="dont_logout">Nicht abmelden</string>
+
+    <!-- posts -->
+    <string name="status_published">Veröffentlicht %s</string>
+    <string name="status_draft">Entwurf</string>
+    <string name="status_scheduled">Geplant - %s</string>
+    <string name="status_offline_changes">Auf dem Gerät gespeichert, wartet auf eine Verbindung…</string>
+    <string name="status_published_auto_saved">Änderungen automatisch gespeichert - noch nicht veröffentlicht</string>
+    <string name="status_marked_for_deletion">Zum Löschen markiert, wartet auf eine Verbindung</string>
+    <string name="status_marked_for_deletion_open_error">Dieser Artikel wurde zum Löschen markiert, du kannst ihn nicht öffnen.</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate"><![CDATA[%1$s Im Moment werden nur die letzten %2$d Artikel von deinem Blog geladen. Falls du gerne die Möglichkeit hättest auch ältere Posts zu laden, <a href="%3$s">gib mir deine Stimme bei Github</a> und hilf mir die Entwicklung dafür zu priorisieren.]]></string>
+    <string name="send_feedback">Sende Feedback…</string>
+
+    <string name="preview">Vorschau</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="publish">Veröffentlichen</string>
+    <string name="update_post">Aktualisieren</string>
+    <string name="unpublish">Unveröffentlichen</string>
+    <string name="alert_publish">Entwurf veröffentlichen?</string>
+    <string name="alert_unpublish">Artikel unveröffentlichen?</string>
+    <string name="delete_draft">Entwurf löschen</string>
+    <string name="alert_delete_draft_title">Diesen Entwurf löschen?</string>
+    <string name="alert_delete_draft_msg">Dieser Schritt kann nicht rückgängig gemacht werden!</string>
+    <string name="alert_delete_yes">Löschen</string>
+    <string name="alert_delete_no">Behalten</string>
+    <string name="post_deleted">Artikel gelöscht</string>
+    <string name="alert_save_msg">Artikel mit Änderungen aktualisieren?</string>
+    <string name="alert_save_yes">Ja, aktualisieren</string>
+    <string name="alert_save_no">Nicht jetzt</string>
+    <string name="discard_changes">Verwerfe Änderungen</string>
+    <string name="alert_discard_changes_title">Sollen alle Veränderungen verworfen werden seit du diesen Artikel geöffnet hast?</string>
+    <string name="alert_discard_changes_msg">Dieser Schritt kann nicht rückgängig gemacht werden!</string>
+    <string name="discard">Verwerfen</string>
+    <string name="view_homepage">Homepage ansehen</string>
+    <string name="view_post_on_blog">Artikel auf dem Blog anschauen</string>
+    <string name="post_settings">Artikeleinstellungen</string>
+
+    <string name="save_post_progress">Artikel wird gespeichert…</string>
+    <string name="save_post_failed">Artikel konnte nicht gespeichert werden</string>
+    <string name="save_post_view">Auf dem Blog anschauen</string>
+    <string name="save_post_timeout">Auf dem Gerät gespeichert</string>
+
+    <string name="save_scenario_unknown">Gespeichert</string>
+    <string name="save_scenario_publish_draft">Artikel veröffentlicht!</string>
+    <string name="save_scenario_unpublish_published_post">Artikel unveröffentlicht</string>
+    <string name="save_scenario_auto_save_scheduled_or_published_post">Änderungen wurden auf dem Gerät gespeichert</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">Artikel aktualisiert</string>
+    <string name="save_scenario_auto_save_draft">Entwurf gespeichert</string>
+    <string name="save_scenario_explicitly_save_draft">Entwurf gespeichert</string>
+
+    <string name="post_title_hint">Gib deinem Artikel einen Titel…</string>
+    <string name="post_image_hint">Füge ein Artikelbild hinzu</string>
+    <string name="post_tags_hint">Füge Tags hinzu…</string>
+    <string name="post_tags_format_hint">Trenne Tags mit Kommata</string>
+    <string name="post_body_hint">Schreibe hier…</string>
+    <string name="post_image_load_error">Fehler beim Laden des Artikelbildes</string>
+    <string name="post_feature_hint">Feature diesen Artikel</string>
+
+    <!-- formatting toolbar -->
+    <string name="format_bold">Fett</string>
+    <string name="format_italic">Kursiv</string>
+    <string name="format_link">Link einfügen</string>
+    <string name="format_image">Bild einfügen</string>
+
+    <!-- image insert / upload -->
+    <string name="insert_image">Bild einfügen</string>
+    <string name="insert_image_url">Url einfügen</string>
+    <string name="image_url">Bild Url</string>
+    <string name="insert_image_upload">Bild hochladen</string>
+    <string name="uploading">Lädt…</string>
+    <string name="image_upload_failed">Bild konnte nicht hochgeladen werden</string>
+    <string name="remove_image">Dieses Bild löschen</string>
+
+    <!-- about -->
+    <string name="about_action">Über…</string>
+    <string name="about">Über</string>
+
+    <string name="version">Version</string>
+    <string name="version_unknown">Unbekannt</string>
+    <string name="open_source_libs">Open-source libraries</string>
+
+    <string name="category_developer">Entwickler</string>
+    <string name="fork_on_github">Fork on Github</string>
+    <string name="follow_on_twitter">Folge mir auf Twitter</string>
+    <string name="visit_website">Entwickler-Website besuchen</string>
+
+    <string name="category_support_development">Entwicklung unterstützen</string>
+    <string name="report_bugs">Fehler melden</string>
+    <string name="report_bugs_subtitle">Melde Fehler oder schlage neue Funktionen vor</string>
+    <string name="play_store">Im Play Store bewerten</string>
+    <string name="play_store_subtitle">Vielen Dank für Deine Unterstützung!</string>
+    <string name="email_developer">Schreibe eine Email an den Entwickler</string>
+    <string name="email_developer_subtitle">Kontaktiere den Entwickler direkt</string>
+    <string name="email_subject">%s - Feedback</string>
+
+    <string name="about_icon_credits">Launcher-Symbol \"Feather\" von <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
+
+    <!-- network -->
+    <string name="no_internet_connection">Keine Internetverbindung</string>
+    <string name="network_timeout">Verbindung unterbrochen</string>
+    <string name="refresh_failed">Daten konnten nicht aktualisiert werden</string>
+
+    <!-- generic -->
+    <string name="done">Fertig</string>
+    <string name="save">Speichern</string>
+    <string name="refresh">Aktualisieren</string>
+    <string name="share">Teilen</string>
+    <string name="loading">Lädt…</string>
+    <string name="insert">Einfügen</string>
+    <string name="intent_no_apps">Es konnte keine App gefunden werde, die diese Aufgabe ausführen kann</string>
+
+    <!-- content descriptions -->
+    <string name="user_image">Benutzerbild</string>
+    <string name="cdesc_post_image">Artikelbild</string>
+
+</resources>
