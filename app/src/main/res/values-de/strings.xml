@@ -4,7 +4,7 @@
     <string name="login_heading1">Einloggen in deinen</string>
     <string name="login_heading2">Blog</string>
 
-    <string name="prompt_blog_url">Blogadresse (http://blog.beispiel.de)</string>
+    <string name="prompt_blog_url">Blogadresse (blog.beispiel.de)</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Passwort</string>
     <string name="action_sign_in">Anmelden</string>
