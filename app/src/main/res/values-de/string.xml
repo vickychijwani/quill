@@ -37,7 +37,7 @@
     <string name="preview">Vorschau</string>
     <string name="edit">Bearbeiten</string>
     <string name="publish">Veröffentlichen</string>
-    <string name="update_post">Artikel aktualisieren</string>
+    <string name="update_post">Aktualisieren</string>
     <string name="unpublish">Unveröffentlichen</string>
     <string name="alert_publish">Entwurf veröffentlichen?</string>
     <string name="alert_unpublish">Artikel unveröffentlichen?</string>
