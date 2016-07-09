@@ -43,8 +43,8 @@ android {
         applicationId 'me.vickychijwani.spectre'
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 102020      // 2 digits each for major, minor, patch
-        versionName '1.2.2'
+        versionCode 1_003_000      // 3 digits each for major, minor, patch
+        versionName '1.3.0'
 
         // enable support for vector drawables on API < 21
         vectorDrawables.useSupportLibrary = true
