@@ -74,8 +74,10 @@
     <string name="post_title_hint">Título del artículo…</string>
     <string name="post_image_hint">Añadir imágen al artículo</string>
     <string name="post_tags_hint">Añadir etiquetas…</string>
+    <string name="post_tags_format_hint">Use comas para separar las etiquetas</string>
     <string name="post_body_hint">Contenido del artículo…</string>
     <string name="post_image_load_error">Error cargando la imagen del artículo</string>
+    <string name="post_feature_hint">Resaltar este artículo</string>
 
     <!-- formatting toolbar -->
     <string name="format_bold">Negrita</string>
