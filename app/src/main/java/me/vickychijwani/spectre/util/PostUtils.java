@@ -1,5 +1,6 @@
 package me.vickychijwani.spectre.util;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
@@ -7,8 +8,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
+import java.util.TimeZone;
 
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
@@ -91,9 +94,18 @@ public class PostUtils {
         UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
         String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
         if (post.isPublished()) {
-            return NetworkUtils.makeAbsoluteUrl(blogUrl, post.getSlug());
+            String permalinkFormat = prefs.getString(UserPrefs.Key.PERMALINK_FORMAT);
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            calendar.setTime(post.getPublishedAt());
+            @SuppressLint("DefaultLocale") String postPath = permalinkFormat
+                    .replace(":year", String.format("%04d", calendar.get(Calendar.YEAR)))
+                    // apparently months start from 0 but years and days start from 1 (wtf?)
+                    .replace(":month", String.format("%02d", calendar.get(Calendar.MONTH) + 1))
+                    .replace(":day", String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH)))
+                    .replace(":slug", post.getSlug());
+            return NetworkUtils.makeAbsoluteUrl(blogUrl, postPath);
         } else if (post.isDraft() || post.isScheduled()) {
-            return NetworkUtils.makeAbsoluteUrl(blogUrl, "p/" + post.getUuid());
+            return NetworkUtils.makeAbsoluteUrl(blogUrl, "p/" + post.getUuid() + "/");
         } else {
             throw new IllegalArgumentException("URL not available for this post!");
         }

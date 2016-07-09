@@ -395,6 +395,7 @@ public class NetworkService {
             public void success(SettingsList settingsList, Response response) {
                 storeEtag(response.getHeaders(), ETag.TYPE_BLOG_SETTINGS);
                 createOrUpdateModel(settingsList.settings);
+                savePermalinkFormat(settingsList.settings);
                 getBus().post(new BlogSettingsLoadedEvent(settingsList.settings));
                 refreshSucceeded(event);
             }
@@ -969,6 +970,15 @@ public class NetworkService {
         prefs.clear(UserPrefs.Key.PASSWORD);
         AppState appState = AppState.getInstance(SpectreApplication.getInstance());
         appState.clear(AppState.Key.LOGGED_IN);
+    }
+
+    private void savePermalinkFormat(List<Setting> settings) {
+        for (Setting setting : settings) {
+            if ("permalinks".equals(setting.getKey())) {
+                UserPrefs.getInstance(SpectreApplication.getInstance())
+                        .setString(UserPrefs.Key.PERMALINK_FORMAT, setting.getValue());
+            }
+        }
     }
 
     private void postLoginStartEvent() {
