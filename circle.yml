@@ -2,7 +2,7 @@ machine:
   environment:
     TARGET_SDK_VERSION: 24
     TOOLS_VERSION: 25.1.7
-    BUILD_TOOLS_VERSION: 24.0.0
+    BUILD_TOOLS_VERSION: 24.0.1
   java:
     version: oraclejdk8
 
