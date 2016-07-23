@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- login -->
@@ -14,13 +15,13 @@
     <string name="error_invalid_password">La contraseña es demasiado corta.</string>
     <string name="error_field_required">Este campos es obligatorio.</string>
 
-    <string name="no_such_blog">No se encuentra el panel de administración de Ghost en %s/ghost</string>
+    <string name="no_such_blog">No se encuentra el panel de administración de Ghost en %s/ghost.</string>
     <string name="login_unexpected_error">Error inesperado durante el acceso. Por favor, vuelva a intentarlo.</string>
     <string name="login_connection_error">No se ha podido conectar a %s/ghost. Por favor, vuelva a intentarlo.</string>
     <string name="login_ssl_unsupported">Su blog no soporta https:// (SSL). Intente cambiarlo a http://.</string>
     <string name="logout">Cerrar sesión</string>
     <string name="password_changed">¿Ha cambiado su contraseña? No se ha podido iniciar sesión con esa contraseña.</string>
-    <string name="unsynced_changes_msg">Se perderán todos sus cambios si cierra la sesión ahora.</string>
+    <string name="unsynced_changes_msg">Se perderán todos sus cambios si cierra la sesión ahora</string>
     <string name="dont_logout">No cerrar sesión</string>
 
     <!-- posts -->
