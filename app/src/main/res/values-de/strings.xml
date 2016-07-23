@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- login -->
@@ -29,8 +30,8 @@
     <string name="status_scheduled">Geplant - %s</string>
     <string name="status_offline_changes">Auf dem Gerät gespeichert, wartet auf eine Verbindung…</string>
     <string name="status_published_auto_saved">Änderungen automatisch gespeichert - noch nicht veröffentlicht</string>
-    <string name="status_marked_for_deletion">Zum Löschen markiert, wartet auf eine Verbindung</string>
-    <string name="status_marked_for_deletion_open_error">Dieser Artikel wurde zum Löschen markiert, du kannst ihn nicht öffnen.</string>
+    <string name="status_marked_for_deletion">Zum Löschen markiert, wartet auf eine Verbindung…</string>
+    <string name="status_marked_for_deletion_open_error">Dieser Artikel wurde zum Löschen markiert, du kannst ihn nicht öffnen</string>
     <string name="post_limit_exceeded" tools:ignore="PluralsCandidate"><![CDATA[%1$s Im Moment werden nur die letzten %2$d Artikel von deinem Blog geladen. Falls du gerne die Möglichkeit hättest auch ältere Posts zu laden, <a href="%3$s">gib mir deine Stimme bei Github</a> und hilf mir die Entwicklung dafür zu priorisieren.]]></string>
     <string name="send_feedback">Sende Feedback…</string>
 
