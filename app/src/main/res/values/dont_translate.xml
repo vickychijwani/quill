@@ -8,4 +8,8 @@
     <string name="vicky_chijwani" translatable="false">Vicky Chijwani</string>
     <string name="ghost" translatable="false">ghost</string>
 
+    <!-- ignoring missing translations for these strings because they are only meaningful if the user understands English -->
+    <string name="translate" translatable="false">Help with translation</string>
+    <string name="translate_subtitle" translatable="false">Help me translate this app to your language!</string>
+
 </resources>

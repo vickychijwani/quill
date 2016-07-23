@@ -17,6 +17,7 @@ import me.vickychijwani.spectre.util.AppUtils;
 public class AboutActivity extends BaseActivity {
 
     public static final String URL_GITHUB_CONTRIBUTING = "https://github.com/vickychijwani/quill/blob/master/CONTRIBUTING.md#reporting-bugs";
+    public static final String URL_TRANSLATE = "https://hosted.weblate.org/engage/quill/en/";
     public static final String URL_MY_WEBSITE = "http://vickychijwani.me";
     public static final String URL_TWITTER_PROFILE = "https://twitter.com/vickychijwani";
     public static final String URL_GITHUB_REPO = "https://github.com/vickychijwani/quill";
@@ -75,6 +76,11 @@ public class AboutActivity extends BaseActivity {
     @OnClick(R.id.about_report_bugs)
     public void onReportBugsClicked(View v) {
         openUrl(URL_GITHUB_CONTRIBUTING);
+    }
+
+    @OnClick(R.id.about_translate)
+    public void onTranslateClicked(View v) {
+        openUrl(URL_TRANSLATE);
     }
 
     @OnClick(R.id.about_play_store)

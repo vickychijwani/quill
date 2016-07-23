@@ -3,10 +3,10 @@
 <img src="screenshots/demo.gif" width="320" align="right" hspace="20">
 
 [![](https://img.shields.io/circleci/project/vickychijwani/quill.svg)](https://circleci.com/gh/vickychijwani/quill)
-[![Join the chat at https://gitter.im/vickychijwani/quill](https://badges.gitter.im/vickychijwani/quill.svg)](https://gitter.im/vickychijwani/quill?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Translate on Weblate](https://hosted.weblate.org/widgets/quill/en/shields-badge.svg)](https://hosted.weblate.org/engage/quill/en/?utm_source=widget)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-Quill-green.svg?style=true)](https://android-arsenal.com/details/3/3729)
+[![Join the chat on Gitter](https://badges.gitter.im/vickychijwani/quill.svg)](https://gitter.im/vickychijwani/quill?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![](https://img.shields.io/github/tag/vickychijwani/quill.svg)
-[![](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
 Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get it [here on the Google Play Store][playstore].
 
@@ -25,7 +25,15 @@ Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get
 
 [File an issue](/CONTRIBUTING.md)
 
+### Help translate Quill
 
+If you'd like to see support for your language in Quill, you can easily [contribute translations on Weblate][weblate]. _This requires no setup and no knowledge of Android development_, just keep in mind a few simple rules:
+
+- Many strings have [placeholders](http://envyandroid.com/android-string-xml-resource-formatting/) like "%s", "%d", "%2$s", etc. - keep these intact because other numbers and strings are inserted into these placeholders
+- Single and double quotes need to be preceded with a backslash character (\' and \" respectively)
+- For short strings, try to keep the translated string length close to the English one, because longer strings may not fit in the UI
+
+If you need help getting started, [email me](mailto:vickychijwani@gmail.com) or drop a comment on the [master translation issue](https://github.com/vickychijwani/quill/issues/26).
 
 ### Developer setup
 
@@ -50,3 +58,4 @@ If you face any issues setting this up, please let me know by [filing a new issu
 
 
 [playstore]: https://play.google.com/store/apps/details?id=me.vickychijwani.spectre
+[weblate]: https://hosted.weblate.org/engage/quill/en/
