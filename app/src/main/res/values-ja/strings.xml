@@ -125,6 +125,6 @@
     <string name="intent_no_apps">このアクションを処理できるアプリがありません</string>
 
     <string name="user_image">ユーザー画像</string>
-    <string name="cdesc_post_image">画像を投稿</string>
+    <string name="cdesc_post_image">記事の画像</string>
 
 </resources>
