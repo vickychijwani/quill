@@ -1,2 +1,130 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<?xml version='1.0' encoding='UTF-8'?>
+<resources><string name="login_heading1">サインイン</string>
+    <string name="login_heading2">ブログ</string>
+
+    <string name="prompt_blog_url">ブログのアドレス (blog.example.com)</string>
+    <string name="prompt_email">メールアドレス</string>
+    <string name="prompt_password">パスワード</string>
+    <string name="action_sign_in">サインイン</string>
+
+    <string name="error_invalid_url">この URL は無効です。</string>
+    <string name="error_invalid_email">このメールアドレスは無効です。</string>
+    <string name="error_invalid_password">このパスワードは短すぎます。</string>
+    <string name="error_field_required">このフィールドは必須です。</string>
+
+    <string name="no_such_blog">%s/ghost に Ghost admin がありません。</string>
+    <string name="login_unexpected_error">サインイン中に予期しないエラー。もう一度やり直してください。</string>
+    <string name="login_connection_error">%s/ghost に接続できませんでした。もう一度やり直してください。</string>
+    <string name="login_ssl_unsupported">あなたのブログは https:// (SSL) をサポートしていません。http:// に変更してみてください。</string>
+    <string name="logout">ログアウト</string>
+    <string name="password_changed">パスワードを変更しましたか? そのパスワードでログインできませんでした。</string>
+    <string name="unsynced_changes_msg">今ログアウトすると、未同期の変更がすべて失われます</string>
+    <string name="dont_logout">ログアウトしない</string>
+
+    <string name="status_published">公開済 %s</string>
+    <string name="status_draft">ドラフト</string>
+    <string name="status_scheduled">スケジュール済 - %s</string>
+    <string name="status_offline_changes">デバイスに保存しました。オンラインへの待機中…</string>
+    <string name="status_published_auto_saved">変更を自動保存しました。まだ公開されていません</string>
+    <string name="status_marked_for_deletion">削除対象としてマークしました。オンラインへの待機中…</string>
+    <string name="status_marked_for_deletion_open_error">その記事は削除対象としてマークされていて、開くことができません</string>
+    <string xmlns:tools="http://schemas.android.com/tools" name="post_limit_exceeded" tools:ignore="PluralsCandidate">%1$s は現在、あなたのブログから最新の %2$d 記事のみ読み込みます。古い記事の読み込みサポートを参照したい場合は、&lt;a href=%3$s&gt;Github でこの機能に投票&lt;/a&gt; して、開発の優先を支援してください。</string>
+    <string name="send_feedback">フィードバックを送信…</string>
+
+    <string name="preview">プレビュー</string>
+    <string name="edit">編集</string>
+    <string name="publish">公開</string>
+    <string name="update_post">記事を更新</string>
+    <string name="unpublish">非公開</string>
+    <string name="alert_publish">ドラフトを公開しますか?</string>
+    <string name="alert_unpublish">記事を非公開にしますか?</string>
+    <string name="delete_draft">ドラフトを削除</string>
+    <string name="alert_delete_draft_title">このドラフトを削除しますか?</string>
+    <string name="alert_delete_draft_msg">これを元に戻すことはできません!</string>
+    <string name="alert_delete_yes">削除</string>
+    <string name="alert_delete_no">保存</string>
+    <string name="post_deleted">記事を削除しました</string>
+    <string name="alert_save_msg">記事の変更を更新しますか?</string>
+    <string name="alert_save_yes">はい、更新します</string>
+    <string name="alert_save_no">まだです</string>
+    <string name="discard_changes">変更を破棄</string>
+    <string name="alert_discard_changes_title">この記事を開いた以降の、すべての変更を破棄しますか?</string>
+    <string name="alert_discard_changes_msg">後戻りはできません!</string>
+    <string name="discard">破棄</string>
+    <string name="view_homepage">ホームページを表示</string>
+    <string name="view_post_on_blog">ブログの記事を表示</string>
+    <string name="post_settings">記事の設定</string>
+
+    <string name="save_post_progress">記事を保存しています…</string>
+    <string name="save_post_failed">記事を保存できませんでした</string>
+    <string name="save_post_view">ブログで表示</string>
+    <string name="save_post_timeout">デバイスに保存しました</string>
+
+    <string name="save_scenario_unknown">保存しました</string>
+    <string name="save_scenario_publish_draft">記事を公開しました!</string>
+    <string name="save_scenario_unpublish_published_post">記事を非公開にしました</string>
+    <string name="save_scenario_auto_save_scheduled_or_published_post">変更をデバイスに保存しました</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">記事を更新しました</string>
+    <string name="save_scenario_auto_save_draft">ドラフトを保存しました</string>
+    <string name="save_scenario_explicitly_save_draft">ドラフトを保存しました</string>
+
+    <string name="post_title_hint">記事のタイトルを入力してください…</string>
+    <string name="post_image_hint">記事の画像を追加</string>
+    <string name="post_tags_hint">タグを追加…</string>
+    <string name="post_tags_format_hint">カンマでタグを区切ります</string>
+    <string name="post_body_hint">ここに入力します…</string>
+    <string name="post_image_load_error">記事の画像を読み込み中にエラー</string>
+    <string name="post_feature_hint">この記事をフィーチャー</string>
+
+    <string name="format_bold">太字</string>
+    <string name="format_italic">斜体</string>
+    <string name="format_link">リンクを挿入</string>
+    <string name="format_image">画像を挿入</string>
+
+    <string name="insert_image">画像を挿入</string>
+    <string name="insert_image_url">URL を挿入</string>
+    <string name="image_url">画像の URL</string>
+    <string name="insert_image_upload">画像をアップロード</string>
+    <string name="uploading">アップロードしています…</string>
+    <string name="image_upload_failed">画像をアップロードできませんでした</string>
+    <string name="remove_image">この画像を削除</string>
+
+    <string name="about_action">アプリについて…</string>
+    <string name="about">アプリについて</string>
+
+    <string name="version">バージョン</string>
+    <string name="version_unknown">不明</string>
+    <string name="open_source_libs">オープンソース ライブラリー</string>
+
+    <string name="category_developer">開発者</string>
+    <string name="fork_on_github">Github でフォーク</string>
+    <string name="follow_on_twitter">Twitter でフォロー</string>
+    <string name="visit_website">ウェブサイトを訪問</string>
+
+    <string name="category_support_development">開発をサポートする</string>
+    <string name="report_bugs">バグの報告</string>
+    <string name="report_bugs_subtitle">バグを報告したり、新しい機能を提案します</string>
+    <string name="play_store">Play ストアで評価する</string>
+    <string name="play_store_subtitle">サポートをありがとうございます!</string>
+    <string name="email_developer">開発者にメール</string>
+    <string name="email_developer_subtitle">開発者に直接連絡します</string>
+    <string name="email_subject">%s - フィードバック</string>
+
+    <string name="about_icon_credits">ランチャーアイコン \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
+
+    <string name="no_internet_connection">インターネット接続がありません</string>
+    <string name="network_timeout">接続がタイムアウトしました</string>
+    <string name="refresh_failed">データを更新できませんでした</string>
+
+    <string name="done">完了</string>
+    <string name="save">保存</string>
+    <string name="refresh">更新</string>
+    <string name="share">共有</string>
+    <string name="loading">読み込んでいます…</string>
+    <string name="insert">挿入</string>
+    <string name="intent_no_apps">このアクションを処理できるアプリがありません</string>
+
+    <string name="user_image">ユーザー画像</string>
+    <string name="cdesc_post_image">画像を投稿</string>
+
+</resources>
