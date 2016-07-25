@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources><string name="login_heading1">サインイン</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="login_heading1">サインイン</string>
     <string name="login_heading2">ブログ</string>
 
     <string name="prompt_blog_url">ブログのアドレス (blog.example.com)</string>
@@ -28,7 +29,7 @@
     <string name="status_published_auto_saved">変更を自動保存しました。まだ公開されていません</string>
     <string name="status_marked_for_deletion">削除対象としてマークしました。オンラインへの待機中…</string>
     <string name="status_marked_for_deletion_open_error">その記事は削除対象としてマークされていて、開くことができません</string>
-    <string xmlns:tools="http://schemas.android.com/tools" name="post_limit_exceeded" tools:ignore="PluralsCandidate">%1$s は現在、あなたのブログから最新の %2$d 記事のみ読み込みます。古い記事の読み込みサポートを参照したい場合は、&lt;a href=%3$s&gt;Github でこの機能に投票&lt;/a&gt; して、開発の優先を支援してください。</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">%1$s は現在、あなたのブログから最新の %2$d 記事のみ読み込みます。古い記事の読み込みサポートを参照したい場合は、&lt;a href=%3$s&gt;Github でこの機能に投票&lt;/a&gt; して、開発の優先を支援してください。</string>
     <string name="send_feedback">フィードバックを送信…</string>
 
     <string name="preview">プレビュー</string>
