@@ -180,7 +180,8 @@ public class NetworkService {
             @Override
             public void success(Response response) {
                 String html = new String(((TypedByteArray) response.getBody()).getBytes());
-                Pattern clientSecretPattern = Pattern.compile("^.*<meta[ ]+name=['\"]env-clientSecret['\"][ ]+content=['\"]([^'\"]+)['\"].*$", Pattern.DOTALL);
+                // quotes around attribute values are optional in HTML5: http://stackoverflow.com/q/6495310/504611
+                Pattern clientSecretPattern = Pattern.compile("^.*<meta[ ]+name=['\"]?env-clientSecret['\"]?[ ]+content=['\"]?([^'\"]+)['\"]?.*$", Pattern.DOTALL);
                 Matcher matcher = clientSecretPattern.matcher(html);
                 if (matcher.matches()) {
                     String clientSecret = matcher.group(1);
