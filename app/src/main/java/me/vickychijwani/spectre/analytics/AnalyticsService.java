@@ -52,7 +52,7 @@ public class AnalyticsService {
     public void onLoginErrorEvent(LoginErrorEvent event) {
         if (event.wasInitiatedByUser) {
             String blogType = getBlogTypeFromUrl(event.blogUrl);
-            logLogin(blogType, true);
+            logLogin(blogType, false);
         }
     }
 
