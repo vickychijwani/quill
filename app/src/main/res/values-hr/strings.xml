@@ -17,7 +17,7 @@
     <string name="login_connection_error">Nemogućnost spajanja na %s/ghost. Molimo pokušajte ponovno.</string>
     <string name="login_ssl_unsupported">Vaš blog ne podržava https:// (SSL). Probajte promijeniti u http://.</string>
     <string name="logout">Odjava</string>
-    <string name="password_changed">Je li se vaša lozinka promijenila? Prijava nije moguća s tom lozinkom.</string>
+    <string name="password_changed">Je li se Vaša lozinka promijenila? Prijava nije moguća s tom lozinkom.</string>
     <string name="unsynced_changes_msg">Izgubit ćete sve nesinkronizirane promjene ukoliko se sada odjavite</string>
     <string name="dont_logout">Nemoj se odjaviti</string>
 
@@ -28,7 +28,7 @@
     <string name="status_published_auto_saved">Promjene auto-spremljene, nisu još objavljene</string>
     <string name="status_marked_for_deletion">Označeno za brisanje, čekam vezu na internet…</string>
     <string name="status_marked_for_deletion_open_error">Ovaj post je označen za brisanje, ne može biti otvoren</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"%1$s trenutno učitava samo zadnjih %2$d postova s tvog bloga. Ukoliko želite vidjeti podršku za učitavanje starijih postova,  &lt;a href=%3$s&gt;glasajte za ovaj feature na Githubu&lt;/a&gt; i pomozite mi odrediti na čemu da sljedećem radim."</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"%1$s trenutno učitava samo zadnjih %2$d postova s tvog bloga. Ukoliko želite vidjeti podršku za učitavanje starijih postova,  &lt;a href=%3$s&gt;glasajte za ovaj feature na Githubu&lt;/a&gt; i pomozite mi odrediti na čemu sljedećemu da radim."</string>
     <string name="send_feedback">Pošalji komentar…</string>
 
     <string name="preview">Pregled</string>
@@ -69,9 +69,9 @@
     <string name="save_scenario_explicitly_save_draft">Skica spremljena</string>
 
     <string name="post_title_hint">Napiši naslov postu…</string>
-    <string name="post_image_hint">Dodaj post sliku</string>
-    <string name="post_tags_hint">Dodaj nekoliko tagova…</string>
-    <string name="post_tags_format_hint">Koristi zareze kako bi odvojio tagove</string>
+    <string name="post_image_hint">Dodajte sliku posta</string>
+    <string name="post_tags_hint">Dodajte nekoliko tagova…</string>
+    <string name="post_tags_format_hint">Koristi zareze kako biste odvojili tagove</string>
     <string name="post_body_hint">Napiši nešto ovdje…</string>
     <string name="post_image_load_error">Greška kod učitavanja slike posta</string>
     <string name="post_feature_hint">Istakni ovaj post</string>
@@ -86,7 +86,7 @@
     <string name="image_url">URL slike</string>
     <string name="insert_image_upload">Uploadaj sliku</string>
     <string name="uploading">Upload u tijeku…</string>
-    <string name="image_upload_failed">Nisam mogao uplodati sliku</string>
+    <string name="image_upload_failed">Sliku nije moguće uploadati</string>
     <string name="remove_image">Izbriši ovu sliku</string>
 
     <string name="about_action">O nama…</string>
