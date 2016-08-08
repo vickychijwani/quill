@@ -1,2 +1,130 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<?xml version='1.0' encoding='UTF-8'?>
+<resources xmlns:tools="http://schemas.android.com/tools"><string name="login_heading1">Prijavi se na svoj</string>
+    <string name="login_heading2">blog</string>
+
+    <string name="prompt_blog_url">Blog adresa (blog.primjer.com)</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Lozinka</string>
+    <string name="action_sign_in">Prijavi se</string>
+
+    <string name="error_invalid_url">Ovaj URL je neispravan.</string>
+    <string name="error_invalid_email">Ova email adresa je neispravna.</string>
+    <string name="error_invalid_password">Ova lozinka je prekratka.</string>
+    <string name="error_field_required">Ovo polje je obavezno.</string>
+
+    <string name="no_such_blog">Ne postoji Ghost administrator na %s/ghost.</string>
+    <string name="login_unexpected_error">Dogodila se neočekivana greška tijekom prijave. Molimo pokušajte ponovno.</string>
+    <string name="login_connection_error">Nemogućnost spajanja na %s/ghost. Molimo pokušajte ponovno.</string>
+    <string name="login_ssl_unsupported">Vaš blog ne podržava https:// (SSL). Probajte promijeniti u http://.</string>
+    <string name="logout">Odjava</string>
+    <string name="password_changed">Je li se vaša lozinka promijenila? Prijava nije moguća s tom lozinkom.</string>
+    <string name="unsynced_changes_msg">Izgubit ćete sve nesinkronizirane promjene ukoliko se sada odjavite</string>
+    <string name="dont_logout">Nemoj se odjaviti</string>
+
+    <string name="status_published">Objavljeno %s</string>
+    <string name="status_draft">Skica</string>
+    <string name="status_scheduled">Zakazano - %s</string>
+    <string name="status_offline_changes">Spremljeno na uređaju, čekam vezu na internet…</string>
+    <string name="status_published_auto_saved">Promjene auto-spremljene, nisu još objavljene</string>
+    <string name="status_marked_for_deletion">Označeno za brisanje, čekam vezu na internet…</string>
+    <string name="status_marked_for_deletion_open_error">Ovaj post je označen za brisanje, ne može biti otvoren</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"%1$s trenutno učitava samo zadnjih %2$d postova s tvog bloga. Ukoliko želite vidjeti podršku za učitavanje starijih postova,  &lt;a href=%3$s&gt;glasajte za ovaj feature na Githubu&lt;/a&gt; i pomozite mi odrediti na čemu da sljedećem radim."</string>
+    <string name="send_feedback">Pošalji komentar…</string>
+
+    <string name="preview">Pregled</string>
+    <string name="edit">Izmijeni</string>
+    <string name="publish">Objavi</string>
+    <string name="update_post">Ažuriraj post</string>
+    <string name="unpublish">Neobjavi</string>
+    <string name="alert_publish">Objaviti skicu?</string>
+    <string name="alert_unpublish">Neobjaviti post?</string>
+    <string name="delete_draft">Izbriši skicu</string>
+    <string name="alert_delete_draft_title">Izbrisati ovu skicu?</string>
+    <string name="alert_delete_draft_msg">Nećete moći vratiti promjene nazad!</string>
+    <string name="alert_delete_yes">Izbriši</string>
+    <string name="alert_delete_no">Sačuvaj</string>
+    <string name="post_deleted">Post izbrisan</string>
+    <string name="alert_save_msg">Ažuriraj post s promjenama?</string>
+    <string name="alert_save_yes">Da, ažuriraj</string>
+    <string name="alert_save_no">Ne još</string>
+    <string name="discard_changes">Odbaci promjene</string>
+    <string name="alert_discard_changes_title">Odbaciti SVE promjene otkad ste otvorili ovaj post?</string>
+    <string name="alert_discard_changes_msg">Nema povratka nazad!</string>
+    <string name="discard">Odbaci</string>
+    <string name="view_homepage">Pogledaj naslovnicu</string>
+    <string name="view_post_on_blog">Pogledaj post na blogu</string>
+    <string name="post_settings">Post postavke</string>
+
+    <string name="save_post_progress">Spremam post…</string>
+    <string name="save_post_failed">Ne mogu spremiti post</string>
+    <string name="save_post_view">Pogledaj na blogu</string>
+    <string name="save_post_timeout">Spremljeno na uređaju</string>
+
+    <string name="save_scenario_unknown">Spremljeno</string>
+    <string name="save_scenario_publish_draft">Post objavljen!</string>
+    <string name="save_scenario_unpublish_published_post">Post neobjavljen</string>
+    <string name="save_scenario_auto_save_scheduled_or_published_post">Promjene spremljene na uređaju</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">Post ažuriran</string>
+    <string name="save_scenario_auto_save_draft">Skica spremljena</string>
+    <string name="save_scenario_explicitly_save_draft">Skica spremljena</string>
+
+    <string name="post_title_hint">Napiši naslov postu…</string>
+    <string name="post_image_hint">Dodaj post sliku</string>
+    <string name="post_tags_hint">Dodaj nekoliko tagova…</string>
+    <string name="post_tags_format_hint">Koristi zareze kako bi odvojio tagove</string>
+    <string name="post_body_hint">Napiši nešto ovdje…</string>
+    <string name="post_image_load_error">Greška kod učitavanja slike posta</string>
+    <string name="post_feature_hint">Istakni ovaj post</string>
+
+    <string name="format_bold">Masno</string>
+    <string name="format_italic">Koso</string>
+    <string name="format_link">Ubaci link</string>
+    <string name="format_image">Ubaci sliku</string>
+
+    <string name="insert_image">Ubaci sliku</string>
+    <string name="insert_image_url">Ubaci URL</string>
+    <string name="image_url">URL slike</string>
+    <string name="insert_image_upload">Uploadaj sliku</string>
+    <string name="uploading">Upload u tijeku…</string>
+    <string name="image_upload_failed">Nisam mogao uplodati sliku</string>
+    <string name="remove_image">Izbriši ovu sliku</string>
+
+    <string name="about_action">O nama…</string>
+    <string name="about">O nama</string>
+
+    <string name="version">Verzija</string>
+    <string name="version_unknown">Nepoznato</string>
+    <string name="open_source_libs">Open-source biblioteke</string>
+
+    <string name="category_developer">Razvijatelj</string>
+    <string name="fork_on_github">Fork na Githubu</string>
+    <string name="follow_on_twitter">Prati na Twitteru</string>
+    <string name="visit_website">Posjeti web stranicu</string>
+
+    <string name="category_support_development">Podrži razvoj</string>
+    <string name="report_bugs">Prijavi greške</string>
+    <string name="report_bugs_subtitle">Prijavi greške ili predloži nove mogućnosti</string>
+    <string name="play_store">Ocijeni na Play Storeu</string>
+    <string name="play_store_subtitle">Hvala ti na podršci!</string>
+    <string name="email_developer">Pošalji email razvijatelju</string>
+    <string name="email_developer_subtitle">Kontaktiraj razvijatelja direktno</string>
+    <string name="email_subject">%s - Komentari</string>
+
+    <string name="about_icon_credits">Ikona \"Feather\" od <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
+
+    <string name="no_internet_connection">Nema internet veze</string>
+    <string name="network_timeout">Veza istekla</string>
+    <string name="refresh_failed">Ne mogu osvježiti podatke</string>
+
+    <string name="done">Završeno</string>
+    <string name="save">Spremi</string>
+    <string name="refresh">Osvježi</string>
+    <string name="share">Podijeli</string>
+    <string name="loading">Učitavam…</string>
+    <string name="insert">Ubaci</string>
+    <string name="intent_no_apps">Ne postoji aplikacija koja bi preuzela ovu akciju</string>
+
+    <string name="user_image">Korisnička slika</string>
+    <string name="cdesc_post_image">Slika posta</string>
+
+</resources>
