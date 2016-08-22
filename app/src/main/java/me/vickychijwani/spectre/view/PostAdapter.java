@@ -203,7 +203,8 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
         // play a little cards animation similar to Google Now and Google+
         PostViewHolder postVH = (PostViewHolder) viewHolder;
-        if (mAnimateOnAttach) {
+        // check delay >= 0 to avoid Crashlytics issue #124, don't know how it becomes negative
+        if (mAnimateOnAttach && mAnimationDelay >= 0) {
             View itemView = postVH.itemView;
             itemView.setTranslationY(DeviceUtils.dpToPx(300));
             itemView.setRotation(10);
