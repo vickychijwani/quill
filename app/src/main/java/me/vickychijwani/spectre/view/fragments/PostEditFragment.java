@@ -13,7 +13,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -518,9 +517,14 @@ public class PostEditFragment extends BaseFragment implements
                         Crashlytics.logException(new IllegalStateException("UI is messed up, " +
                                 "desired post status is same as current status!"));
                     }
-                    if (TextUtils.isEmpty(mPost.getSlug())
-                            || mPost.getSlug().startsWith(Post.DEFAULT_SLUG_PREFIX)) {
+                    // This will not be triggered when updating a published post, that goes through
+                    // onSaveClicked(). It is assumed the user will ALWAYS want to synchronize the
+                    // slug with the title as long as it's being published now (even if it was
+                    // published and then unpublished earlier).
+                    if (Post.PUBLISHED.equals(finalTargetStatus)) {
                         try {
+                            // update the title in memory first, from the latest value in UI
+                            mPost.setTitle(mPostTitleEditView.getText().toString());
                             mPost.setSlug(new Slugify().slugify(mPost.getTitle()));
                         } catch (IOException e) {
                             Crashlytics.logException(e);
