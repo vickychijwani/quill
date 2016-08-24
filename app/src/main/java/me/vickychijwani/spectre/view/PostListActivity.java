@@ -333,7 +333,7 @@ public class PostListActivity extends BaseActivity {
                     .into(mUserImageView);
         } else {
             // Crashlytics issue #77
-            Crashlytics.logException(new Exception("user image is null!"));
+            Log.w(TAG, "user image is null!");
         }
     }
 
