@@ -37,16 +37,9 @@ If you need help getting started, [email me](mailto:vickychijwani@gmail.com) or 
 
 ### Developer setup
 
-Quill uses [Fabric](http://fabric.io/) (formerly Crashlytics) for automatic crash-reporting. However my Fabric API key and secret is not committed to this Github repo for security reasons. So to build the app in Android Studio, you will have to either:
+Setup is as simple as importing the project into Android Studio and building (assuming you have the correct build tools and Android SDK).
 
-- Create the file `app/crashlytics.properties` and set your own Fabric API key and secret like this:
-
-```
-apiKey=YOUR_API_KEY_HERE
-apiSecret=YOUR_API_SECRET_HERE
-```
-
-- OR, to skip Crashlytics altogether, create an empty file `app/crashlytics.properties` and comment out the call `Fabric.with(this, new Crashlytics())` in `SpectreApplication.java` line 51
+Note: Quill uses [Fabric](http://fabric.io/) (formerly Crashlytics) for automatic crash-reporting and analytics. A throwaway Fabric API key is included for easy setup. If you want to use your own Fabric credentials for any reason, just put your API key and secret in `app/crashlytics.properties` and then run `git update-index --assume-unchanged app/crashlytics.properties` to tell git to _never_ commit that file.
 
 If you face any issues setting this up, please let me know by [filing a new issue](/issues/new).
 
