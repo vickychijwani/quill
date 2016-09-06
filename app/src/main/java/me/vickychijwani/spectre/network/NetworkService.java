@@ -788,11 +788,11 @@ public class NetworkService {
 
             @Override
             public void failure(RetrofitError error) {
-                getBus().post(new FileUploadErrorEvent(error));
                 if (NetworkUtils.isUnauthorized(error)) {
                     // defer the event and try to re-authorize
                     refreshAccessToken(event);
                 } else if (NetworkUtils.isRealError(error)) {
+                    getBus().post(new FileUploadErrorEvent(error));
                     getBus().post(new ApiErrorEvent(error));
                 }
             }
