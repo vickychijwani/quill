@@ -49,7 +49,7 @@
     <string name="discard_changes">放弃更改</string>
     <string name="alert_discard_changes_title">打开文章后，您确定要放弃所有更改？</string>
     <string name="alert_discard_changes_msg">这将无法撤销！</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"已从 %1$s  中读取了最新的 %2$s 篇文章。如果你想查看较早的文章，请 &lt;a href = %3$s&gt;点击这里并在Github上投票 &lt;/a&gt;  。您的建议对我很重要。"</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">%1$s 目前仅从您的博客加载最新的 %2$d 篇文章。如果你想支持旧文章的查看， &lt;a href=%3$s&gt;在Github对此功能投票&lt;/a&gt; 并且帮我优先考虑发展。</string>
     <string name="cdesc_post_image">发布图片</string>
 
 <string name="view_homepage">浏览主页</string>
