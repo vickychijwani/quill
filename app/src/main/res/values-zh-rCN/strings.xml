@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources><string name="login_heading1">登录到您的</string>
+<resources xmlns:tools="http://schemas.android.com/tools"><string name="login_heading1">登录到您的</string>
     <string name="login_heading2">博客</string>
 
     <string name="prompt_blog_url">博客地址 (blog.example.com)</string>
@@ -43,10 +43,14 @@
     <string name="alert_delete_yes">删除</string>
     <string name="alert_delete_no">保持</string>
     <string name="post_deleted">删除文章</string>
-    <string name="alert_save_msg">更新文章的变化吗？</string>
+    <string name="alert_save_msg">要提交对文章的更改吗？</string>
     <string name="alert_save_yes">是的，更新</string>
     <string name="alert_save_no">不是现在</string>
     <string name="discard_changes">放弃更改</string>
     <string name="alert_discard_changes_title">打开文章后，您确定要放弃所有更改？</string>
     <string name="alert_discard_changes_msg">这将无法撤销！</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"已从 %1$s  中读取了最新的 %2$s 篇文章。如果你想查看较早的文章，请 &lt;a href = %3$s&gt;点击这里并在Github上投票 &lt;/a&gt;  。您的建议对我很重要。"</string>
+    <string name="cdesc_post_image">发布图片</string>
+
+<string name="view_homepage">浏览主页</string>
     </resources>
