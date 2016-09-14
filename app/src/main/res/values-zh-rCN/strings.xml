@@ -1,2 +1,52 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<?xml version='1.0' encoding='UTF-8'?>
+<resources><string name="login_heading1">登录到您的</string>
+    <string name="login_heading2">博客</string>
+
+    <string name="prompt_blog_url">博客地址 (blog.example.com)</string>
+    <string name="prompt_email">邮箱</string>
+    <string name="prompt_password">密码</string>
+    <string name="action_sign_in">登录</string>
+
+    <string name="error_invalid_url">此 URL 是无效的。</string>
+    <string name="error_invalid_email">此电子邮件地址是无效的。</string>
+    <string name="error_invalid_password">密码过短。</string>
+    <string name="error_field_required">此字段不能为空。</string>
+
+    <string name="no_such_blog">在 %s/ghost 中没有Ghost admin。</string>
+    <string name="login_unexpected_error">在登录期间出现意外错误。请重试。</string>
+    <string name="login_connection_error">无法连接到 %s/ghost。请重试。</string>
+    <string name="login_ssl_unsupported">你的博客不支持 https:// (SSL)。尝试更改为 http://。</string>
+    <string name="logout">注销</string>
+    <string name="password_changed">您的密码更改了吗？不能使用该密码登录。</string>
+    <string name="unsynced_changes_msg">您如果现在注销，您将丢失所有未同步的更改</string>
+    <string name="dont_logout">不注销</string>
+
+    <string name="status_published">已发布的 %s</string>
+    <string name="status_draft">草稿</string>
+    <string name="status_scheduled">计划 - %s</string>
+    <string name="status_offline_changes">已保存在设备上，等待联网…</string>
+    <string name="status_published_auto_saved">更改已自动保存，尚未发布</string>
+    <string name="status_marked_for_deletion">已标记为删除，等待联网…</string>
+    <string name="status_marked_for_deletion_open_error">这篇文章已被标记为删除，无法打开</string>
+    <string name="send_feedback">发送反馈…</string>
+
+    <string name="preview">预览</string>
+    <string name="edit">编辑</string>
+    <string name="publish">发布</string>
+    <string name="update_post">更新文章</string>
+    <string name="unpublish">取消发布</string>
+    <string name="alert_publish">发布草稿？</string>
+    <string name="alert_unpublish">取消发布文章吗？</string>
+    <string name="delete_draft">删除草稿</string>
+    <string name="alert_delete_draft_title">删除此草稿？</string>
+    <string name="alert_delete_draft_msg">你将不能撤消此操作！</string>
+    <string name="alert_delete_yes">删除</string>
+    <string name="alert_delete_no">保持</string>
+    <string name="post_deleted">删除文章</string>
+    <string name="alert_save_msg">更新文章的变化吗？</string>
+    <string name="alert_save_yes">是的，更新</string>
+    <string name="alert_save_no">不是现在</string>
+    <string name="discard_changes">放弃更改</string>
+    <string name="alert_discard_changes_title">打开文章后，您确定要放弃所有更改？</string>
+    <string name="alert_discard_changes_msg">这将无法撤销！</string>
+    </resources>
