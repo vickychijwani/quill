@@ -125,4 +125,6 @@
 
     <string name="user_image">用户图像</string>
     <string name="report_bugs">报告错误</string>
+    <string name="post_feature_hint">为文章评分</string>
+
     </resources>
