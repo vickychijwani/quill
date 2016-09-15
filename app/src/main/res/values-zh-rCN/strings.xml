@@ -15,7 +15,7 @@
     <string name="no_such_blog">在 %s/ghost 中没有Ghost admin。</string>
     <string name="login_unexpected_error">在登录期间出现意外错误。请重试。</string>
     <string name="login_connection_error">无法连接到 %s/ghost。请重试。</string>
-    <string name="login_ssl_unsupported">你的博客不支持 https:// (SSL)。请尝试更改为 http://。</string>
+    <string name="login_ssl_unsupported">您的博客不支持 https:// (SSL)。请尝试更改为 http://。</string>
     <string name="logout">注销</string>
     <string name="password_changed">您的密码更改了吗？该密码是错误的。</string>
     <string name="unsynced_changes_msg">您如果现在注销，您将丢失所有未同步的更改</string>
@@ -25,7 +25,7 @@
     <string name="status_draft">草稿</string>
     <string name="status_scheduled">计划 - %s</string>
     <string name="status_offline_changes">已保存在设备上，等待联网…</string>
-    <string name="status_published_auto_saved">更改已自动保存，但尚未发布</string>
+    <string name="status_published_auto_saved">更改已自动保存，尚未发布</string>
     <string name="status_marked_for_deletion">已标记为删除，等待联网…</string>
     <string name="status_marked_for_deletion_open_error">这篇文章已被标记为删除，无法打开</string>
     <string name="send_feedback">发送反馈…</string>
@@ -47,9 +47,9 @@
     <string name="alert_save_yes">是的，更新</string>
     <string name="alert_save_no">不是现在</string>
     <string name="discard_changes">放弃更改</string>
-    <string name="alert_discard_changes_title">打开文章后，所有的更改就会失效。要放弃更改吗？</string>
+    <string name="alert_discard_changes_title">打开文章后，所有的更改就会失效。要打开文章并放弃更改吗？</string>
     <string name="alert_discard_changes_msg">这将无法撤销！</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"已从 %1$s  中读取了最新的 %2$d 篇文章。如果你想查看较早的文章（目前未开发），请 &lt;a href=%3$s&gt;点击这里并在Github上投票 &lt;/a&gt;  。您的建议对我很重要。"</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"已从 %1$s  中仅读取了最新的 %2$d 篇文章。如果你想查看较早的文章（尚未开发），请 &lt;a href=%3$s&gt;点击这里并在Github上投票 &lt;/a&gt;  。您的建议对我很重要。"</string>
     <string name="cdesc_post_image">发布图片</string>
 
 <string name="view_homepage">浏览主页</string>
@@ -57,7 +57,7 @@
     <string name="view_post_on_blog">查看博客上的文章</string>
     <string name="post_settings">发布设置</string>
 
-    <string name="save_post_progress">正在保存</string>
+    <string name="save_post_progress">正在保存…</string>
     <string name="save_post_failed">无法保存文章</string>
     <string name="save_post_timeout">已保存在设备上</string>
 
@@ -65,4 +65,64 @@
     <string name="play_store_subtitle">感谢你的支持！</string>
     <string name="save_scenario_publish_draft">文章已发布！</string>
     <string name="save_scenario_auto_save_scheduled_or_published_post">更改已保存到设备上</string>
+    <string name="save_post_view">查看博客上的文章</string>
+    <string name="save_scenario_unpublish_published_post">未发布的文章</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">文章更新</string>
+    <string name="save_scenario_auto_save_draft">草稿已保存</string>
+    <string name="save_scenario_explicitly_save_draft">草稿已保存</string>
+
+    <string name="post_title_hint">请给您的文章一个标题…</string>
+    <string name="post_image_hint">添加文章图片</string>
+    <string name="post_tags_hint">添加一些tags…</string>
+    <string name="post_tags_format_hint">使用英文半角逗号来分隔标签</string>
+    <string name="post_body_hint">在此处输入…</string>
+    <string name="post_image_load_error">加载文章图像时出错</string>
+    <string name="format_bold">粗体</string>
+    <string name="format_italic">斜体</string>
+    <string name="format_link">插入链接</string>
+    <string name="format_image">插入图片</string>
+
+    <string name="insert_image">插入图片</string>
+    <string name="insert_image_url">插入 URL</string>
+    <string name="image_url">图片 URL</string>
+    <string name="insert_image_upload">上传图片</string>
+    <string name="uploading">上传中…</string>
+    <string name="image_upload_failed">无法上传图片</string>
+    <string name="remove_image">删除此图片</string>
+
+    <string name="about_action">关于…</string>
+    <string name="about">关于</string>
+
+    <string name="version">版本</string>
+    <string name="version_unknown">未知</string>
+    <string name="open_source_libs">开放源码库</string>
+
+    <string name="category_developer">开发人员</string>
+    <string name="fork_on_github">在 Github 上Fork</string>
+    <string name="follow_on_twitter">在推特上推荐</string>
+    <string name="visit_website">访问网站</string>
+
+    <string name="category_support_development">支持开发</string>
+    <string name="report_bugs_subtitle">报告bug或提出建议</string>
+    <string name="play_store">在play商店上评分</string>
+    <string name="email_developer">发送电子邮件给开发人员</string>
+    <string name="email_developer_subtitle">直接与开发者联系</string>
+    <string name="email_subject">%s - 反馈</string>
+
+    <string name="about_icon_credits">应用图标 \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
+
+    <string name="no_internet_connection">没有网络连接</string>
+    <string name="network_timeout">连接超时</string>
+    <string name="refresh_failed">不能刷新数据</string>
+
+    <string name="done">完成</string>
+    <string name="save">保存</string>
+    <string name="refresh">刷新</string>
+    <string name="share">分享</string>
+    <string name="loading">正在加载…</string>
+    <string name="insert">插入</string>
+    <string name="intent_no_apps">没有可以处理此操作的应用程序</string>
+
+    <string name="user_image">用户图像</string>
+    <string name="report_bugs">报告错误</string>
     </resources>
