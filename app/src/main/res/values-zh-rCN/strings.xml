@@ -15,9 +15,9 @@
     <string name="no_such_blog">在 %s/ghost 中没有Ghost admin。</string>
     <string name="login_unexpected_error">在登录期间出现意外错误。请重试。</string>
     <string name="login_connection_error">无法连接到 %s/ghost。请重试。</string>
-    <string name="login_ssl_unsupported">你的博客不支持 https:// (SSL)。尝试更改为 http://。</string>
+    <string name="login_ssl_unsupported">你的博客不支持 https:// (SSL)。请尝试更改为 http://。</string>
     <string name="logout">注销</string>
-    <string name="password_changed">您的密码更改了吗？不能使用该密码登录。</string>
+    <string name="password_changed">您的密码更改了吗？该密码是错误的。</string>
     <string name="unsynced_changes_msg">您如果现在注销，您将丢失所有未同步的更改</string>
     <string name="dont_logout">不注销</string>
 
@@ -25,7 +25,7 @@
     <string name="status_draft">草稿</string>
     <string name="status_scheduled">计划 - %s</string>
     <string name="status_offline_changes">已保存在设备上，等待联网…</string>
-    <string name="status_published_auto_saved">更改已自动保存，尚未发布</string>
+    <string name="status_published_auto_saved">更改已自动保存，但尚未发布</string>
     <string name="status_marked_for_deletion">已标记为删除，等待联网…</string>
     <string name="status_marked_for_deletion_open_error">这篇文章已被标记为删除，无法打开</string>
     <string name="send_feedback">发送反馈…</string>
@@ -35,11 +35,11 @@
     <string name="publish">发布</string>
     <string name="update_post">更新文章</string>
     <string name="unpublish">取消发布</string>
-    <string name="alert_publish">发布草稿？</string>
-    <string name="alert_unpublish">取消发布文章吗？</string>
+    <string name="alert_publish">要发布草稿吗？</string>
+    <string name="alert_unpublish">要取消发布文章吗？</string>
     <string name="delete_draft">删除草稿</string>
     <string name="alert_delete_draft_title">删除此草稿？</string>
-    <string name="alert_delete_draft_msg">你将不能撤消此操作！</string>
+    <string name="alert_delete_draft_msg">这项操作无法被撤销！</string>
     <string name="alert_delete_yes">删除</string>
     <string name="alert_delete_no">保持</string>
     <string name="post_deleted">删除文章</string>
@@ -47,10 +47,22 @@
     <string name="alert_save_yes">是的，更新</string>
     <string name="alert_save_no">不是现在</string>
     <string name="discard_changes">放弃更改</string>
-    <string name="alert_discard_changes_title">打开文章后，您确定要放弃所有更改？</string>
+    <string name="alert_discard_changes_title">打开文章后，所有的更改就会失效。要放弃更改吗？</string>
     <string name="alert_discard_changes_msg">这将无法撤销！</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">%1$s 目前仅从您的博客加载最新的 %2$d 篇文章。如果你想支持旧文章的查看， &lt;a href=%3$s&gt;在Github对此功能投票&lt;/a&gt; 并且帮我优先考虑发展。</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"已从 %1$s  中读取了最新的 %2$d 篇文章。如果你想查看较早的文章（目前未开发），请 &lt;a href=%3$s&gt;点击这里并在Github上投票 &lt;/a&gt;  。您的建议对我很重要。"</string>
     <string name="cdesc_post_image">发布图片</string>
 
 <string name="view_homepage">浏览主页</string>
+    <string name="discard">放弃</string>
+    <string name="view_post_on_blog">查看博客上的文章</string>
+    <string name="post_settings">发布设置</string>
+
+    <string name="save_post_progress">正在保存</string>
+    <string name="save_post_failed">无法保存文章</string>
+    <string name="save_post_timeout">已保存在设备上</string>
+
+    <string name="save_scenario_unknown">已保存</string>
+    <string name="play_store_subtitle">感谢你的支持！</string>
+    <string name="save_scenario_publish_draft">文章已发布！</string>
+    <string name="save_scenario_auto_save_scheduled_or_published_post">更改已保存到设备上</string>
     </resources>
