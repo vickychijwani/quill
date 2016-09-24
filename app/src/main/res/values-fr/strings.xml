@@ -27,23 +27,23 @@
     <string name="status_offline_changes">Sauvegardé sur l\'appareil, en attente de connexion…</string>
     <string name="status_published_auto_saved">Changements sauvés automatiquement, pas encore publié</string>
     <string name="status_marked_for_deletion">Suppression en attente de connexion…</string>
-    <string name="status_marked_for_deletion_open_error">Ce post est marqué pour être supprimé, il ne peut pas être ouvert</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"Pour l\'instant, %1$s ne charge que les %2$d derniers posts de votre blog. Si vous souhaitez que le chargement des posts plus anciens soit supporté, &lt;a href=%3$s&gt;votez pour cette fonctionnalité sur Github&lt;/a&gt;  et aidez moi à prioriser les développements."</string>
+    <string name="status_marked_for_deletion_open_error">Cet article est marqué pour être supprimé, il ne peut pas être ouvert</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"Pour l\'instant, %1$s ne charge que les %2$d derniers articles de votre blog. Si vous souhaitez que le chargement des articles plus anciens soit supporté, &lt;a href=%3$s&gt;votez pour cette fonctionnalité sur Github&lt;/a&gt;  et aidez moi à prioriser les développements."</string>
     <string name="send_feedback">Envoyer un commentaire…</string>
 
     <string name="preview">Aperçu</string>
     <string name="edit">Édition</string>
     <string name="publish">Publier</string>
-    <string name="update_post">MAJ Post</string>
-    <string name="unpublish">Retirer</string>
+    <string name="update_post">MAJ Article</string>
+    <string name="unpublish">Retirer l\'article</string>
     <string name="alert_publish">Publier le brouillon ?</string>
-    <string name="alert_unpublish">Dé publier le post ?</string>
+    <string name="alert_unpublish">Retirer l\'article ?</string>
     <string name="delete_draft">Supprimer le brouillon</string>
     <string name="alert_delete_draft_title">Supprimer le brouillon ?</string>
     <string name="alert_delete_draft_msg">Vous ne pourrez pas annuler cette action !</string>
     <string name="alert_delete_yes">Supprimer</string>
     <string name="alert_delete_no">Conserver</string>
-    <string name="post_deleted">Post supprimé</string>
+    <string name="post_deleted">Article supprimé</string>
     <string name="alert_save_msg">Mettre à jour le post avec les changements ?</string>
     <string name="alert_save_yes">Oui, MAJ</string>
     <string name="alert_save_no">Non, pas encore</string>
@@ -53,16 +53,16 @@
     <string name="discard">Abandonner</string>
     <string name="view_homepage">Accueil du blog</string>
     <string name="view_post_on_blog">Voir post sur le blog</string>
-    <string name="post_settings">Réglages du post</string>
+    <string name="post_settings">Réglages de l\'article</string>
 
     <string name="save_post_progress">Sauvegarde…</string>
     <string name="save_post_failed">Sauvegarde du post échouée</string>
-    <string name="save_post_view">Voir le post</string>
+    <string name="save_post_view">Voir l\'article sur le blog</string>
     <string name="save_post_timeout">Sauvé sur l\'appareil</string>
 
     <string name="save_scenario_unknown">Sauvé</string>
-    <string name="save_scenario_publish_draft">Post publié !</string>
-    <string name="save_scenario_unpublish_published_post">Post dé-publié</string>
+    <string name="save_scenario_publish_draft">Article publié !</string>
+    <string name="save_scenario_unpublish_published_post">Article retiré</string>
     <string name="save_scenario_auto_save_scheduled_or_published_post">Changements sauvés sur l\'appareil</string>
     <string name="save_scenario_explicitly_update_scheduled_or_published_post">Post mis à jour</string>
     <string name="save_scenario_auto_save_draft">Brouillon sauvegardé</string>
