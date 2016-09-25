@@ -50,6 +50,8 @@ If you face any issues setting this up, please let me know by [filing a new issu
 - [@Dennis-Mayk](https://github.com/Dennis-Mayk) (German translation)
 - [@naofum](https://github.com/naofum) (Japanese translation)
 - [@svenkapudija](https://github.com/svenkapudija) (Croatian translation)
+- [@yffengdong](https://hosted.weblate.org/user/yffengdong/) (Chinese zh-CN translation)
+- [@guillaumevidal](https://github.com/guillaumevidal) (French translation)
 
 
 [playstore]: https://play.google.com/store/apps/details?id=me.vickychijwani.spectre
