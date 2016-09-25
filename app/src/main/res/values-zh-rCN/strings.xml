@@ -44,8 +44,8 @@
     <string name="alert_delete_no">不，保留</string>
     <string name="post_deleted">是，删除</string>
     <string name="alert_save_msg">文章内容已改变，更新文章吗？</string>
-    <string name="alert_save_yes">是的，更新</string>
-    <string name="alert_save_no">不是现在</string>
+    <string name="alert_save_yes">是，现在更新</string>
+    <string name="alert_save_no">不</string>
     <string name="discard_changes">放弃更改</string>
     <string name="alert_discard_changes_title">打开文章后，所有的更改就会失效。要打开文章并放弃更改吗？</string>
     <string name="alert_discard_changes_msg">这将无法恢复！</string>
@@ -55,7 +55,7 @@
 <string name="view_homepage">浏览主页</string>
     <string name="discard">放弃</string>
     <string name="view_post_on_blog">查看博客上的文章</string>
-    <string name="post_settings">发布设置</string>
+    <string name="post_settings">文章设置</string>
 
     <string name="save_post_progress">正在保存…</string>
     <string name="save_post_failed">无法保存文章</string>
@@ -86,7 +86,7 @@
     <string name="insert_image_url">插入 URL</string>
     <string name="image_url">图片 URL</string>
     <string name="insert_image_upload">上传图片</string>
-    <string name="uploading">上传中...</string>
+    <string name="uploading">上传中…</string>
     <string name="image_upload_failed">无法上传图片</string>
     <string name="remove_image">删除此图片</string>
 
