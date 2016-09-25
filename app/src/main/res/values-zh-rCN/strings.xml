@@ -12,7 +12,7 @@
     <string name="error_invalid_password">密码过短。</string>
     <string name="error_field_required">此字段不能为空。</string>
 
-    <string name="no_such_blog">这个博客不支持Ghost Admin。</string>
+    <string name="no_such_blog">%s/ghost没有管理员。</string>
     <string name="login_unexpected_error">登录出错。请重试。</string>
     <string name="login_connection_error">无法连接到 %s/ghost。请重试。</string>
     <string name="login_ssl_unsupported">您的博客不支持 https:// (SSL)。请尝试更改为 http://。</string>
@@ -50,9 +50,9 @@
     <string name="alert_discard_changes_title">打开文章后，所有的更改就会失效。要打开文章并放弃更改吗？</string>
     <string name="alert_discard_changes_msg">这将无法恢复！</string>
     <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"已从 %1$s  中仅读取了最新的 %2$d 篇文章。如果你想查看较早的文章（尚未开发），请 &lt;a href=%3$s&gt;点击这里并在Github上投票 &lt;/a&gt;  。您的建议对我很重要。"</string>
-    <string name="cdesc_post_image">发布图片</string>
+    <string name="cdesc_post_image">文章图片</string>
 
-<string name="view_homepage">浏览主页</string>
+<string name="view_homepage">浏览博客主页</string>
     <string name="discard">放弃</string>
     <string name="view_post_on_blog">查看博客上的文章</string>
     <string name="post_settings">文章设置</string>
@@ -65,9 +65,9 @@
     <string name="play_store_subtitle">感谢你的支持！</string>
     <string name="save_scenario_publish_draft">文章已发布！</string>
     <string name="save_scenario_auto_save_scheduled_or_published_post">更改已保存到设备上</string>
-    <string name="save_post_view">查看博客上的文章</string>
+    <string name="save_post_view">在博客上查看</string>
     <string name="save_scenario_unpublish_published_post">未发布的文章</string>
-    <string name="save_scenario_explicitly_update_scheduled_or_published_post">文章更新</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">文章已更新</string>
     <string name="save_scenario_auto_save_draft">草稿已保存</string>
     <string name="save_scenario_explicitly_save_draft">草稿已保存</string>
 
@@ -99,7 +99,7 @@
 
     <string name="category_developer">开发者</string>
     <string name="fork_on_github">在 Github 上Fork</string>
-    <string name="follow_on_twitter">在推特上推荐</string>
+    <string name="follow_on_twitter">在Twitter上推荐</string>
     <string name="visit_website">访问网站</string>
 
     <string name="category_support_development">支持开发</string>
@@ -125,6 +125,6 @@
 
     <string name="user_image">用户图像</string>
     <string name="report_bugs">报告错误</string>
-    <string name="post_feature_hint">为文章评分</string>
+    <string name="post_feature_hint">高亮文章</string>
 
     </resources>
