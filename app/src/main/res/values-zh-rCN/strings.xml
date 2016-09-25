@@ -43,12 +43,12 @@
     <string name="alert_delete_yes">删除</string>
     <string name="alert_delete_no">不，保留</string>
     <string name="post_deleted">是，删除</string>
-    <string name="alert_save_msg">要提交对文章的更改吗？</string>
+    <string name="alert_save_msg">文章内容已改变，更新文章吗？</string>
     <string name="alert_save_yes">是的，更新</string>
     <string name="alert_save_no">不是现在</string>
     <string name="discard_changes">放弃更改</string>
     <string name="alert_discard_changes_title">打开文章后，所有的更改就会失效。要打开文章并放弃更改吗？</string>
-    <string name="alert_discard_changes_msg">这将无法撤销！</string>
+    <string name="alert_discard_changes_msg">这将无法恢复！</string>
     <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"已从 %1$s  中仅读取了最新的 %2$d 篇文章。如果你想查看较早的文章（尚未开发），请 &lt;a href=%3$s&gt;点击这里并在Github上投票 &lt;/a&gt;  。您的建议对我很重要。"</string>
     <string name="cdesc_post_image">发布图片</string>
 
@@ -73,7 +73,7 @@
 
     <string name="post_title_hint">请给您的文章一个标题…</string>
     <string name="post_image_hint">添加文章图片</string>
-    <string name="post_tags_hint">添加一些tags…</string>
+    <string name="post_tags_hint">添加一些标签…</string>
     <string name="post_tags_format_hint">使用英文半角逗号来分隔标签</string>
     <string name="post_body_hint">在此处输入…</string>
     <string name="post_image_load_error">加载文章图像时出错</string>
@@ -86,7 +86,7 @@
     <string name="insert_image_url">插入 URL</string>
     <string name="image_url">图片 URL</string>
     <string name="insert_image_upload">上传图片</string>
-    <string name="uploading">上传中…</string>
+    <string name="uploading">上传中...</string>
     <string name="image_upload_failed">无法上传图片</string>
     <string name="remove_image">删除此图片</string>
 
@@ -97,7 +97,7 @@
     <string name="version_unknown">未知</string>
     <string name="open_source_libs">开放源码库</string>
 
-    <string name="category_developer">开发人员</string>
+    <string name="category_developer">开发者</string>
     <string name="fork_on_github">在 Github 上Fork</string>
     <string name="follow_on_twitter">在推特上推荐</string>
     <string name="visit_website">访问网站</string>
