@@ -34,9 +34,9 @@
     <string name="edit">编辑</string>
     <string name="publish">发布</string>
     <string name="update_post">更新内容</string>
-    <string name="unpublish">撤回此文章</string>
+    <string name="unpublish">取消发布此文章</string>
     <string name="alert_publish">正式发布这篇文章吗？</string>
-    <string name="alert_unpublish">文章已经发布，是否撤回？</string>
+    <string name="alert_unpublish">文章已经发布，是否取消发布？</string>
     <string name="delete_draft">删除文章</string>
     <string name="alert_delete_draft_title">是否删除这篇文章？</string>
     <string name="alert_delete_draft_msg">你将无法找回这篇文章！</string>
