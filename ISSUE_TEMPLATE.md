@@ -1,8 +1,7 @@
 FILL THESE DETAILS FIRST:
 
+- Ghost version: <x.y.z>
 - App version: <x.y.z>
-- Android version: <x.y.z>
-- Device name: <Google Nexus 4>
 
 ----
 
