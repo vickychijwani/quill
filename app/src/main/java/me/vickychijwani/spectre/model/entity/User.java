@@ -1,6 +1,7 @@
 package me.vickychijwani.spectre.model.entity;
 
-import io.realm.RealmObject;
+import io.realm.RealmList;
+import io.realm.RealmModel;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
@@ -8,7 +9,7 @@ import io.realm.annotations.Required;
 
 @SuppressWarnings("unused")
 @RealmClass
-public class User extends RealmObject {
+public class User implements RealmModel {
 
     @PrimaryKey @Index
     private int id;
@@ -28,7 +29,9 @@ public class User extends RealmObject {
     private String image;
     private String bio;
 
-    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
+    private RealmList<Role> roles;
+
+    // accessors
     public int getId() {
         return id;
     }
@@ -83,6 +86,28 @@ public class User extends RealmObject {
 
     public void setBio(String bio) {
         this.bio = bio;
+    }
+
+    public RealmList<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(RealmList<Role> roles) {
+        this.roles = roles;
+    }
+
+    // the way Ghost permissions work is, authors can only see and edit their own posts,
+    // while all other roles can see and edits everybody's posts
+    public boolean hasOnlyAuthorRole() {
+        // a user can have multiple roles, so they should be restricted to author permissions
+        // only if ALL their roles are "Author"
+        boolean onlyAuthor = true;
+        for (Role role : roles) {
+            if (!"author".equalsIgnoreCase(role.getName())) {
+                onlyAuthor = false;
+            }
+        }
+        return onlyAuthor;
     }
 
 }

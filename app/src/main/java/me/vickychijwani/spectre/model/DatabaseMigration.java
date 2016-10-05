@@ -6,9 +6,11 @@ import com.crashlytics.android.Crashlytics;
 
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
+import io.realm.FieldAttribute;
 import io.realm.RealmMigration;
 import io.realm.RealmResults;
 import io.realm.RealmSchema;
+import me.vickychijwani.spectre.model.entity.ETag;
 import me.vickychijwani.spectre.model.entity.Post;
 
 public class DatabaseMigration implements RealmMigration {
@@ -56,6 +58,35 @@ public class DatabaseMigration implements RealmMigration {
                     .setNullable("updatedAt", true);
             schema.get("Setting")
                     .addIndex("id");
+            ++oldVersion;
+        }
+
+        if (oldVersion == 1) {
+            // delete all etags, so the info can be fetched and stored
+            // again, with role-based permissions enforced
+            RealmResults<DynamicRealmObject> allEtags = realm
+                    .where(ETag.class.getSimpleName())
+                    .equalTo("type", ETag.TYPE_CURRENT_USER)
+                    .or()
+                    .equalTo("type", ETag.TYPE_ALL_POSTS)
+                    .findAll();
+            Crashlytics.log(Log.DEBUG, TAG, "DELETING ALL ETAGS TO REFRESH DATA COMPLETELY");
+            allEtags.deleteAllFromRealm();
+
+            if (!schema.contains("Role")) {
+                // create the Role table
+                Crashlytics.log(Log.DEBUG, TAG, "CREATING ROLE TABLE");
+                schema.create("Role")
+                        .addField("id", Integer.class, FieldAttribute.PRIMARY_KEY)
+                        .addField("uuid", String.class, FieldAttribute.REQUIRED)
+                        .addField("name", String.class, FieldAttribute.REQUIRED)
+                        .addField("description", String.class, FieldAttribute.REQUIRED);
+            }
+
+            if (!schema.get("User").hasField("roles")) {
+                Crashlytics.log(Log.DEBUG, TAG, "ADDING ROLES FIELD TO USER TABLE");
+                schema.get("User").addRealmListField("roles", schema.get("Role"));
+            }
             ++oldVersion;
         }
     }

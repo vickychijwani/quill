@@ -353,6 +353,11 @@ public class NetworkService {
                 storeEtag(response.getHeaders(), ETag.TYPE_CURRENT_USER);
                 createOrUpdateModel(userList.users);
                 getBus().post(new UserLoadedEvent(userList.users.get(0)));
+
+                // download all posts again to enforce role-based permissions for this user
+                removeEtag(ETag.TYPE_ALL_POSTS);
+                getBus().post(new SyncPostsEvent(false));
+
                 refreshSucceeded(event);
             }
 
@@ -494,6 +499,24 @@ public class NetworkService {
             public void success(PostList postList, Response response) {
                 storeEtag(response.getHeaders(), ETag.TYPE_ALL_POSTS);
 
+                // if this user is only an author, filter out posts they're not authorized to access
+                // FIXME if the last POSTS_FETCH_LIMIT number of posts are not owned by this author,
+                // FIXME we'll end up with no posts displayed in the UI!
+                RealmResults<User> users = mRealm.where(User.class).findAll();
+                if (users.size() > 0) {
+                    User user = users.first();
+                    if (user.hasOnlyAuthorRole()) {
+                        int currentUser = user.getId();
+                        // reverse iteration because in forward iteration, indices change on deleting
+                        for (int i = postList.posts.size()-1; i >= 0; --i) {
+                            Post post = postList.posts.get(i);
+                            if (post.getAuthor() != currentUser) {
+                                postList.posts.remove(i);
+                            }
+                        }
+                    }
+                }
+
                 // delete posts that are no longer present on the server
                 // this assumes that postList.posts is a list of ALL posts on the server
                 // FIXME time complexity is quadratic in the number of posts!
@@ -506,10 +529,13 @@ public class NetworkService {
                 RealmResults<Post> localOnlyEdits = mRealm.where(Post.class)
                         .equalTo("pendingActions.type", PendingAction.EDIT_LOCAL)
                         .findAll();
-                Observable.from(localOnlyEdits)
-                        .map(post -> postList.indexOf(post.getUuid()))
-                        .filter(idx -> idx > -1)
-                        .forEach(postList::remove);
+                for (int i = postList.posts.size()-1; i >= 0; --i) {
+                    for (int j = 0; j < localOnlyEdits.size(); ++j) {
+                        if (postList.posts.get(i).getUuid().equals(localOnlyEdits.get(j).getUuid())) {
+                            postList.posts.remove(i);
+                        }
+                    }
+                }
 
                 // make sure drafts have a publishedAt of FAR_FUTURE so they're sorted to the top
                 Observable.from(postList.posts)
@@ -1048,6 +1074,13 @@ public class NetworkService {
     private String loadEtag(@ETag.Type String etagType) {
         ETag etag = mRealm.where(ETag.class).equalTo("type", etagType).findFirst();
         return (etag != null) ? etag.getTag() : "";
+    }
+
+    private void removeEtag(@ETag.Type String etagType) {
+        RealmResults<ETag> etags = mRealm.where(ETag.class).equalTo("type", etagType).findAll();
+        if (etags.size() > 0) {
+            RealmObject.deleteFromRealm(etags.first());
+        }
     }
 
     /**
