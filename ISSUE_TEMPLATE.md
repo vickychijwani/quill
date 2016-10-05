@@ -1,7 +1,7 @@
 FILL THESE DETAILS FIRST:
 
-- Ghost version: <x.y.z>
-- App version: <x.y.z>
+- Ghost version: X.Y.Z
+- App version: X.Y.Z
 
 ----
 
