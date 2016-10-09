@@ -156,7 +156,7 @@ public class NetworkService {
         if (AppState.getInstance(context).getBoolean(AppState.Key.LOGGED_IN)) {
             mAuthToken = mRealm.where(AuthToken.class).findFirst();
             String blogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
-            mApi = buildApiService(blogUrl);
+            mApi = buildApiService(blogUrl, true);
         }
     }
 
@@ -171,10 +171,11 @@ public class NetworkService {
     public void onLoginStartEvent(final LoginStartEvent event) {
         if (mbAuthRequestOnGoing) return;
         mbAuthRequestOnGoing = true;
-        mApi = buildApiService(event.blogUrl);
+        mApi = buildApiService(event.blogUrl, true);
+        GhostApiService mApiForClientSecret = buildApiService(event.blogUrl, false);
 
         // get dynamic client secret, if the blog supports it
-        mApi.getLoginPage(new ResponseCallback() {
+        mApiForClientSecret.getLoginPage(new ResponseCallback() {
             @Override
             public void success(Response response) {
                 String html = new String(((TypedByteArray) response.getBody()).getBytes());
@@ -1037,12 +1038,16 @@ public class NetworkService {
         return DateTimeUtils.getEpochSeconds() > mAuthToken.getCreatedAt() + 86400 - 60;
     }
 
-    private GhostApiService buildApiService(@NonNull String blogUrl) {
+    private GhostApiService buildApiService(@NonNull String blogUrl, boolean useApiBaseUrl) {
+        String baseUrl = blogUrl;
+        if (useApiBaseUrl) {
+            baseUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/api/v0.1");
+        }
         RestAdapter.LogLevel logLevel = BuildConfig.DEBUG
                 ? RestAdapter.LogLevel.HEADERS
                 : RestAdapter.LogLevel.NONE;
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint(NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/api/v0.1"))
+                .setEndpoint(baseUrl)
                 .setClient(new OkClient(mOkHttpClient))
                 .setConverter(mGsonConverter)
                 .setRequestInterceptor(mAuthInterceptor)
