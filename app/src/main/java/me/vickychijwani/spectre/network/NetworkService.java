@@ -1079,7 +1079,7 @@ public class NetworkService {
     private void removeEtag(@ETag.Type String etagType) {
         RealmResults<ETag> etags = mRealm.where(ETag.class).equalTo("type", etagType).findAll();
         if (etags.size() > 0) {
-            RealmObject.deleteFromRealm(etags.first());
+            deleteModel(etags.first());
         }
     }
 
