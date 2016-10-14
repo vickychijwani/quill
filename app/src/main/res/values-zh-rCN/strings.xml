@@ -12,7 +12,7 @@
     <string name="error_invalid_password">密码过短。</string>
     <string name="error_field_required">此字段不能为空。</string>
 
-    <string name="no_such_blog">此博客运行的可能不是Ghost Admin系统。</string>
+    <string name="no_such_blog">在 %s/ghost 中找不到ghost博客管理页面。</string>
     <string name="login_unexpected_error">登录出错。请重试。</string>
     <string name="login_connection_error">无法连接到 %s/ghost。请重试。</string>
     <string name="login_ssl_unsupported">您的博客不支持 https:// (SSL)。请尝试更改为 http://。</string>
