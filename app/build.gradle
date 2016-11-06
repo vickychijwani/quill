@@ -114,6 +114,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:24.0.0'
     compile 'com.android.support:design:24.0.0'
     compile 'com.android.support:percent:24.0.0'
+    compile 'com.android.support:customtabs:24.0.0'
     compile 'org.ocpsoft.prettytime:prettytime:4.0.0.Final'
     compile 'com.tsengvn:typekit:1.0.1'
 

@@ -15,6 +15,7 @@ import butterknife.Bind;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.view.fragments.WebViewFragment;
 
+// FIXME this is only used on Ice Cream Sandwich
 public class BrowserActivity extends BaseActivity implements WebViewFragment.OnWebViewCreatedListener {
 
     // generic infrastructure for opening links in a WebView - this may be useful later
