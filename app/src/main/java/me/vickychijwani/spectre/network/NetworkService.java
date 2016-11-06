@@ -589,15 +589,15 @@ public class NetworkService {
             return;
         }
 
-        final RealmResults<Post> localDeletedPosts = mRealm.where(Post.class)
+        final List<Post> localDeletedPosts = copyPosts(mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.DELETE)
-                .findAll();
-        final RealmResults<Post> localNewPosts = mRealm.where(Post.class)
+                .findAll());
+        final List<Post> localNewPosts = copyPosts(mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.CREATE)
-                .findAllSorted("uuid", Sort.DESCENDING);
-        final RealmResults<Post> localEditedPosts = mRealm.where(Post.class)
+                .findAllSorted("uuid", Sort.DESCENDING));
+        final List<Post> localEditedPosts = copyPosts(mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.EDIT)
-                .findAll();
+                .findAll());
 
         // nothing to upload
         if (localDeletedPosts.isEmpty() && localNewPosts.isEmpty() && localEditedPosts.isEmpty()
@@ -611,19 +611,28 @@ public class NetworkService {
 
         Deque<Post> mPostUploadQueue = new ArrayDeque<>();
 
-        // keep track of new posts created successfully, so the local copies can be deleted
-        List<Post> localNewPostsUploaded = new ArrayList<>();
+        // keep track of new posts created successfully and posts deleted successfully, so the local copies can be deleted
+        List<Post> postsToDelete = new ArrayList<>();
 
         // ugly hack (suggested by the IDE) because this must be declared "final"
         final RetrofitError[] uploadErrorOccurred = {null};
 
         final Action0 syncFinishedCB = () -> {
-            RetrofitError retrofitError = uploadErrorOccurred[0];
-            // delete local copies of only those new posts that were successfully uploaded
-            deleteModels(localNewPostsUploaded);
+            // delete local copies
+            if (!postsToDelete.isEmpty()) {
+                RealmQuery<Post> deleteQuery = mRealm.where(Post.class);
+                for (int i = 0; i < postsToDelete.size(); ++i) {
+                    Post post = postsToDelete.get(i);
+                    if (i > 0) deleteQuery.or();
+                    deleteQuery.equalTo("uuid", post.getUuid());
+                }
+                deleteModels(deleteQuery.findAll());
+            }
+
             // if forceNetworkCall is true, first load from the db, AND only then from the network,
             // to avoid a crash because local posts have been deleted above but are still being
             // displayed, so we need to refresh the UI first
+            RetrofitError retrofitError = uploadErrorOccurred[0];
             if (retrofitError != null && NetworkUtils.isUnauthorized(retrofitError)) {
                 // defer the event and try to re-authorize
                 refreshAccessToken(event);
@@ -646,7 +655,6 @@ public class NetworkService {
             uploadErrorOccurred[0] = retrofitError;
             mPostUploadQueue.removeFirstOccurrence(post);
             getBus().post(new ApiErrorEvent(retrofitError));
-            getBus().post(new PostsLoadedEvent(getPostsSorted(), POSTS_FETCH_LIMIT));
             if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
         };
 
@@ -665,8 +673,7 @@ public class NetworkService {
                 public void success(Response response) {
                     AnalyticsService.logDraftDeleted();
                     mPostUploadQueue.removeFirstOccurrence(localPost);
-                    clearPendingActionsOnPost(localPost);
-                    deleteModel(localPost);
+                    postsToDelete.add(localPost);
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
                 }
 
@@ -678,8 +685,6 @@ public class NetworkService {
         }
 
         // 2. NEW POSTS
-        // the loop variable is *local* to the loop block, so it can be captured in a closure easily
-        // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localNewPosts) {
             if (! validateAccessToken(event)) return;
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] creating post");    // local new posts don't have an id
@@ -687,10 +692,9 @@ public class NetworkService {
                 @Override
                 public void success(PostList postList, Response response) {
                     AnalyticsService.logNewDraftUploaded();
-                    clearPendingActionsOnPost(localPost);
                     createOrUpdateModel(postList.posts);
                     mPostUploadQueue.removeFirstOccurrence(localPost);
-                    localNewPostsUploaded.add(localPost);
+                    postsToDelete.add(localPost);
                     // FIXME this is a new post! how do subscribers know which post changed?
                     getBus().post(new PostReplacedEvent(postList.posts.get(0)));
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
@@ -704,8 +708,6 @@ public class NetworkService {
         }
 
         // 3. EDITED POSTS
-        // the loop variable is *local* to the loop block, so it can be captured in a closure easily
-        // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localEditedPosts) {
             if (! validateAccessToken(event)) return;
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] updating post id = " + localPost.getId());
@@ -713,7 +715,6 @@ public class NetworkService {
             mApi.updatePost(localPost.getId(), postStubList, new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
-                    clearPendingActionsOnPost(localPost);
                     createOrUpdateModel(postList.posts);
                     mPostUploadQueue.removeFirstOccurrence(localPost);
                     getBus().post(new PostSyncedEvent(localPost.getUuid()));
@@ -887,16 +888,6 @@ public class NetworkService {
 
 
     // private methods
-    private void clearPendingActionsOnPost(@NonNull Post post) {
-        List<PendingAction> pendingActions = new ArrayList<>(post.getPendingActions());
-        mRealm.executeTransaction(realm -> {
-            for (PendingAction pa : pendingActions) {
-                RealmObject.deleteFromRealm(pa);
-            }
-            pendingActions.clear();
-        });
-    }
-
     private void clearAndSetPendingActionOnPost(@NonNull Post post, @PendingAction.Type String newPendingAction) {
         List<PendingAction> pendingActions = post.getPendingActions();
         mRealm.executeTransaction(realm -> {
@@ -1059,10 +1050,7 @@ public class NetworkService {
     private List<Post> getPostsSorted() {
         // FIXME time complexity O(n) for copying + O(n log n) for sorting!
         RealmResults<Post> realmPosts = mRealm.where(Post.class).findAll();
-        List<Post> unmanagedPosts = new ArrayList<>(realmPosts.size());
-        for (Post realmPost : realmPosts) {
-            unmanagedPosts.add(new Post(realmPost));
-        }
+        List<Post> unmanagedPosts = copyPosts(realmPosts);
         Collections.sort(unmanagedPosts, PostUtils.COMPARATOR_MAIN_LIST);
         return unmanagedPosts;
     }
@@ -1100,6 +1088,14 @@ public class NetworkService {
             --tempId;
         }
         return String.valueOf(tempId);
+    }
+
+    private List<Post> copyPosts(List<Post> posts) {
+        List<Post> copied = new ArrayList<>(posts.size());
+        for (Post model : posts) {
+            copied.add(new Post(model));
+        }
+        return copied;
     }
 
     private <T extends RealmModel> T createOrUpdateModel(T object) {
