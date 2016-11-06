@@ -29,7 +29,6 @@
                 android:maxLines="1"
                 android:paddingLeft="@dimen/padding_default"
                 android:paddingRight="@dimen/padding_default"
-                android:singleLine="true"
                 android:text="@string/open_source_libs"
                 />
 

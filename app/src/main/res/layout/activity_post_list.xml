@@ -45,7 +45,6 @@
                 android:maxLines="1"
                 android:paddingLeft="@dimen/padding_default"
                 android:paddingRight="@dimen/padding_default"
-                android:singleLine="true"
                 android:text="@string/app_name"
                 tools:text="My Awesome Blog Title"
                 />

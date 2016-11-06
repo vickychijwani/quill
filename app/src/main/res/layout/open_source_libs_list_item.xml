@@ -25,7 +25,7 @@
             android:id="@+id/lib_author"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textAppearance="@style/TextAppearance.Small.Dim"
             tools:text="Square Inc."
             />

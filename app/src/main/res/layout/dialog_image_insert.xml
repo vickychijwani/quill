@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.Medium"
         android:inputType="text|textUri"
-        android:singleLine="true"
+        android:maxLines="1"
         android:imeOptions="actionDone"
         android:hint="@string/image_url"
         />
