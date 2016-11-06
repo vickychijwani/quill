@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -20,7 +21,6 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import me.vickychijwani.spectre.R;
-import me.vickychijwani.spectre.view.widget.DividerItemDecoration;
 
 public class OpenSourceLibsActivity extends BaseActivity {
 
@@ -71,7 +71,7 @@ public class OpenSourceLibsActivity extends BaseActivity {
         });
         mLibsList.setAdapter(mLibsAdapter);
         mLibsList.setLayoutManager(new LinearLayoutManager(this));
-        mLibsList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
+        mLibsList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
     }
 
 
