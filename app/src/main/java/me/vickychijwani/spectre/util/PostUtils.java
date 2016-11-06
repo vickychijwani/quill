@@ -60,12 +60,27 @@ public class PostUtils {
 
         // at this point, we know both lhs and rhs belong to the same group (new, scheduled, drafts,
         // published). NOTE: (-) sign because we want to sort in reverse chronological order.
-        if (isLhsPublished || isLhsScheduled) {
-            // use date published for sorting scheduled or published posts ...
-            return -lhs.getPublishedAt().compareTo(rhs.getPublishedAt());
+        if ((isLhsPublished || isLhsScheduled)) {
+            // FIXME Crashlytics issue #110 - published posts can have null date - why?
+            if (lhs.getPublishedAt() != null && rhs.getPublishedAt() != null) {
+                // use date published for sorting scheduled or published posts ...
+                return -lhs.getPublishedAt().compareTo(rhs.getPublishedAt());
+            }
         }
+
         // ... else use date modified (for drafts and new posts)
-        return -lhs.getUpdatedAt().compareTo(rhs.getUpdatedAt());
+        if (lhs.getUpdatedAt() != null && rhs.getUpdatedAt() != null) {
+            return -lhs.getUpdatedAt().compareTo(rhs.getUpdatedAt());
+        }
+
+        // fallback to creation date
+        if (lhs.getCreatedAt() != null && rhs.getCreatedAt() != null) {
+            return -lhs.getCreatedAt().compareTo(rhs.getCreatedAt());
+        }
+
+        // this is just paranoia
+        // higher id above, because it was likely created later
+        return -lhs.getId() + rhs.getId();
     };
 
     @SuppressWarnings({"RedundantIfStatement", "OverlyComplexMethod"})
@@ -104,7 +119,7 @@ public class PostUtils {
             // FIXME temp if check for Crashlytics issue #110
             // Calendar.getInstance() is set to current time by default, and Ghost helpfully changes it to the correct date anyway
             if (publishedAt != null) {
-                calendar.setTime(post.getPublishedAt());
+                calendar.setTime(publishedAt);
             }
             @SuppressLint("DefaultLocale") String postPath = permalinkFormat
                     .replace(":year", String.format("%04d", calendar.get(Calendar.YEAR)))
