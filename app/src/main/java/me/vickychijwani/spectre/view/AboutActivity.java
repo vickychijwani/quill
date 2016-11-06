@@ -1,7 +1,6 @@
 package me.vickychijwani.spectre.view;
 
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -37,11 +36,7 @@ public class AboutActivity extends BaseActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        PackageInfo packageInfo = AppUtils.getPackageInfo(this);
-        String version = getString(R.string.version_unknown);
-        if (packageInfo != null) {
-            version = packageInfo.versionName;
-        }
+        String version = AppUtils.getAppVersion(this);
         mVersionView.setText(version);
 
         mIconCreditsView.setMovementMethod(LinkMovementMethod.getInstance());

@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
@@ -29,6 +30,13 @@ public class AppUtils {
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this
         intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "vickychijwani@gmail.com" });
         intent.putExtra(Intent.EXTRA_SUBJECT, emailSubject);
+
+        String body = "App version: " + getAppVersion(activity) + "\n";
+        body += "Android API version: " + Build.VERSION.SDK_INT + "\n";
+        body += "Ghost version: <include if relevant>" + "\n";
+        body += "\n";
+        intent.putExtra(Intent.EXTRA_TEXT, body);
+
         if (intent.resolveActivity(activity.getPackageManager()) != null) {
             activity.startActivity(intent);
         } else {
@@ -37,17 +45,19 @@ public class AppUtils {
         }
     }
 
-    /**
-     * Return this app's PackageInfo containing info about version code, version name, etc.
-     */
-    @Nullable
-    public static PackageInfo getPackageInfo(@NonNull Context context) {
+    @NonNull
+    public static String getAppVersion(@NonNull Context context) {
         try {
-            return context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            if (packageInfo != null) {
+                return packageInfo.versionName;
+            } else {
+                return context.getString(R.string.version_unknown);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Crashlytics.logException(new RuntimeException("Failed to get package info, " +
                     "see previous exception for details", e));
-            return null;
+            return context.getString(R.string.version_unknown);
         }
     }
 
