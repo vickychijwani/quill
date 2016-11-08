@@ -39,8 +39,6 @@ If you need help getting started, [email me](mailto:vickychijwani@gmail.com) or 
 
 Setup is as simple as importing the project into Android Studio and building (assuming you have the correct build tools and Android SDK).
 
-Note: Quill uses [Fabric](http://fabric.io/) (formerly Crashlytics) for automatic crash-reporting and analytics. A throwaway Fabric API key is included for easy setup. If you want to use your own Fabric credentials for any reason, just put your API key and secret in `app/crashlytics.properties` and then run `git update-index --assume-unchanged app/crashlytics.properties` to tell git to _never_ commit that file.
-
 If you face any issues setting this up, please let me know by [filing a new issue](/issues/new).
 
 ### Contributors

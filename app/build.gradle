@@ -64,11 +64,13 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix '.debug'
+            ext.enableCrashlytics = false
         }
         release {
 //            signingConfig signingConfigs.release
             minifyEnabled false   // FIXME disabled because login, revoke token strangely stopped working
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            ext.enableCrashlytics = true
         }
     }
     packagingOptions {
@@ -76,19 +78,16 @@ android {
     }
 }
 
-// Fabric / Crashlytics
-afterEvaluate {
-    initFabricPropertiesIfNeeded()
+// Fabric / Crashlytics keys are mandatory for release builds
+task checkFabricPropertiesExists << {
+    if (!file('fabric.properties').exists()) {
+        throw new GradleException('Missing fabric.properties file for Fabric / Crashlytics!')
+    }
 }
 
-def initFabricPropertiesIfNeeded() {
-    def propertiesFile = file('crashlytics.properties')
-    if (!propertiesFile.exists()) {
-        def commentMessage = 'This file is auto-generated from system environment variables.'
-        ant.propertyfile(file: propertiesFile.path, comment: commentMessage) {
-            entry(key: 'apiKey', value: crashlyticsApiKey)
-            entry(key: 'apiSecret', value: crashlyticsApiSecret)
-        }
+tasks.whenTaskAdded { task ->
+    if (task.name == 'assembleRelease') {
+        task.dependsOn checkFabricPropertiesExists
     }
 }
 
