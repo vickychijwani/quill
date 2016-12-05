@@ -51,11 +51,6 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".view.PostListActivity"/>
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-                <action android:name="android.intent.action.VIEW" />
-                <data android:scheme="me.vickychijwani.spectre" />
-            </intent-filter>
         </activity>
 
         <activity
