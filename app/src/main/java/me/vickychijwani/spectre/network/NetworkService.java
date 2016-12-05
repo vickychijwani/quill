@@ -65,6 +65,7 @@ import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.LogoutStatusEvent;
 import me.vickychijwani.spectre.event.PasswordChangedEvent;
+import me.vickychijwani.spectre.event.PostConflictFoundEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostDeletedEvent;
 import me.vickychijwani.spectre.event.PostReplacedEvent;
@@ -526,9 +527,10 @@ public class NetworkService {
                         .toList()
                         .forEach(NetworkService.this::deleteModels);
 
-                // skip posts with local-only edits (e.g., auto-saved edits to published posts)
+                // skip edited posts because they've not yet been uploaded
                 RealmResults<Post> localOnlyEdits = mRealm.where(Post.class)
                         .equalTo("pendingActions.type", PendingAction.EDIT_LOCAL)
+                        .or().equalTo("pendingActions.type", PendingAction.EDIT)
                         .findAll();
                 for (int i = postList.posts.size()-1; i >= 0; --i) {
                     for (int j = 0; j < localOnlyEdits.size(); ++j) {
@@ -708,22 +710,53 @@ public class NetworkService {
         }
 
         // 3. EDITED POSTS
-        for (final Post localPost : localEditedPosts) {
-            if (! validateAccessToken(event)) return;
-            Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] updating post id = " + localPost.getId());
-            PostStubList postStubList = PostStubList.from(localPost);
-            mApi.updatePost(localPost.getId(), postStubList, new Callback<PostList>() {
+        Action1<Post> uploadEditedPost = (editedPost) -> {
+            Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] updating post id = " + editedPost.getId());
+            PostStubList postStubList = PostStubList.from(editedPost);
+            mApi.updatePost(editedPost.getId(), postStubList, new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
                     createOrUpdateModel(postList.posts);
-                    mPostUploadQueue.removeFirstOccurrence(localPost);
-                    getBus().post(new PostSyncedEvent(localPost.getUuid()));
+                    mPostUploadQueue.removeFirstOccurrence(editedPost);
+                    getBus().post(new PostSyncedEvent(editedPost.getUuid()));
                     if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
                 }
 
                 @Override
                 public void failure(RetrofitError error) {
-                    onFailure.call(localPost, error);
+                    onFailure.call(editedPost, error);
+                }
+            });
+        };
+        for (final Post localPost : localEditedPosts) {
+            if (! validateAccessToken(event)) return;
+            Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] downloading edited post with id = " + localPost.getId() + " for comparison");
+            mApi.getPost(localPost.getId(), new Callback<PostList>() {
+                @Override
+                public void success(PostList postList, Response response) {
+                    Post serverPost = null;
+                    boolean hasConflict = false;
+                    if (!postList.posts.isEmpty()) {
+                        serverPost = postList.posts.get(0);
+                        hasConflict = (serverPost.getUpdatedAt() != null
+                                && !serverPost.getUpdatedAt().equals(localPost.getUpdatedAt()));
+                    }
+                    if (hasConflict && PostUtils.isDirty(serverPost, localPost)) {
+                        Crashlytics.log(Log.WARN, TAG, "[onSyncPostsEvent] conflict found for post id = " + localPost.getId());
+                        mPostUploadQueue.removeFirstOccurrence(localPost);
+                        if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
+                        localPost.setConflictState(Post.CONFLICT_UNRESOLVED);
+                        createOrUpdateModel(localPost);
+                        getBus().post(new PostConflictFoundEvent(localPost, serverPost));
+                    } else {
+                        uploadEditedPost.call(localPost);
+                    }
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    // if we can't get the server post, optimistically upload the local copy
+                    uploadEditedPost.call(localPost);
                 }
             });
         }
@@ -757,7 +790,8 @@ public class NetworkService {
             }
         }
 
-        updatedPost.setUpdatedAt(new Date());              // mark as updated, to promote in sorted order
+        // don't set updatedAt to enable easy conflict detection by comparing updatedAt values
+        //updatedPost.setUpdatedAt(new Date());              // mark as updated, to promote in sorted order
         createOrUpdateModel(updatedPost);                  // save the local post to db
 
         // must set PendingActions after other stuff, else the updated post's pending actions will

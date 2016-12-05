@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.PostConflictResolutionActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary">
+
+        <FrameLayout
+            android:id="@+id/toolbar"
+            style="@style/MyToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:layout_scrollFlags="scroll|enterAlways">
+
+            <Button
+                android:id="@+id/conflict_accept_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:padding="@dimen/padding_large"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:text="@string/accept"
+                android:textStyle="bold"
+                tools:targetApi="lollipop"
+                />
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:layout_scrollFlags="scroll|enterAlways">
+
+            <TextView
+                android:id="@+id/conflict_explanation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingEnd="@dimen/padding_large"
+                android:paddingLeft="@dimen/padding_large"
+                android:paddingRight="@dimen/padding_large"
+                android:paddingStart="@dimen/padding_large"
+                android:textAppearance="@style/TextAppearance.Inverse"
+                tools:text="@string/conflict_explanation"
+                />
+
+            <RadioGroup
+                android:id="@+id/conflict_choice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="@dimen/padding_inline"
+                android:paddingBottom="@dimen/padding_large"
+                android:paddingEnd="@dimen/padding_large"
+                android:paddingLeft="@dimen/padding_large"
+                android:paddingRight="@dimen/padding_large"
+                android:paddingStart="@dimen/padding_large">
+
+                <RadioButton
+                    android:id="@+id/conflict_choice_use_device_copy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="@dimen/padding_inline"
+                    android:paddingBottom="@dimen/padding_inline"
+                    android:text="@string/conflict_choice_use_device_copy"
+                    android:textAppearance="@style/TextAppearance.Inverse"
+                    tools:text="Upload device copy\nLast updated: 3:42 am, 10-Nov-2016"
+                    />
+
+                <RadioButton
+                    android:id="@+id/conflict_choice_use_server_copy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="@dimen/padding_inline"
+                    android:paddingBottom="@dimen/padding_inline"
+                    android:text="@string/conflict_choice_use_server_copy"
+                    android:textAppearance="@style/TextAppearance.Inverse"
+                    tools:text="Download server copy\nLast updated: 3:45 am, 10-Nov-2016"
+                    />
+
+            </RadioGroup>
+
+        </LinearLayout>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/padding_large"
+                android:paddingEnd="@dimen/padding_large"
+                android:paddingLeft="@dimen/padding_large"
+                android:paddingRight="@dimen/padding_large"
+                android:paddingStart="@dimen/padding_large"
+                android:textAppearance="@style/TextAppearance.Small.Dim.Label"
+                android:text="@string/conflict_post_preview_title"
+                />
+
+            <TextView
+                android:id="@+id/conflict_post_preview_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/padding_large"
+                android:paddingEnd="@dimen/padding_large"
+                android:paddingLeft="@dimen/padding_large"
+                android:paddingRight="@dimen/padding_large"
+                android:paddingStart="@dimen/padding_large"
+                android:textAppearance="@style/TextAppearance.Medium"
+                android:text="@string/conflict_post_preview_status"
+                />
+
+            <TextView
+                android:id="@+id/conflict_post_preview_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding_large"
+                android:layout_marginLeft="@dimen/padding_large"
+                android:layout_marginRight="@dimen/padding_large"
+                android:textAppearance="@style/TextAppearance.Large.Light"
+                tools:text="My awesome post title"
+                />
+
+            <TextView
+                android:id="@+id/conflict_post_preview_markdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:gravity="top"
+                android:padding="@dimen/padding_large"
+                android:textAppearance="@style/TextAppearance.Light"
+                tools:text="@string/lorem_ipsum"
+                />
+
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
+</android.support.design.widget.CoordinatorLayout>

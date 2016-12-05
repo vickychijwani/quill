@@ -1,5 +1,6 @@
 package me.vickychijwani.spectre.util;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 
 import org.ocpsoft.prettytime.PrettyTime;
@@ -13,6 +14,9 @@ public class DateTimeUtils {
     public static final Date FAR_FUTURE = new Date(2114380800L * 1000);
 
     private static PrettyTime prettyTime = null;
+
+    private static java.text.DateFormat timeFormat = null;
+    private static java.text.DateFormat dateFormat = null;
 
     public static long getEpochSeconds() {
         return System.currentTimeMillis() / 1000L;
@@ -30,6 +34,15 @@ public class DateTimeUtils {
             prettyTime = new PrettyTime(Locale.getDefault());
         }
         return prettyTime.format(date);
+    }
+
+    public static String formatAbsolute(@NonNull Date date, @NonNull Context context) {
+        // get locale-specific formatters
+        timeFormat = android.text.format.DateFormat.getTimeFormat(context);
+        dateFormat = android.text.format.DateFormat.getMediumDateFormat(context);
+        // NOTE: be careful not to add any English words below since this should be a
+        // locale-independent UI string!
+        return timeFormat.format(date) + ", " + dateFormat.format(date);
     }
 
 }

@@ -25,9 +25,16 @@ public class Post implements RealmModel, Parcelable {
     @StringDef({ DRAFT, SCHEDULED, PUBLISHED })
     public @interface Status {}
 
+    @Retention(RetentionPolicy.SOURCE)
+    @StringDef({ CONFLICT_NONE, CONFLICT_UNRESOLVED })
+    public @interface ConflictState {}
+
     public static final String DRAFT = "draft";
     public static final String SCHEDULED = "scheduled";
     public static final String PUBLISHED = "published";
+
+    public static final String CONFLICT_NONE = "conflict:none";
+    public static final String CONFLICT_UNRESOLVED = "conflict:unresolved";
 
     private static final String DEFAULT_TITLE = "(Untitled)";
     public static final String DEFAULT_SLUG_PREFIX = "untitled";
@@ -79,6 +86,9 @@ public class Post implements RealmModel, Parcelable {
     @GsonExclude
     private RealmList<PendingAction> pendingActions = new RealmList<>();
 
+    @Required @GsonExclude @ConflictState
+    private String conflictState = CONFLICT_NONE;
+
     public Post() {}
 
     // TODO remember to update this, equals, Parcelable methods, and DB migration whenever fields are changed!
@@ -118,8 +128,10 @@ public class Post implements RealmModel, Parcelable {
         for (PendingAction action : post.getPendingActions()) {
             this.addPendingAction(action.getType());
         }
+        this.setConflictState(post.getConflictState());
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -161,7 +173,11 @@ public class Post implements RealmModel, Parcelable {
             return false;
         if (getMetaDescription() != null ? !getMetaDescription().equals(post.getMetaDescription()) : post.getMetaDescription() != null)
             return false;
-        return getPendingActions() != null ? getPendingActions().equals(post.getPendingActions()) : post.getPendingActions() == null;
+        if (getPendingActions() != null ? !getPendingActions().equals(post.getPendingActions()) : post.getPendingActions() != null)
+            return false;
+        if (getConflictState() != null ? !getConflictState().equals(post.getConflictState()) : post.getConflictState() != null)
+            return false;
+        return true;
     }
 
     // Parcelable methods
@@ -194,6 +210,7 @@ public class Post implements RealmModel, Parcelable {
         dest.writeString(this.metaTitle);
         dest.writeString(this.metaDescription);
         dest.writeList(this.pendingActions);
+        dest.writeString(this.conflictState);
     }
 
     protected Post(Parcel in) {
@@ -225,6 +242,8 @@ public class Post implements RealmModel, Parcelable {
         this.metaDescription = in.readString();
         this.pendingActions = new RealmList<>();
         in.readList(this.pendingActions, PendingAction.class.getClassLoader());
+        //noinspection WrongConstant
+        this.conflictState = in.readString();
     }
 
     public static final Parcelable.Creator<Post> CREATOR = new Parcelable.Creator<Post>() {
@@ -417,6 +436,15 @@ public class Post implements RealmModel, Parcelable {
     public void setPendingActions(RealmList<PendingAction> pendingActions) {
         this.pendingActions = pendingActions;
     }
+
+    public @ConflictState String getConflictState() {
+        return conflictState;
+    }
+
+    public void setConflictState(@ConflictState String conflictState) {
+        this.conflictState = conflictState;
+    }
+
 
     public boolean isPendingActionsEmpty() {
         return this.pendingActions.isEmpty();

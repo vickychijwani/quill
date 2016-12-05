@@ -94,6 +94,14 @@
     <string name="image_upload_failed">Couldn\'t upload image</string>
     <string name="remove_image">Remove This Image</string>
 
+    <!-- conflict resolution -->
+    <string name="conflict_explanation"><![CDATA[<b>The post <i>%s</i> has a conflict.</b> It was updated on the server before your device\'s copy could be uploaded. Which version of the post would you like to keep?]]></string>
+    <string name="conflict_choice_use_device_copy">Upload device copy</string>
+    <string name="conflict_choice_use_server_copy">Download server copy</string>
+    <string name="conflict_last_update_at">Last updated at %s</string>
+    <string name="conflict_post_preview_title">The below copy of the post will be kept:</string>
+    <string name="conflict_post_preview_status"><![CDATA[Post status: <b>%s</b>]]></string>
+
     <!-- about -->
     <string name="about_action">About…</string>
     <string name="about">About</string>
@@ -131,6 +139,10 @@
     <string name="loading">Loading…</string>
     <string name="insert">Insert</string>
     <string name="intent_no_apps">There are no apps that can handle this action</string>
+    <string name="accept">Accept</string>
+    <string name="draft">Draft</string>
+    <string name="published">Published</string>
+    <string name="scheduled">Scheduled</string>
 
     <!-- content descriptions -->
     <string name="user_image">User image</string>

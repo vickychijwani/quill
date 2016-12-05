@@ -60,6 +60,7 @@ import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.LogoutStatusEvent;
+import me.vickychijwani.spectre.event.PostConflictFoundEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
@@ -467,6 +468,13 @@ public class PostListActivity extends BaseActivity {
         }
     }
 
+    @Subscribe
+    public void onPostConflictFoundEvent(PostConflictFoundEvent event) {
+        Intent intent = new Intent(this, PostConflictResolutionActivity.class);
+        intent.putExtra(BundleKeys.LOCAL_POST, event.localPost);
+        intent.putExtra(BundleKeys.SERVER_POST, event.serverPost);
+        startActivity(intent);
+    }
 
     // private methods
     private void scheduleDataRefresh() {

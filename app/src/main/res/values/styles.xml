@@ -134,6 +134,10 @@
         <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif</item>
     </style>
 
+    <style name="TextAppearance.Inverse">
+        <item name="android:textColor">@color/text_primary_inverted</item>
+    </style>
+
     <style name="TextAppearance.Dim">
         <item name="android:textColor">@color/text_secondary</item>
     </style>

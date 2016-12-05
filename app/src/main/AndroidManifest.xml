@@ -59,6 +59,16 @@
         </activity>
 
         <activity
+            android:name=".view.PostConflictResolutionActivity"
+            android:parentActivityName=".view.PostListActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.PostListActivity"/>
+        </activity>
+
+        <activity
             android:name=".view.AboutActivity"
             android:parentActivityName=".view.PostListActivity"
             android:theme="@style/CardListActivityTheme">
