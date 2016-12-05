@@ -89,6 +89,14 @@ public class DatabaseMigration implements RealmMigration {
             }
             ++oldVersion;
         }
+
+        if (oldVersion == 2) {
+            if (!schema.get("Post").hasField("conflictState")) {
+                Crashlytics.log(Log.DEBUG, TAG, "ADDING CONFLICT STATE FIELD TO POST TABLE");
+                schema.get("Post").addField("conflictState", String.class, FieldAttribute.REQUIRED);
+            }
+            ++oldVersion;
+        }
     }
 
 }

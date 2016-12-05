@@ -43,8 +43,8 @@ android {
         applicationId 'me.vickychijwani.spectre'
         minSdkVersion 15
         targetSdkVersion 25
-        versionCode 1_004_000      // 3 digits each for major, minor, patch
-        versionName '1.4.0'
+        versionCode 1_005_000      // 3 digits each for major, minor, patch
+        versionName '1.5.0'
 
         // enable support for vector drawables on API < 21
         vectorDrawables.useSupportLibrary = true
@@ -72,6 +72,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             ext.enableCrashlytics = true
         }
+    }
+    lintOptions {
+        // check for lint errors but don't abort builds
+        // I had to disable it because we don't get translations for new strings immediately
+        abortOnError false
     }
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'

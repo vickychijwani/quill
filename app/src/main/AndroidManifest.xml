@@ -51,11 +51,16 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".view.PostListActivity"/>
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-                <action android:name="android.intent.action.VIEW" />
-                <data android:scheme="me.vickychijwani.spectre" />
-            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".view.PostConflictResolutionActivity"
+            android:parentActivityName=".view.PostListActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.PostListActivity"/>
         </activity>
 
         <activity

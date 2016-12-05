@@ -48,6 +48,9 @@ interface GhostApiService {
     void getPosts(@Header("If-None-Match") String etag, @Query("limit") int numPosts,
                   Callback<PostList> cb);
 
+    @GET("/posts/{id}/?status=all&include=tags")
+    void getPost(@Path("id") int id, Callback<PostList> cb);
+
     @POST("/posts/?include=tags")
     void createPost(@Body PostStubList posts, Callback<PostList> cb);
 
