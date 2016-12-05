@@ -20,6 +20,7 @@ Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get
 - Works with **[Ghost Pro](https://ghost.org/pricing/)** (ghost.io) as well as **self-hosted blogs**
 - **Offline mode**: Quill is designed to work 100% offline: just sync when you're connected later! Ideal for writing on the go
 - **Attach tags and a cover image** - upload images from your phone or a web link
+- **[Conflict handling][conflict-ui]** - when a blog post is edited simultaneously from the app and elsewhere (e.g., via Ghost web), Quill will detect the conflict and show you a nice UI to decide what to do - so you never lose your hard work!
 
 ### Bug reports? Feature requests?
 
@@ -54,3 +55,4 @@ If you face any issues setting this up, please let me know by [filing a new issu
 
 [playstore]: https://play.google.com/store/apps/details?id=me.vickychijwani.spectre
 [weblate]: https://hosted.weblate.org/engage/quill/en/
+[conflict-ui]: https://github.com/vickychijwani/quill/issues/144#issuecomment-264991612
