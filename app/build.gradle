@@ -73,6 +73,11 @@ android {
             ext.enableCrashlytics = true
         }
     }
+    lintOptions {
+        // check for lint errors but don't abort builds
+        // I had to disable it because we don't get translations for new strings immediately
+        abortOnError false
+    }
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
