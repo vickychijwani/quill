@@ -16,6 +16,7 @@ import java.util.Date;
 
 import butterknife.Bind;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.util.DateTimeUtils;
@@ -61,6 +62,8 @@ public class PostConflictResolutionActivity extends BaseActivity implements View
 //        mDecideLaterBtn.setOnClickListener(this);
 
         mChoiceUseDeviceCopyBtn.performClick();
+
+        AnalyticsService.logConflictFound();
     }
 
     @Override
@@ -105,6 +108,7 @@ public class PostConflictResolutionActivity extends BaseActivity implements View
         acceptedPost.setUpdatedAt(mServerPost.getUpdatedAt());
         acceptedPost.setConflictState(Post.CONFLICT_NONE);
         getBus().post(new SavePostEvent(acceptedPost, false));
+        AnalyticsService.logConflictResolved();
         finish();
     }
 

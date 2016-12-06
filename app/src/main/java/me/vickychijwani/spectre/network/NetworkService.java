@@ -39,6 +39,7 @@ import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.error.ExpiredTokenUsedException;
+import me.vickychijwani.spectre.error.PostConflictFoundException;
 import me.vickychijwani.spectre.error.TokenRevocationFailedException;
 import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
@@ -747,6 +748,11 @@ public class NetworkService {
                         if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
                         localPost.setConflictState(Post.CONFLICT_UNRESOLVED);
                         createOrUpdateModel(localPost);
+                        Crashlytics.log(Log.DEBUG, TAG, "localPost updated at:" + localPost.getUpdatedAt().toString());
+                        Crashlytics.log(Log.DEBUG, TAG, "serverPost updated at: " + serverPost.getUpdatedAt().toString());
+                        Crashlytics.log(Log.DEBUG, TAG, "localPost contents:\n" + localPost.getMarkdown());
+                        Crashlytics.log(Log.DEBUG, TAG, "serverPost contents:\n" + serverPost.getMarkdown());
+                        Crashlytics.logException(new PostConflictFoundException());
                         getBus().post(new PostConflictFoundEvent(localPost, serverPost));
                     } else {
                         uploadEditedPost.call(localPost);
