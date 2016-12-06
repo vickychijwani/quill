@@ -148,6 +148,14 @@ public class AnalyticsService {
         logPostAction("Deleted draft", null);
     }
 
+    public static void logConflictFound() {
+        logPostAction("Conflict found", null);
+    }
+
+    public static void logConflictResolved() {
+        logPostAction("Conflict resolved", null);
+    }
+
     @Subscribe
     public void onFileUploadedEvent(FileUploadedEvent event) {
         logPostAction("Image uploaded", null);
