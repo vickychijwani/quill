@@ -26,10 +26,9 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="end"
                 android:padding="@dimen/padding_large"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:text="@string/accept"
                 android:textStyle="bold"
-                tools:targetApi="lollipop"
                 />
 
         </FrameLayout>
