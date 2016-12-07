@@ -128,4 +128,16 @@
     <string name="user_image">ユーザー画像</string>
     <string name="cdesc_post_image">記事の画像</string>
 
-</resources>
+<string name="conflict_explanation"><b>投稿 <i>%s</i> は競合しています。</b> デバイスのコピーがアップロードされる前に、サーバーで更新されました。どちらのバージョンの投稿を保存しますか?</string>
+    <string name="conflict_choice_use_device_copy">デバイスのコピーをアップロード</string>
+    <string name="conflict_choice_use_server_copy">サーバー側のコピーをダウンロード</string>
+    <string name="conflict_last_update_at">最終更新 %s</string>
+    <string name="conflict_post_preview_title">以下の投稿のコピーが保存されます:</string>
+    <string name="conflict_post_preview_status">投稿ステータス: <b>%s</b></string>
+
+    <string name="accept">受け入れ</string>
+    <string name="draft">下書き</string>
+    <string name="published">公開</string>
+    <string name="scheduled">スケジュール済</string>
+
+    </resources>
