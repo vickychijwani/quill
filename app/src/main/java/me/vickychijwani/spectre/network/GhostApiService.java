@@ -26,16 +26,16 @@ import retrofit.mime.TypedFile;
 interface GhostApiService {
 
     // auth
-    @GET("/ghost")
+    @GET("/ghost/")
     void getLoginPage(ResponseCallback cb);
 
-    @POST("/authentication/token")
+    @POST("/authentication/token/")
     void getAuthToken(@Body AuthReqBody credentials, Callback<AuthToken> cb);
 
-    @POST("/authentication/token")
+    @POST("/authentication/token/")
     void refreshAuthToken(@Body RefreshReqBody credentials, Callback<AuthToken> cb);
 
-    @POST("/authentication/revoke")
+    @POST("/authentication/revoke/")
     void revokeAuthToken(@Body RevokeReqBody revoke, JSONObjectCallback cb);
 
     // users
@@ -72,7 +72,7 @@ interface GhostApiService {
 
     // file upload
     @Multipart
-    @POST("/uploads")
+    @POST("/uploads/")
     void uploadFile(@Part("uploadimage") TypedFile file, Callback<String> cb);
 
 }

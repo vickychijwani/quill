@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import retrofit.RetrofitError;
@@ -89,7 +90,17 @@ public class NetworkUtils {
     public static Observable<String> checkGhostBlog(@NonNull String blogUrl) {
         String ghostApiEndpointThatMustExist = makeAbsoluteUrl(blogUrl, "/ghost/");
         return checkUrl(ghostApiEndpointThatMustExist)
-                .flatMap(response -> Observable.just(blogUrl));
+                .flatMap(response -> {
+                    // the request may have been redirected, most commonly from HTTP => HTTPS
+                    // so pick up the eventual URL of the blog and use that
+                    // (even if the user manually entered HTTP - it's certainly a mistake)
+                    URL urlObj = response.request().url();
+                    String eventualBlogUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
+                    if (urlObj.getPort() >= 0) {
+                        eventualBlogUrl = eventualBlogUrl + ":" + urlObj.getPort();
+                    }
+                    return Observable.just(eventualBlogUrl);
+                });
     }
 
     public static Observable<com.squareup.okhttp.Response> checkUrl(@NonNull String url) {
