@@ -142,9 +142,7 @@ public class PostListActivity extends BaseActivity {
         mColorPrimary = typedColorValue.data;
 
         // initialize post list UI
-        UserPrefs prefs = UserPrefs.getInstance(this);
-        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
-        mPostAdapter = new PostAdapter(this, mPosts, blogUrl, getPicasso(), v -> {
+        mPostAdapter = new PostAdapter(this, mPosts, getBlogUrl(), getPicasso(), v -> {
             int pos = mPostList.getChildLayoutPosition(v);
             if (pos == RecyclerView.NO_POSITION) return;
             Post post = (Post) mPostAdapter.getItem(pos);
@@ -257,8 +255,7 @@ public class PostListActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_view_homepage:
-                UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-                startBrowserActivity(prefs.getString(UserPrefs.Key.BLOG_URL));
+                startBrowserActivity(getBlogUrl());
                 return true;
             case R.id.action_refresh:
                 refreshData(false);
@@ -271,7 +268,7 @@ public class PostListActivity extends BaseActivity {
                 startActivity(aboutIntent);
                 return true;
             case R.id.action_logout:
-                getBus().post(new LogoutEvent(false));
+                getBus().post(new LogoutEvent(getBlogUrl(), false));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -325,7 +322,7 @@ public class PostListActivity extends BaseActivity {
             if (event.user.getImage().isEmpty()) {
                 return;
             }
-            String blogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
+            String blogUrl = getBlogUrl();
             String imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, event.user.getImage());
             getPicasso()
                     .load(imageUrl)
@@ -457,7 +454,7 @@ public class PostListActivity extends BaseActivity {
                     })
                     .setNegativeButton(R.string.logout, (dialog, which) -> {
                         dialog.dismiss();
-                        getBus().post(new LogoutEvent(true));
+                        getBus().post(new LogoutEvent(getBlogUrl(), true));
                     })
                     .create();
             alertDialog.show();
@@ -505,6 +502,10 @@ public class PostListActivity extends BaseActivity {
         mSwipeRefreshLayout.setRefreshing(false);
         Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
         scheduleDataRefresh();
+    }
+
+    private String getBlogUrl() {
+        return UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
     }
 
 }

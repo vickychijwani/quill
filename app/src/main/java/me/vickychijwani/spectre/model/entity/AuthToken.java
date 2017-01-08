@@ -1,6 +1,6 @@
 package me.vickychijwani.spectre.model.entity;
 
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
@@ -8,7 +8,7 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 
 @SuppressWarnings("unused")
 @RealmClass
-public class AuthToken extends RealmObject {
+public class AuthToken implements RealmModel {
 
     @PrimaryKey @Required   // intentional; there should only ever be one auth token
     private String tokenType = "Bearer";
@@ -28,7 +28,19 @@ public class AuthToken extends RealmObject {
      */
     private long createdAt;
 
-    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
+    // no-arg public constructor for GSON
+    public AuthToken() {}
+
+    public AuthToken(AuthToken other) {
+        // using accessors instead of direct field access in order to go through Realm's proxy
+        this.setTokenType(other.getTokenType());
+        this.setAccessToken(other.getAccessToken());
+        this.setRefreshToken(other.getRefreshToken());
+        this.setExpiresIn(other.getExpiresIn());
+        this.setCreatedAt(other.getCreatedAt());
+    }
+
+    // accessors
     public String getTokenType() {
         return tokenType;
     }
@@ -67,6 +79,11 @@ public class AuthToken extends RealmObject {
 
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
+    }
+
+    // query methods
+    public String getAuthHeader() {
+        return tokenType + " " + accessToken;
     }
 
 }

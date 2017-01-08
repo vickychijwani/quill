@@ -6,9 +6,9 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
-import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
@@ -22,11 +22,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Deque;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import io.realm.Case;
 import io.realm.Realm;
@@ -100,7 +97,6 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import retrofit.Callback;
-import retrofit.RequestInterceptor;
 import retrofit.ResponseCallback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -108,7 +104,6 @@ import retrofit.client.Header;
 import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
-import retrofit.mime.TypedByteArray;
 import retrofit.mime.TypedFile;
 import rx.Observable;
 import rx.functions.Action0;
@@ -127,7 +122,6 @@ public class NetworkService {
     private AuthToken mAuthToken = null;
     private OkHttpClient mOkHttpClient = null;
     private final GsonConverter mGsonConverter;
-    private final RequestInterceptor mAuthInterceptor;
 
     private boolean mbAuthRequestOnGoing = false;
     private RetrofitError mRefreshError = null;
@@ -136,19 +130,8 @@ public class NetworkService {
 
     public NetworkService() {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Date.class, new DateDeserializer())
-                .registerTypeAdapter(ConfigurationList.class, new ConfigurationListDeserializer())
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .setExclusionStrategies(new RealmExclusionStrategy(), new AnnotationExclusionStrategy())
-                .create();
+        Gson gson = GhostApiUtils.getGson();
         mGsonConverter = new GsonConverter(gson);
-        mAuthInterceptor = (request) -> {
-            if (mAuthToken != null && mAuthToken.isValid() && ! hasAccessTokenExpired()) {
-                request.addHeader("Authorization", mAuthToken.getTokenType() + " " +
-                        mAuthToken.getAccessToken());
-            }
-        };
     }
 
     public void start(Context context, OkHttpClient okHttpClient) {
@@ -174,31 +157,9 @@ public class NetworkService {
         if (mbAuthRequestOnGoing) return;
         mbAuthRequestOnGoing = true;
         mApi = buildApiService(event.blogUrl, true);
-        GhostApiService mApiForClientSecret = buildApiService(event.blogUrl, false);
-
-        // get dynamic client secret, if the blog supports it
-        mApiForClientSecret.getLoginPage(new ResponseCallback() {
-            @Override
-            public void success(Response response) {
-                String html = new String(((TypedByteArray) response.getBody()).getBytes());
-                // quotes around attribute values are optional in HTML5: http://stackoverflow.com/q/6495310/504611
-                Pattern clientSecretPattern = Pattern.compile("^.*<meta[ ]+name=['\"]?env-clientSecret['\"]?[ ]+content=['\"]?([^'\"]+)['\"]?.*$", Pattern.DOTALL);
-                Matcher matcher = clientSecretPattern.matcher(html);
-                if (matcher.matches()) {
-                    String clientSecret = matcher.group(1);
-                    doLogin(event, clientSecret);
-                } else {
-                    Log.w(TAG, "No client secret found, assuming old Ghost version without client secret support");
-                    doLogin(event, null);
-                }
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Log.e(TAG, "No client secret found, assuming old Ghost version without client secret support");
-                Log.e(TAG, Log.getStackTraceString(error));
-                doLogin(event, null);
-            }
+        GhostApiService apiServiceForClientSecret = buildApiService(event.blogUrl, false);
+        GhostApiUtils.doWithClientSecret(apiServiceForClientSecret, clientSecret -> {
+            doLogin(event, clientSecret);
         });
     }
 
@@ -308,7 +269,7 @@ public class NetworkService {
             doLoadConfiguration(new LoadConfigurationEvent(true), successCallback, failureCallback);
         };
 
-        mApi.getVersion(new JSONObjectCallback() {
+        mApi.getVersion(mAuthToken.getAuthHeader(), new JSONObjectCallback() {
             @Override
             public void onSuccess(JSONObject jsonObject, Response response) {
                 try {
@@ -350,7 +311,7 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getCurrentUser(loadEtag(ETag.TYPE_CURRENT_USER), new Callback<UserList>() {
+        mApi.getCurrentUser(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_CURRENT_USER), new Callback<UserList>() {
             @Override
             public void success(UserList userList, Response response) {
                 storeEtag(response.getHeaders(), ETag.TYPE_CURRENT_USER);
@@ -397,7 +358,7 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getSettings(loadEtag(ETag.TYPE_BLOG_SETTINGS), new Callback<SettingsList>() {
+        mApi.getSettings(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_BLOG_SETTINGS), new Callback<SettingsList>() {
             @Override
             public void success(SettingsList settingsList, Response response) {
                 storeEtag(response.getHeaders(), ETag.TYPE_BLOG_SETTINGS);
@@ -461,7 +422,7 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getConfiguration(loadEtag(ETag.TYPE_CONFIGURATION), new Callback<ConfigurationList>() {
+        mApi.getConfiguration(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_CONFIGURATION), new Callback<ConfigurationList>() {
             @Override
             public void success(ConfigurationList configurationList, Response response) {
                 storeEtag(response.getHeaders(), ETag.TYPE_CONFIGURATION);
@@ -497,7 +458,7 @@ public class NetworkService {
         }
 
         if (! validateAccessToken(event)) return;
-        mApi.getPosts(loadEtag(ETag.TYPE_ALL_POSTS), POSTS_FETCH_LIMIT, new Callback<PostList>() {
+        mApi.getPosts(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_ALL_POSTS), POSTS_FETCH_LIMIT, new Callback<PostList>() {
             @Override
             public void success(PostList postList, Response response) {
                 storeEtag(response.getHeaders(), ETag.TYPE_ALL_POSTS);
@@ -671,7 +632,7 @@ public class NetworkService {
         for (final Post localPost : localDeletedPosts) {
             if (! validateAccessToken(event)) return;
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] deleting post id = " + localPost.getId());
-            mApi.deletePost(localPost.getId(), new ResponseCallback() {
+            mApi.deletePost(mAuthToken.getAuthHeader(), localPost.getId(), new ResponseCallback() {
                 @Override
                 public void success(Response response) {
                     AnalyticsService.logDraftDeleted();
@@ -691,7 +652,7 @@ public class NetworkService {
         for (final Post localPost : localNewPosts) {
             if (! validateAccessToken(event)) return;
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] creating post");    // local new posts don't have an id
-            mApi.createPost(PostStubList.from(localPost), new Callback<PostList>() {
+            mApi.createPost(mAuthToken.getAuthHeader(), PostStubList.from(localPost), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
                     AnalyticsService.logNewDraftUploaded();
@@ -714,7 +675,7 @@ public class NetworkService {
         Action1<Post> uploadEditedPost = (editedPost) -> {
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] updating post id = " + editedPost.getId());
             PostStubList postStubList = PostStubList.from(editedPost);
-            mApi.updatePost(editedPost.getId(), postStubList, new Callback<PostList>() {
+            mApi.updatePost(mAuthToken.getAuthHeader(), editedPost.getId(), postStubList, new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
                     createOrUpdateModel(postList.posts);
@@ -732,7 +693,7 @@ public class NetworkService {
         for (final Post localPost : localEditedPosts) {
             if (! validateAccessToken(event)) return;
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] downloading edited post with id = " + localPost.getId() + " for comparison");
-            mApi.getPost(localPost.getId(), new Callback<PostList>() {
+            mApi.getPost(mAuthToken.getAuthHeader(), localPost.getId(), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
                     Post serverPost = null;
@@ -848,7 +809,7 @@ public class NetworkService {
         Crashlytics.log(Log.DEBUG, TAG, "[onFileUploadEvent] uploading file");
 
         TypedFile typedFile = new TypedFile(event.mimeType, new File(event.path));
-        mApi.uploadFile(typedFile, new Callback<String>() {
+        mApi.uploadFile(mAuthToken.getAuthHeader(), typedFile, new Callback<String>() {
             @Override
             public void success(String url, Response response) {
                 getBus().post(new FileUploadedEvent(url));
@@ -890,28 +851,9 @@ public class NetworkService {
             }
         }
 
-        // revoke access and refresh tokens
-        RevokeReqBody revokeReqs[] = new RevokeReqBody[] {
-                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, mAuthToken.getAccessToken()),
-                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, mAuthToken.getRefreshToken())
-        };
-        for (RevokeReqBody reqBody : revokeReqs) {
-            mApi.revokeAuthToken(reqBody, new JSONObjectCallback() {
-                @Override
-                public void onSuccess(JSONObject json, Response response) {
-                    if (json.has("error")) {
-                        Crashlytics.logException(new TokenRevocationFailedException(
-                                reqBody.tokenTypeHint, json.optString("error")));
-                    }
-                }
+        // copy auth token before closing the Realm
+        final AuthToken tokenToRevoke = new AuthToken(mAuthToken);
 
-                @Override
-                public void onFailure(RetrofitError error) {
-                    Crashlytics.logException(new TokenRevocationFailedException(
-                            reqBody.tokenTypeHint, error));
-                }
-            });
-        }
         // clear all persisted blog data to avoid primary key conflicts
         mRealm.close();
         Realm.deleteRealm(mRealm.getConfiguration());
@@ -924,6 +866,30 @@ public class NetworkService {
         mbAuthRequestOnGoing = false;
         mRefreshError = null;
         getBus().post(new LogoutStatusEvent(true, false));
+
+        // revoke access and refresh tokens in the background
+        GhostApiService apiServiceForClientSecret = buildApiService(event.blogUrl, false);
+        GhostApiUtils.doWithClientSecret(apiServiceForClientSecret, clientSecret -> {
+            RevokeReqBody revokeReqs[] = RevokeReqBody.from(tokenToRevoke, clientSecret);
+            for (RevokeReqBody reqBody : revokeReqs) {
+                mApi.revokeAuthToken(tokenToRevoke.getAuthHeader(), reqBody, new Callback<JsonElement>() {
+                    @Override
+                    public void success(JsonElement jsonResponse, Response response) {
+                        JsonObject jsonObj = jsonResponse.getAsJsonObject();
+                        if (jsonObj.has("error")) {
+                            Crashlytics.logException(new TokenRevocationFailedException(
+                                    reqBody.tokenTypeHint, jsonObj.get("error").getAsString()));
+                        }
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+                        Crashlytics.logException(new TokenRevocationFailedException(
+                                reqBody.tokenTypeHint, error));
+                    }
+                });
+            }
+        });
     }
 
 
@@ -1081,7 +1047,6 @@ public class NetworkService {
                 .setEndpoint(baseUrl)
                 .setClient(new OkClient(mOkHttpClient))
                 .setConverter(mGsonConverter)
-                .setRequestInterceptor(mAuthInterceptor)
                 .setLogLevel(logLevel)
                 .build();
         return restAdapter.create(GhostApiService.class);
