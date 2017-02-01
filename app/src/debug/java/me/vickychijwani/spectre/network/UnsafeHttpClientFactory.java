@@ -13,6 +13,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 public class UnsafeHttpClientFactory extends ProductionHttpClientFactory {
 
@@ -25,6 +26,9 @@ public class UnsafeHttpClientFactory extends ProductionHttpClientFactory {
     @Override
     public OkHttpClient create(@Nullable File cacheDir) {
         return super.create(cacheDir).newBuilder()
+                // log requests and responses
+                .addInterceptor(new HttpLoggingInterceptor()
+                        .setLevel(HttpLoggingInterceptor.Level.BODY))
                 // trust all SSL certs, for TESTING ONLY!
                 .hostnameVerifier((hostname, session) -> true)
                 .sslSocketFactory(getUnsafeSslSocketFactory(), mGullibleTrustManager)

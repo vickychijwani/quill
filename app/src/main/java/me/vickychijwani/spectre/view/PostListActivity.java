@@ -41,8 +41,6 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Subscribe;
 
-import java.net.ConnectException;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,9 +73,7 @@ import me.vickychijwani.spectre.util.DeviceUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.view.image.BorderedCircleTransformation;
 import me.vickychijwani.spectre.view.widget.SpaceItemDecoration;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
+import retrofit2.Response;
 
 public class PostListActivity extends BaseActivity {
 
@@ -289,31 +285,29 @@ public class PostListActivity extends BaseActivity {
         cancelRefreshTimeout();
         scheduleDataRefresh();
 
-        RetrofitError error = event.error;
-        if (error == null || ! NetworkUtils.isRealError(error)) {
+        if (event.apiFailure == null) {
             return;
         }
 
-        Response response = error.getResponse();
-        if (error.getKind() == RetrofitError.Kind.NETWORK
-                && (error.getCause() instanceof ConnectException
-                || error.getCause() instanceof SocketTimeoutException)) {
+        Throwable error = event.apiFailure.error;
+        Response response = event.apiFailure.response;
+        if (error != null && NetworkUtils.isConnectionError(error)) {
             Toast.makeText(this, R.string.network_timeout, Toast.LENGTH_LONG).show();
         } else {
             Crashlytics.log(Log.ERROR, TAG, "generic error message triggered during refresh");
-            try {
-                if (response != null) {
-                    Crashlytics.log(Log.ERROR, TAG, "URL: " + response.getUrl());
-                    Crashlytics.log(Log.ERROR, TAG, "response: " +
-                            new String(((TypedByteArray) response.getBody()).getBytes()));
-                }
+            if (error != null) {
                 Crashlytics.logException(new SyncException("sync failed", error));
-            } catch (Exception exception) {
-                Crashlytics.logException(new SyncException("sync failed, but threw when " +
-                        "trying to log URL and response", error));
+            } else if (response != null) {
+                try {
+                        Crashlytics.logException(new SyncException("response: "
+                                + response.errorBody().string()));
+                } catch (Exception exception) {
+                    Crashlytics.logException(new SyncException("sync failed, but threw this when " +
+                            "trying to log response", exception));
+                }
             }
-            Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
         }
+        Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
     }
 
     @Subscribe

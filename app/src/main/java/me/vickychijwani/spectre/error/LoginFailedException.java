@@ -9,4 +9,11 @@ public final class LoginFailedException extends RuntimeException {
         super("LOGIN FAILED: see previous exception for details", throwable);
     }
 
+    /**
+     * @param message a custom String message
+     */
+    public LoginFailedException(String message) {
+        super("LOGIN FAILED: " + message);
+    }
+
 }

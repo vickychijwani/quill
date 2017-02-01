@@ -9,4 +9,11 @@ public final class FileUploadFailedException extends RuntimeException {
         super("FILE UPLOAD FAILED: see previous exception for details", throwable);
     }
 
+    /**
+     * @param message a custom String message
+     */
+    public FileUploadFailedException(String message) {
+        super("FILE UPLOAD FAILED: " + message);
+    }
+
 }

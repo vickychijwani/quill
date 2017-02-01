@@ -15,6 +15,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -45,6 +46,7 @@ import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.model.entity.PendingAction;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
+import me.vickychijwani.spectre.network.ApiFailure;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
 import me.vickychijwani.spectre.util.EditTextUtils;
 import me.vickychijwani.spectre.util.KeyboardUtils;
@@ -378,7 +380,7 @@ public class PostEditFragment extends BaseFragment implements
                 .subscribe((pair) -> {
                     getBus().post(new FileUploadEvent(pair.first, pair.second));
                 }, (error) -> {
-                    onFileUploadErrorEvent(new FileUploadErrorEvent(error));
+                    onFileUploadErrorEvent(new FileUploadErrorEvent(new ApiFailure(error)));
                 }, () -> {
                     mUploadSubscription = null;
                 });
@@ -402,7 +404,16 @@ public class PostEditFragment extends BaseFragment implements
 
     @Subscribe
     public void onFileUploadErrorEvent(FileUploadErrorEvent event) {
-        Crashlytics.logException(new FileUploadFailedException(event.error));
+        if (event.apiFailure.error != null) {
+            Crashlytics.logException(new FileUploadFailedException(event.apiFailure.error));
+        } else if (event.apiFailure.response != null) {
+            try {
+                String responseStr = event.apiFailure.response.errorBody().string();
+                Crashlytics.logException(new FileUploadFailedException(responseStr));
+            } catch (IOException e) {
+                Log.e(TAG, Log.getStackTraceString(e));
+            }
+        }
         Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
         // the activity could have been destroyed and re-created
         if (mUploadProgress != null) {

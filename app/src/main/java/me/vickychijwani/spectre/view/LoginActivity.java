@@ -25,9 +25,8 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Subscribe;
 
-import java.net.ConnectException;
+import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,13 +41,14 @@ import me.vickychijwani.spectre.error.LoginFailedException;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
+import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.network.entity.ApiError;
 import me.vickychijwani.spectre.network.entity.ApiErrorList;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import okhttp3.OkHttpClient;
-import retrofit.RetrofitError;
+import retrofit2.Response;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -300,7 +300,7 @@ public class LoginActivity extends BaseActivity implements
         String errorStr;
         if (isUserNetworkError(e)) {
             errorStr = getString(R.string.no_such_blog, blogUrl);
-        } else if (isConnectionError(e)) {
+        } else if (NetworkUtils.isConnectionError(e)) {
             errorStr = getString(R.string.login_connection_error, blogUrl);
         } else if (e instanceof SSLHandshakeException) {
             errorStr = getString(R.string.login_ssl_unsupported);
@@ -382,12 +382,13 @@ public class LoginActivity extends BaseActivity implements
     }
 
     @Subscribe
-    public void onLoginErrorEvent(LoginErrorEvent event) {
-        RetrofitError error = event.error;
+    public void onLoginErrorEvent(LoginErrorEvent<AuthToken> event) {
         showProgress(false);
-        try {
-            ApiErrorList errorList = (ApiErrorList) error.getBodyAs(ApiErrorList.class);
-            ApiError apiError = errorList.errors.get(0);
+        Throwable error = event.apiFailure.error;
+        Response errorResponse = event.apiFailure.response;
+        ApiErrorList apiErrors = event.apiErrors;
+        if (apiErrors != null && !apiErrors.errors.isEmpty()) {
+            ApiError apiError = apiErrors.errors.get(0);
             EditText errorView = mPasswordView;
             TextInputLayout errorLayout = mPasswordLayout;
             if ("NotFoundError".equals(apiError.errorType)) {
@@ -396,17 +397,16 @@ public class LoginActivity extends BaseActivity implements
             }
             errorView.requestFocus();
             errorLayout.setError(Html.fromHtml(apiError.message));
-        } catch (Exception ignored) {
+        } else if (error != null) {
             // errors in url: invalid / unknown hostname or ip
-            boolean userNetworkError = error.getKind() == RetrofitError.Kind.NETWORK
-                    && isUserNetworkError(error.getCause());
+            boolean userNetworkError = isUserNetworkError(error);
             // connection error: timeout, etc
-            boolean connectionError = error.getKind() == RetrofitError.Kind.NETWORK
-                    && isConnectionError(error.getCause());
+            boolean connectionError = NetworkUtils.isConnectionError(error);
             // don't remember when this happens, but it does happen consistently in one error scenario
-            boolean conversionError = error.getKind() == RetrofitError.Kind.CONVERSION;
+            // UPDATE: no idea what to do about this in the Retrofit2 world
+            //boolean conversionError = error.getKind() == RetrofitError.Kind.CONVERSION;
             String blogUrl = event.blogUrl;
-            if (userNetworkError || conversionError) {
+            if (userNetworkError /*|| conversionError*/) {
                 mBlogUrlLayout.setErrorEnabled(true);
                 mBlogUrlLayout.setError(getString(R.string.no_such_blog, blogUrl));
                 mBlogUrlView.requestFocus();
@@ -420,10 +420,29 @@ public class LoginActivity extends BaseActivity implements
                 mBlogUrlLayout.setErrorEnabled(false);
                 mBlogUrlLayout.setError(null);
             }
-        } finally {
-            Crashlytics.log(Log.ERROR, TAG, "Blog URL: " + mValidGhostBlogUrl);
-            Crashlytics.logException(new LoginFailedException(error));        // report login failures to Crashlytics
+        } else {
+            Crashlytics.log(Log.ERROR, TAG, "ApiErrorList and Throwable are BOTH null!");
+        }
+
+        // report login failures to Crashlytics
+        Crashlytics.log(Log.ERROR, TAG, "Blog URL: " + mValidGhostBlogUrl);
+        if (error != null) {
+            Crashlytics.logException(new LoginFailedException(error));
             Log.e(TAG, Log.getStackTraceString(error));
+        } else if (errorResponse != null) {
+            try {
+                // NOTE: this MIGHT be blank string "" if the body was already consumed elsewhere!
+                String errorBody = errorResponse.errorBody().string();
+                if (errorBody != null && !errorBody.isEmpty()) {
+                    Crashlytics.logException(new LoginFailedException("response: " + errorBody));
+                } else {
+                    Crashlytics.logException(new LoginFailedException("blank error body! maybe it" +
+                            " was already consumed by someone?"));
+                }
+            } catch (IOException e) {
+                Crashlytics.log(Log.ERROR, TAG, "error while reading errorBody! stack trace:\n"
+                        + Log.getStackTraceString(e));
+            }
         }
     }
 
@@ -431,10 +450,6 @@ public class LoginActivity extends BaseActivity implements
     public static boolean isUserNetworkError(Throwable error) {
         // user provided a malformed / non-existent URL
         return error instanceof UnknownHostException || error instanceof MalformedURLException;
-    }
-
-    public static boolean isConnectionError(Throwable error) {
-        return error instanceof ConnectException || error instanceof SocketTimeoutException;
     }
 
     private static boolean isEmailValid(String email) {

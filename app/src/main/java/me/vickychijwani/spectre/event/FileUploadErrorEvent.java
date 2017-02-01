@@ -1,12 +1,14 @@
 package me.vickychijwani.spectre.event;
 
+import me.vickychijwani.spectre.network.ApiFailure;
+
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class FileUploadErrorEvent {
 
-    public final Throwable error;
+    public final ApiFailure apiFailure;
 
-    public FileUploadErrorEvent(Throwable error) {
-        this.error = error;
+    public FileUploadErrorEvent(ApiFailure apiFailure) {
+        this.apiFailure = apiFailure;
     }
 
 }

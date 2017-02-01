@@ -2,14 +2,14 @@ package me.vickychijwani.spectre.event;
 
 import android.support.annotation.Nullable;
 
-import retrofit.RetrofitError;
+import me.vickychijwani.spectre.network.ApiFailure;
 
 public class DataRefreshedEvent {
 
-    public final RetrofitError error;
+    public final ApiFailure apiFailure;
 
-    public DataRefreshedEvent(@Nullable RetrofitError error) {
-        this.error = error;
+    public DataRefreshedEvent(@Nullable ApiFailure apiFailure) {
+        this.apiFailure = apiFailure;
     }
 
 }

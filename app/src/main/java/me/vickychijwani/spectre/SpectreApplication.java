@@ -16,6 +16,7 @@ import com.squareup.picasso.Picasso;
 import com.tsengvn.typekit.Typekit;
 
 import java.io.File;
+import java.io.IOException;
 
 import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
@@ -26,9 +27,8 @@ import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.model.DatabaseMigration;
 import me.vickychijwani.spectre.network.NetworkService;
 import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
-import me.vickychijwani.spectre.util.NetworkUtils;
 import okhttp3.OkHttpClient;
-import retrofit.RetrofitError;
+import retrofit2.Response;
 
 public class SpectreApplication extends Application {
 
@@ -135,9 +135,19 @@ public class SpectreApplication extends Application {
 
     @Subscribe
     public void onApiErrorEvent(ApiErrorEvent event) {
-        RetrofitError error = event.error;
-        if (NetworkUtils.isRealError(error)) {
-            Log.e(TAG, Log.getStackTraceString(error));
+        Response errorResponse = event.apiFailure.response;
+        Throwable error = event.apiFailure.error;
+        if (errorResponse != null) {
+            try {
+                String responseString = errorResponse.errorBody().string();
+                Crashlytics.log(Log.ERROR, TAG, responseString);
+            } catch (IOException e) {
+                Crashlytics.log(Log.ERROR, TAG, "[onApiErrorEvent] Error while parsing response" +
+                        " error body!");
+            }
+        }
+        if (error != null) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(error));
         }
     }
 

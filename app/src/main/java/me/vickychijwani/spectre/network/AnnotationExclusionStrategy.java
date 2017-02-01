@@ -5,6 +5,7 @@ import com.google.gson.FieldAttributes;
 
 import me.vickychijwani.spectre.model.GsonExclude;
 
+// mark fields with this custom annotation to make Gson ignore them
 /* package */ class AnnotationExclusionStrategy implements ExclusionStrategy {
 
     @Override

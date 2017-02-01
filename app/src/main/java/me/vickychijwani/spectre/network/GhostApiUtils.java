@@ -13,33 +13,47 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
-import retrofit.ResponseCallback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
+import me.vickychijwani.spectre.util.NetworkUtils;
+import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import rx.functions.Action1;
 
 final class GhostApiUtils {
 
     private static final String TAG = GhostApiUtils.class.getSimpleName();
 
-    // TODO this doesn't really belong here
-    static Gson getGson() {
-        return new GsonBuilder()
+    static Retrofit getRetrofit(@NonNull String baseUrl, @Nullable OkHttpClient httpClient) {
+        Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class, new DateDeserializer())
                 .registerTypeAdapter(ConfigurationList.class, new ConfigurationListDeserializer())
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setExclusionStrategies(new RealmExclusionStrategy(), new AnnotationExclusionStrategy())
                 .create();
+        Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                // for HTML output (e.g., to get the client secret)
+                .addConverterFactory(StringConverterFactory.create())
+                // for raw JSONObject output (e.g., for the /configuration/about call)
+                .addConverterFactory(JSONObjectConverterFactory.create())
+                // for domain objects
+                .addConverterFactory(GsonConverterFactory.create(gson));
+        if (httpClient != null) {
+            retrofitBuilder.client(httpClient);
+        }
+        return retrofitBuilder.build();
     }
 
-    static void doWithClientSecret(@NonNull GhostApiService apiService,
-                                          @NonNull Action1<String> callback) {
+    static void doWithClientSecret(@NonNull GhostApiService apiService, @NonNull String blogUrl,
+                                   @NonNull Action1<String> callback) {
         // get dynamic client secret, if the blog supports it
-        apiService.getLoginPage(new ResponseCallback() {
+        apiService.getLoginPage(NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/")).enqueue(new Callback<String>() {
             @Override
-            public void success(Response response) {
-                String html = new String(((TypedByteArray) response.getBody()).getBytes());
+            public void onResponse(Call<String> call, Response<String> response) {
+                String html = response.body();
                 String clientSecret = GhostApiUtils.extractClientSecretFromHtml(html);
                 if (clientSecret == null) {
                     Log.w(TAG, "No client secret found, assuming old Ghost version without client secret support");
@@ -48,7 +62,8 @@ final class GhostApiUtils {
             }
 
             @Override
-            public void failure(RetrofitError error) {
+            public void onFailure(Call<String> call, Throwable error) {
+                // error in transport layer, or lower
                 Log.e(TAG, "No client secret found, assuming old Ghost version without client secret support");
                 Log.e(TAG, Log.getStackTraceString(error));
                 callback.call(null);

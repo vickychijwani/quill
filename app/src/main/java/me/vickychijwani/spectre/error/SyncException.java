@@ -9,4 +9,11 @@ public final class SyncException extends RuntimeException {
         super("SYNC EXCEPTION: " + message + ", see previous exception for details", throwable);
     }
 
+    /**
+     * @param message a custom String message
+     */
+    public SyncException(String message) {
+        super("SYNC EXCEPTION: " + message);
+    }
+
 }

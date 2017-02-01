@@ -1,6 +1,7 @@
 package me.vickychijwani.spectre.network;
 
-import com.google.gson.Gson;
+import android.support.annotation.NonNull;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -9,16 +10,17 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.IOException;
+
 import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.model.entity.Role;
 import me.vickychijwani.spectre.model.entity.User;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.UserList;
-import retrofit.RestAdapter;
-import retrofit.client.Response;
-import retrofit.converter.GsonConverter;
-import retrofit.mime.TypedByteArray;
+import me.vickychijwani.spectre.util.NetworkUtils;
+import retrofit2.Call;
+import retrofit2.Retrofit;
 import rx.functions.Action1;
 
 import static org.hamcrest.Matchers.empty;
@@ -40,20 +42,17 @@ import static org.junit.Assert.assertThat;
 public final class GhostApiTest {
 
     // TODO set up a fixture with npm install ghost and some sql to make this portable
+    private static final String BLOG_URL = "http://localhost:2368/";
     private static final String TEST_USER = "vickychijwani@gmail.com";
     private static final String TEST_PWD = "ghosttest";
 
-    private SynchronousGhostApiService api;
+    private GhostApiService api;
 
     @Before
     public void setupApiService() {
-        Gson gson = GhostApiUtils.getGson();
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint("http://localhost:2368/ghost/api/v0.1")
-                .setConverter(new GsonConverter(gson))
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .build();
-        api = restAdapter.create(SynchronousGhostApiService.class);
+        String baseUrl = NetworkUtils.makeAbsoluteUrl(BLOG_URL, "ghost/api/v0.1/");
+        Retrofit retrofit = GhostApiUtils.getRetrofit(baseUrl, null);
+        api = retrofit.create(GhostApiService.class);
     }
 
     @After
@@ -87,11 +86,14 @@ public final class GhostApiTest {
     public void test_revokeAuthToken() {
         String clientSecret = getClientSecret(api);
         AuthReqBody credentials = new AuthReqBody(TEST_USER, TEST_PWD, clientSecret);
-        AuthToken authToken = api.getAuthToken(credentials);
+        AuthToken authToken = execute(api.getAuthToken(credentials));
 
-        RevokeReqBody[] revokeReqs = RevokeReqBody.from(authToken, clientSecret);
+        RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
+                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, authToken.getRefreshToken(), clientSecret),
+                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, authToken.getAccessToken(), clientSecret)
+        };
         for (RevokeReqBody reqBody : revokeReqs) {
-            JsonElement jsonResponse = api.revokeAuthToken(authToken.getAuthHeader(), reqBody);
+            JsonElement jsonResponse = execute(api.revokeAuthToken(authToken.getAuthHeader(), reqBody));
 
             JsonObject jsonObj = jsonResponse.getAsJsonObject();
             assertThat(jsonObj.has("error"), is(false));
@@ -102,7 +104,8 @@ public final class GhostApiTest {
     @Test
     public void test_getCurrentUser() {
         doWithAuthToken(api, authToken -> {
-            UserList users = api.getCurrentUser(authToken.getAuthHeader(), "");
+            UserList users = null;
+            users = execute(api.getCurrentUser(authToken.getAuthHeader(), ""));
             User user = users.users.get(0);
 
             assertThat(user, notNullValue());
@@ -126,23 +129,36 @@ public final class GhostApiTest {
 
 
     // private helpers
-    private static void doWithAuthToken(SynchronousGhostApiService api,
-                                        Action1<AuthToken> callback) {
+    private static void doWithAuthToken(GhostApiService api, Action1<AuthToken> callback) {
         String clientSecret = getClientSecret(api);
         AuthReqBody credentials = new AuthReqBody(TEST_USER, TEST_PWD, clientSecret);
-        AuthToken authToken = api.getAuthToken(credentials);
+        AuthToken authToken = execute(api.getAuthToken(credentials));
         callback.call(authToken);
-        RevokeReqBody[] revokeReqs = RevokeReqBody.from(authToken, clientSecret);
+        RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
+                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, authToken.getRefreshToken(), clientSecret),
+                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, authToken.getAccessToken(), clientSecret)
+        };
         for (RevokeReqBody reqBody : revokeReqs) {
-            api.revokeAuthToken(authToken.getAuthHeader(), reqBody);
+            execute(api.revokeAuthToken(authToken.getAuthHeader(), reqBody));
         }
     }
 
-    private static String getClientSecret(SynchronousGhostApiService api) {
-        Response response = api.getLoginPage();
-        // TODO refactor to use GhostApiUtils.doWithClientSecret once we move to Retrofit2
-        String html = new String(((TypedByteArray) response.getBody()).getBytes());
+    private static String getClientSecret(GhostApiService api) {
+        String html = execute(api.getLoginPage(NetworkUtils.makeAbsoluteUrl(BLOG_URL, "ghost/")));
         return GhostApiUtils.extractClientSecretFromHtml(html);
+    }
+
+    @NonNull
+    private static <T> T execute(Call<T> call) {
+        // intentionally swallows the IOException to make test code cleaner
+        try {
+            return call.execute().body();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // suppress leaking knowledge of this null to hide false-positive errors by IntelliJ
+            //noinspection ConstantConditions
+            return null;
+        }
     }
 
 }

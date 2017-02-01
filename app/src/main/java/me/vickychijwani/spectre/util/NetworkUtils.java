@@ -4,24 +4,25 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.StringDef;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import retrofit2.Response;
 import rx.Observable;
 import rx.subscriptions.Subscriptions;
 
 public class NetworkUtils {
-
 
     @Retention(RetentionPolicy.SOURCE)
     @StringDef({SCHEME_HTTP, SCHEME_HTTPS})
@@ -40,24 +41,33 @@ public class NetworkUtils {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public static boolean isRealError(@NonNull RetrofitError retrofitError) {
-        Response response = retrofitError.getResponse();
+    public static boolean isUnauthorized(@Nullable Response response) {
         if (response == null) {
-            // consider this an error, to be safer
-            return true;
-        } else if (response.getStatus() == HttpURLConnection.HTTP_NOT_MODIFIED) {
-            // HTTP 304 is not exactly an error
             return false;
         }
-        return true;
-    }
-
-    public static boolean isUnauthorized(@NonNull RetrofitError retrofitError) {
-        Response response = retrofitError.getResponse();
         // Ghost returns 403 Forbidden in some cases, inappropriately
         // see this for what 401 vs 403 should mean: http://stackoverflow.com/a/3297081/504611
-        return response != null && (response.getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED
-                        || response.getStatus() == HttpURLConnection.HTTP_FORBIDDEN);
+        return response.code() == HttpURLConnection.HTTP_UNAUTHORIZED
+                || response.code() == HttpURLConnection.HTTP_FORBIDDEN;
+    }
+
+    public static boolean isNotModified(@Nullable Response response) {
+        //noinspection SimplifiableIfStatement
+        if (response == null) {
+            return false;
+        }
+        return response.code() == HttpURLConnection.HTTP_NOT_MODIFIED;
+    }
+
+    public static boolean isUnrecoverableError(@Nullable Response response) {
+        if (response == null) {
+            return false;
+        }
+        return response.code() >= 400 && isUnauthorized(response);
+    }
+
+    public static boolean isConnectionError(Throwable error) {
+        return error instanceof ConnectException || error instanceof SocketTimeoutException;
     }
 
     public static String makeAbsoluteUrl(@NonNull String baseUrl, @NonNull String relativePath) {

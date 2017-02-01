@@ -2,14 +2,14 @@ package me.vickychijwani.spectre.event;
 
 import android.support.annotation.NonNull;
 
-import retrofit.RetrofitError;
+import me.vickychijwani.spectre.network.ApiFailure;
 
 public class ApiErrorEvent {
 
-    public final RetrofitError error;
+    public final ApiFailure apiFailure;
 
-    public ApiErrorEvent(@NonNull RetrofitError error) {
-        this.error = error;
+    public ApiErrorEvent(@NonNull ApiFailure apiFailure) {
+        this.apiFailure = apiFailure;
     }
 
 }
