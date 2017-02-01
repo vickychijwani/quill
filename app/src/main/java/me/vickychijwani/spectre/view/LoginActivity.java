@@ -346,6 +346,7 @@ public class LoginActivity extends BaseActivity implements
 
         if (hasError) {
             // there was an error; focus the first form field with an error
+            showProgress(false);
             focusView.requestFocus();
         } else {
             // actual login attempt

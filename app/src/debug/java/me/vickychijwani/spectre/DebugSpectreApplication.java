@@ -4,10 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 
-import com.facebook.stetho.Stetho;
-import com.facebook.stetho.okhttp.StethoInterceptor;
 import com.squareup.leakcanary.LeakCanary;
-import com.uphyca.stetho_realm.RealmInspectorModulesProvider;
 
 import java.security.cert.CertificateException;
 
@@ -29,13 +26,6 @@ public class DebugSpectreApplication extends SpectreApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-        Stetho.Initializer initializer = Stetho.newInitializerBuilder(this)
-                .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
-                .enableWebKitInspector(RealmInspectorModulesProvider.builder(this)
-                        .withMetaTables()
-                        .build())
-                .build();
-        Stetho.initialize(initializer);
 
         // auto-detect Activity memory leaks!
         LeakCanary.install(this);
@@ -47,7 +37,6 @@ public class DebugSpectreApplication extends SpectreApplication {
             return;
         }
         super.initOkHttpClient();
-        mOkHttpClient.networkInterceptors().add(new StethoInterceptor());
 
         // trust all SSL certs, for TESTING ONLY!
         mOkHttpClient.setHostnameVerifier((hostname, session) -> true);
