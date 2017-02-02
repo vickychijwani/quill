@@ -9,7 +9,7 @@ import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.squareup.okhttp.OkHttpClient;
+import com.jakewharton.retrofit.Ok3Client;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -96,12 +96,12 @@ import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
+import okhttp3.OkHttpClient;
 import retrofit.Callback;
 import retrofit.ResponseCallback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
-import retrofit.client.OkClient;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 import retrofit.mime.TypedFile;
@@ -1045,7 +1045,7 @@ public class NetworkService {
                 : RestAdapter.LogLevel.NONE;
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(baseUrl)
-                .setClient(new OkClient(mOkHttpClient))
+                .setClient(new Ok3Client(mOkHttpClient))
                 .setConverter(mGsonConverter)
                 .setLogLevel(logLevel)
                 .build();

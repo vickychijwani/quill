@@ -105,8 +105,9 @@ dependencies {
     compile 'com.trello:rxlifecycle-components:0.1.0'
 
     // networking / communication / data storage
-    compile 'com.squareup.okhttp:okhttp-urlconnection:2.3.0'
-    compile 'com.squareup.okhttp:okhttp:2.3.0'
+    compile 'com.squareup.okhttp3:okhttp:3.6.0'
+    compile 'com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0'   // temporary
+    compile 'com.jakewharton.picasso:picasso2-okhttp3-downloader:1.1.0'  // temporary
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.google.code.gson:gson:2.6.2'
     compile 'com.squareup.picasso:picasso:2.5.2'
@@ -137,7 +138,7 @@ dependencies {
     debugCompile 'com.jakewharton.scalpel:scalpel:1.1.2'
     debugCompile 'io.palaima.debugdrawer:debugdrawer:0.7.0'
     debugCompile 'io.palaima.debugdrawer:debugdrawer-commons:0.7.0'
-    debugCompile 'io.palaima.debugdrawer:debugdrawer-okhttp:0.7.0'
+    debugCompile 'io.palaima.debugdrawer:debugdrawer-okhttp3:0.7.0'
     debugCompile 'io.palaima.debugdrawer:debugdrawer-picasso:0.7.0'
     debugCompile 'io.palaima.debugdrawer:debugdrawer-scalpel:0.7.0'
 

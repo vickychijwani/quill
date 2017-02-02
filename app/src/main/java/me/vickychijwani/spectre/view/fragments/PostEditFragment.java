@@ -3,6 +3,7 @@ package me.vickychijwani.spectre.view.fragments;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,7 +15,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,6 +35,7 @@ import butterknife.ButterKnife;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
+import me.vickychijwani.spectre.error.FileUploadFailedException;
 import me.vickychijwani.spectre.event.FileUploadErrorEvent;
 import me.vickychijwani.spectre.event.FileUploadEvent;
 import me.vickychijwani.spectre.event.FileUploadedEvent;
@@ -46,6 +47,7 @@ import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
 import me.vickychijwani.spectre.util.EditTextUtils;
+import me.vickychijwani.spectre.util.FileUtils;
 import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.BundleKeys;
@@ -53,11 +55,8 @@ import me.vickychijwani.spectre.view.FormatOptionClickListener;
 import me.vickychijwani.spectre.view.Observables;
 import me.vickychijwani.spectre.view.PostViewActivity;
 import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Actions;
-import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
 public class PostEditFragment extends BaseFragment implements
@@ -99,7 +98,6 @@ public class PostEditFragment extends BaseFragment implements
 
     // image insert / upload
     private static final int REQUEST_CODE_IMAGE_PICK = 1;
-    private Subscription mUploadSubscription = null;
     private ProgressDialog mUploadProgress = null;
     private EditTextSelectionState mMarkdownEditSelectionState;
     private boolean mbFileStorageEnabled = true;
@@ -179,15 +177,18 @@ public class PostEditFragment extends BaseFragment implements
         // remove pending callbacks
         mHandler.removeCallbacks(mSaveTimeoutRunnable);
         // persist changes to disk, unless the user opted to discard those changes
-        saveAutomatically();
+        // workaround: do this ONLY if an image upload is NOT in progress - this is to avoid saving
+        // the post prematurely and generating a spurious conflict that cannot be dealt with cleanly
+        // because the post gets uploaded after this Activity goes away, putting it out-of-sync with
+        // the model
+        if (mImageUploadDoneAction == null) {
+            saveAutomatically();
+        } else {
+            // we still need to save to memory, else the post will revert to its original state!
+            saveToMemory();
+        }
         // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
         super.onPause();
-        // unsubscribe from observable
-        if (mUploadSubscription != null) {
-            mUploadSubscription.unsubscribe();
-            mUploadSubscription = null;
-            Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
-        }
         if (mUploadProgress != null) {
             mUploadProgress.dismiss();
             mUploadProgress = null;
@@ -338,50 +339,46 @@ public class PostEditFragment extends BaseFragment implements
             return;
         }
 
-        if (mUploadSubscription != null) {
-            mUploadSubscription.unsubscribe();
-            mUploadSubscription = null;
-        }
-
         mUploadProgress = ProgressDialog.show(mActivity, null,
                 mActivity.getString(R.string.uploading), true, false);
 
-        mUploadSubscription = Observables
-                .getBitmapFromUri(mActivity.getContentResolver(), result.getData())
-                .map(Observables.Funcs.copyBitmapToJpegFile())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((imagePath) -> {
-                    getBus().post(new FileUploadEvent(imagePath, "image/jpeg"));
-                }, (error) -> {
-                    Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
-                    mUploadProgress.dismiss();
-                    mUploadProgress = null;
-                }, () -> {      // onComplete
-                    //noinspection Convert2MethodRef
-                    mUploadSubscription = null;
-                });
+        try {
+            Uri uri = result.getData();
+            String imagePath = FileUtils.getPath(mActivity, uri);
+            String mimeType = mActivity.getContentResolver().getType(uri);
+            getBus().post(new FileUploadEvent(imagePath, mimeType));
+        } catch (Exception e) {
+            onFileUploadErrorEvent(new FileUploadErrorEvent(e));
+        }
     }
 
     @Subscribe
     public void onFileUploadedEvent(FileUploadedEvent event) {
-        mUploadProgress.dismiss();
-        mUploadProgress = null;
-        if (mImageUploadDoneAction == null) {
-            Crashlytics.log(Log.ERROR, TAG, "No 'image upload done action' found!");
-            return;
+        // the activity could have been destroyed and re-created
+        if (mUploadProgress != null) {
+            mUploadProgress.dismiss();
+            mUploadProgress = null;
         }
-        mImageUploadDoneAction.call(event.relativeUrl);
-        mImageUploadDoneAction = null;
+        // the activity could have been destroyed and re-created
+        if (mImageUploadDoneAction != null) {
+            mImageUploadDoneAction.call(event.relativeUrl);
+            mImageUploadDoneAction = null;
+        }
         mMarkdownEditSelectionState = null;
         KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
     }
 
     @Subscribe
     public void onFileUploadErrorEvent(FileUploadErrorEvent event) {
+        Crashlytics.logException(new FileUploadFailedException(event.error));
         Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
-        mUploadProgress.dismiss();
-        mUploadProgress = null;
+        // the activity could have been destroyed and re-created
+        if (mUploadProgress != null) {
+            mUploadProgress.dismiss();
+            mUploadProgress = null;
+        }
+        mImageUploadDoneAction = null;
+        mMarkdownEditSelectionState = null;
     }
 
     private boolean saveToServerExplicitly() {

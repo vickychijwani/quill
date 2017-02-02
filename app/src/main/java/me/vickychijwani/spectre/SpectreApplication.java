@@ -10,11 +10,9 @@ import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
-import com.squareup.okhttp.Cache;
-import com.squareup.okhttp.OkHttpClient;
+import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.otto.DeadEvent;
 import com.squareup.otto.Subscribe;
-import com.squareup.picasso.OkHttpDownloader;
 import com.squareup.picasso.Picasso;
 import com.tsengvn.typekit.Typekit;
 
@@ -30,6 +28,8 @@ import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.model.DatabaseMigration;
 import me.vickychijwani.spectre.network.NetworkService;
 import me.vickychijwani.spectre.util.NetworkUtils;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
 import retrofit.RetrofitError;
 
 public class SpectreApplication extends Application {
@@ -96,10 +96,12 @@ public class SpectreApplication extends Application {
         File cacheDir = createCacheDir(this, IMAGE_CACHE_PATH);
         long size = calculateDiskCacheSize(cacheDir);
         Cache cache = new Cache(cacheDir, size);
-        mOkHttpClient = new OkHttpClient().setCache(cache);
-        mOkHttpClient.setConnectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
-        mOkHttpClient.setReadTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
-        mOkHttpClient.setWriteTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS);
+        mOkHttpClient = new OkHttpClient.Builder()
+                .cache(cache)
+                .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+                .readTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+                .writeTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+                .build();
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -108,12 +110,16 @@ public class SpectreApplication extends Application {
             return;
         }
         mPicasso = new Picasso.Builder(this)
-                .downloader(new OkHttpDownloader(mOkHttpClient))
+                .downloader(new OkHttp3Downloader(mOkHttpClient))
                 .listener((picasso, uri, exception) -> {
                     Log.e("Picasso", "Failed to load image: " + uri + "\n"
                             + Log.getStackTraceString(exception));
                 })
                 .build();
+    }
+
+    public OkHttpClient getOkHttpClient() {
+        return mOkHttpClient;
     }
 
     public Picasso getPicasso() {
