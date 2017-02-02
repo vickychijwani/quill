@@ -177,7 +177,16 @@ public class PostEditFragment extends BaseFragment implements
         // remove pending callbacks
         mHandler.removeCallbacks(mSaveTimeoutRunnable);
         // persist changes to disk, unless the user opted to discard those changes
-        saveAutomatically();
+        // workaround: do this ONLY if an image upload is NOT in progress - this is to avoid saving
+        // the post prematurely and generating a spurious conflict that cannot be dealt with cleanly
+        // because the post gets uploaded after this Activity goes away, putting it out-of-sync with
+        // the model
+        if (mImageUploadDoneAction == null) {
+            saveAutomatically();
+        } else {
+            // we still need to save to memory, else the post will revert to its original state!
+            saveToMemory();
+        }
         // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
         super.onPause();
         if (mUploadProgress != null) {
