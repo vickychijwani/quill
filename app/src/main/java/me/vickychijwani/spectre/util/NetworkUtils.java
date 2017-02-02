@@ -6,17 +6,16 @@ import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringDef;
 
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.TimeUnit;
 
+import me.vickychijwani.spectre.SpectreApplication;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import rx.Observable;
@@ -94,7 +93,7 @@ public class NetworkUtils {
                     // the request may have been redirected, most commonly from HTTP => HTTPS
                     // so pick up the eventual URL of the blog and use that
                     // (even if the user manually entered HTTP - it's certainly a mistake)
-                    URL urlObj = response.request().url();
+                    URL urlObj = response.request().url().url();
                     String eventualBlogUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
                     if (urlObj.getPort() >= 0) {
                         eventualBlogUrl = eventualBlogUrl + ":" + urlObj.getPort();
@@ -103,23 +102,18 @@ public class NetworkUtils {
                 });
     }
 
-    public static Observable<com.squareup.okhttp.Response> checkUrl(@NonNull String url) {
-        OkHttpClient client = new OkHttpClient();
-        client.setConnectTimeout(10, TimeUnit.SECONDS);
-        client.setReadTimeout(3, TimeUnit.SECONDS);
+    public static Observable<okhttp3.Response> checkUrl(@NonNull String url) {
+        OkHttpClient client = SpectreApplication.getInstance().getOkHttpClient();
         Request request = new Request.Builder()
                 .url(url)
                 .head()     // make a HEAD request because we only want the response code
                 .build();
         return networkCall(client.newCall(request))
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                // FIXME remove this when we move to Retrofit2 / OkHttp3, see https://github.com/square/okhttp/issues/1592
-                // prevents a NetworkOnMainThreadException due to an OkHttp2 bug
-                .unsubscribeOn(Schedulers.io());
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
-    public static Observable<com.squareup.okhttp.Response> networkCall(@NonNull Call call) {
+    public static Observable<okhttp3.Response> networkCall(@NonNull Call call) {
         return Observable.create(subscriber -> {
             // cancel the request when there are no subscribers
             subscriber.add(Subscriptions.create(call::cancel));
