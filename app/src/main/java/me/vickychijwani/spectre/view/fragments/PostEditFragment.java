@@ -15,7 +15,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -346,14 +345,16 @@ public class PostEditFragment extends BaseFragment implements
 
     @Subscribe
     public void onFileUploadedEvent(FileUploadedEvent event) {
-        mUploadProgress.dismiss();
-        mUploadProgress = null;
-        if (mImageUploadDoneAction == null) {
-            Crashlytics.log(Log.ERROR, TAG, "No 'image upload done action' found!");
-            return;
+        // the activity could have been destroyed and re-created
+        if (mUploadProgress != null) {
+            mUploadProgress.dismiss();
+            mUploadProgress = null;
         }
-        mImageUploadDoneAction.call(event.relativeUrl);
-        mImageUploadDoneAction = null;
+        // the activity could have been destroyed and re-created
+        if (mImageUploadDoneAction != null) {
+            mImageUploadDoneAction.call(event.relativeUrl);
+            mImageUploadDoneAction = null;
+        }
         mMarkdownEditSelectionState = null;
         KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
     }
@@ -362,8 +363,13 @@ public class PostEditFragment extends BaseFragment implements
     public void onFileUploadErrorEvent(FileUploadErrorEvent event) {
         Crashlytics.logException(new FileUploadFailedException(event.error));
         Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
-        mUploadProgress.dismiss();
-        mUploadProgress = null;
+        // the activity could have been destroyed and re-created
+        if (mUploadProgress != null) {
+            mUploadProgress.dismiss();
+            mUploadProgress = null;
+        }
+        mImageUploadDoneAction = null;
+        mMarkdownEditSelectionState = null;
     }
 
     private boolean saveToServerExplicitly() {
