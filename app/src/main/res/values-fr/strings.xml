@@ -108,7 +108,7 @@
     <string name="play_store_subtitle">Merci de votre soutien !</string>
     <string name="email_developer">Envoyer un mail au développeur</string>
     <string name="email_developer_subtitle">Contacter le développeur directement</string>
-    <string name="email_subject">Feedback sur %</string>
+    <string name="email_subject">Feedback sur %s</string>
 
     <string name="about_icon_credits">Icone \"Feather\" par <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
 

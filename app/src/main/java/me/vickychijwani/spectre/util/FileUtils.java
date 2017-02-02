@@ -44,6 +44,7 @@ import java.util.Comparator;
  * @author paulburke (ipaulpro)
  * @version 2013-12-11
  */
+@SuppressWarnings({"JavaDoc", "Convert2Lambda", "WeakerAccess", "unused", "RedundantIfStatement"})
 public class FileUtils {
     private FileUtils() {
     } //private constructor to enforce Singleton pattern
@@ -158,6 +159,7 @@ public class FileUtils {
      * @return The MIME type for the give Uri.
      */
     public static String getMimeType(Context context, Uri uri) {
+        //noinspection ConstantConditions
         File file = new File(getPath(context, uri));
         return getMimeType(file);
     }
@@ -432,6 +434,7 @@ public class FileUtils {
             Cursor cursor = null;
             try {
                 cursor = resolver.query(uri, null, null, null, null);
+                //noinspection ConstantConditions
                 if (cursor.moveToFirst()) {
                     final int id = cursor.getInt(0);
                     if (DEBUG)
