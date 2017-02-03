@@ -31,6 +31,7 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -76,7 +77,8 @@ public class LoginActivity extends BaseActivity implements
     // we proactively check the URL and store it if it is valid
     private String mValidGhostBlogUrl = null;
     // all listeners that monitor the state of the "check blog url" request
-    private List<CheckBlogUrlListener> mCheckBlogUrlListeners = new ArrayList<>();
+    // using a Vector to avoid ConcurrentModificationExceptions
+    private Vector<CheckBlogUrlListener> mCheckBlogUrlListeners = new Vector<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
