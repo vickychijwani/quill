@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import me.vickychijwani.spectre.SpectreApplication;
@@ -104,13 +105,18 @@ public class NetworkUtils {
 
     public static Observable<okhttp3.Response> checkUrl(@NonNull String url) {
         OkHttpClient client = SpectreApplication.getInstance().getOkHttpClient();
-        Request request = new Request.Builder()
-                .url(url)
-                .head()     // make a HEAD request because we only want the response code
-                .build();
-        return networkCall(client.newCall(request))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+        try {
+            Request request = new Request.Builder()
+                    .url(url)
+                    .head()     // make a HEAD request because we only want the response code
+                    .build();
+            return networkCall(client.newCall(request))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread());
+        } catch (IllegalArgumentException e) {
+            // invalid url (whitespace chars etc)
+            return Observable.error(new MalformedURLException("Invalid Ghost admin address: " + url));
+        }
     }
 
     public static Observable<okhttp3.Response> networkCall(@NonNull Call call) {
