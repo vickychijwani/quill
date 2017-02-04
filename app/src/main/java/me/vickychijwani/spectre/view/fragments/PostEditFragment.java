@@ -63,6 +63,7 @@ public class PostEditFragment extends BaseFragment implements
         FormatOptionClickListener {
 
     private static final String TAG = "PostEditFragment";
+    private static final String EDITOR_CURSOR_POS = "key:private:editor_cursor_pos";
 
     private enum SaveScenario {
         UNKNOWN,
@@ -85,6 +86,8 @@ public class PostEditFragment extends BaseFragment implements
     private Post mOriginalPost;     // copy of post since the time it was opened for editing
     private Post mLastSavedPost;    // copy of post since it was last saved
     private Post mPost;             // current copy of post in memory
+
+    private int mPostEditViewCursorPos = -1;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private boolean mbDiscardChanges = false;
@@ -130,6 +133,7 @@ public class PostEditFragment extends BaseFragment implements
         }
         mbFileStorageEnabled = args.getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
                 mbFileStorageEnabled);
+        mPostEditViewCursorPos = args.getInt(EDITOR_CURSOR_POS, -1);
         if (args.containsKey(BundleKeys.POST_EDITED)) {
             mPostChangedInMemory = args.getBoolean(BundleKeys.POST_EDITED);
         }
@@ -170,6 +174,8 @@ public class PostEditFragment extends BaseFragment implements
         super.onSaveInstanceState(outState);
         outState.putParcelable(BundleKeys.POST, mPost);
         outState.putBoolean(BundleKeys.POST_EDITED, mPostChangedInMemory);
+        // save the editor cursor pos because setPost is called in onCreate/onResume
+        outState.putInt(EDITOR_CURSOR_POS, mPostEditView.getSelectionEnd());
     }
 
     @Override
@@ -187,6 +193,8 @@ public class PostEditFragment extends BaseFragment implements
             // we still need to save to memory, else the post will revert to its original state!
             saveToMemory();
         }
+        // save misc editor state because setPost is called in onResume
+        mPostEditViewCursorPos = mPostEditView.getSelectionEnd();
         // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
         super.onPause();
         if (mUploadProgress != null) {
@@ -634,6 +642,9 @@ public class PostEditFragment extends BaseFragment implements
         }
         mPostTitleEditView.setText(post.getTitle());
         mPostEditView.setText(post.getMarkdown());
+        if (mPostEditViewCursorPos >= 0) {
+            mPostEditView.setSelection(mPostEditViewCursorPos);
+        }
     }
 
     private class PostTextWatcher implements TextWatcher {
