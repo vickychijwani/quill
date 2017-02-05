@@ -15,6 +15,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -55,8 +56,11 @@ import me.vickychijwani.spectre.view.FormatOptionClickListener;
 import me.vickychijwani.spectre.view.Observables;
 import me.vickychijwani.spectre.view.PostViewActivity;
 import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Actions;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
 public class PostEditFragment extends BaseFragment implements
@@ -101,6 +105,7 @@ public class PostEditFragment extends BaseFragment implements
 
     // image insert / upload
     private static final int REQUEST_CODE_IMAGE_PICK = 1;
+    private Subscription mUploadSubscription = null;
     private ProgressDialog mUploadProgress = null;
     private EditTextSelectionState mMarkdownEditSelectionState;
     private boolean mbFileStorageEnabled = true;
@@ -195,8 +200,16 @@ public class PostEditFragment extends BaseFragment implements
         }
         // save misc editor state because setPost is called in onResume
         mPostEditViewCursorPos = mPostEditView.getSelectionEnd();
+
         // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
         super.onPause();
+
+        // unsubscribe from observable and hide progress bar
+        if (mUploadSubscription != null) {
+            mUploadSubscription.unsubscribe();
+            mUploadSubscription = null;
+            Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
+        }
         if (mUploadProgress != null) {
             mUploadProgress.dismiss();
             mUploadProgress = null;
@@ -347,16 +360,48 @@ public class PostEditFragment extends BaseFragment implements
             return;
         }
 
+        Uri uri = result.getData();
+
+        if (mUploadSubscription != null) {
+            mUploadSubscription.unsubscribe();
+            mUploadSubscription = null;
+        }
+
         mUploadProgress = ProgressDialog.show(mActivity, null,
                 mActivity.getString(R.string.uploading), true, false);
 
+        Runnable jpegConversionFallback = () -> {
+            // Uri => Path conversion is better but doesn't always work, e.g., with Clean File Manager
+            Log.w(TAG, "Couldn't convert uri " + uri + " to path, falling back to JPEG conversion");
+            mUploadSubscription = Observables
+                    .getBitmapFromUri(mActivity.getContentResolver(), result.getData())
+                    .map(Observables.Funcs.copyBitmapToJpegFile())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe((tempImagePath) -> {
+                        getBus().post(new FileUploadEvent(tempImagePath, "image/jpeg"));
+                    }, (error) -> {
+                        onFileUploadErrorEvent(new FileUploadErrorEvent(error));
+                    }, () -> {
+                        mUploadSubscription = null;
+                    });
+        };
+
         try {
-            Uri uri = result.getData();
             String imagePath = FileUtils.getPath(mActivity, uri);
-            String mimeType = mActivity.getContentResolver().getType(uri);
-            getBus().post(new FileUploadEvent(imagePath, mimeType));
-        } catch (Exception e) {
-            onFileUploadErrorEvent(new FileUploadErrorEvent(e));
+            if (imagePath == null) {
+                jpegConversionFallback.run();
+            } else {
+                String mimeType = mActivity.getContentResolver().getType(uri);
+                getBus().post(new FileUploadEvent(imagePath, mimeType));
+            }
+        } catch (Exception _) {
+            try {
+                // try the fallback before giving up
+                jpegConversionFallback.run();
+            } catch (Exception e) {
+                onFileUploadErrorEvent(new FileUploadErrorEvent(e));
+            }
         }
     }
 
