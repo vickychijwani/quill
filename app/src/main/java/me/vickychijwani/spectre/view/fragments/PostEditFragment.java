@@ -395,7 +395,7 @@ public class PostEditFragment extends BaseFragment implements
                 String mimeType = mActivity.getContentResolver().getType(uri);
                 getBus().post(new FileUploadEvent(imagePath, mimeType));
             }
-        } catch (Exception _) {
+        } catch (Exception ignored) {
             try {
                 // try the fallback before giving up
                 jpegConversionFallback.run();
