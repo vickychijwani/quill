@@ -11,17 +11,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 
-import me.vickychijwani.spectre.SpectreApplication;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
 public class NetworkUtils {
@@ -87,32 +83,30 @@ public class NetworkUtils {
         }
     }
 
-    public static Observable<String> checkGhostBlog(@NonNull String blogUrl) {
-        String ghostApiEndpointThatMustExist = makeAbsoluteUrl(blogUrl, "/ghost/");
-        return checkUrl(ghostApiEndpointThatMustExist)
+    public static Observable<String> checkGhostBlog(@NonNull String blogUrl,
+                                                    @NonNull OkHttpClient client) {
+        final String adminPagePath = "/ghost/";
+        String adminPageUrl = makeAbsoluteUrl(blogUrl, adminPagePath);
+        return checkUrl(adminPageUrl, client)
                 .flatMap(response -> {
                     // the request may have been redirected, most commonly from HTTP => HTTPS
                     // so pick up the eventual URL of the blog and use that
                     // (even if the user manually entered HTTP - it's certainly a mistake)
-                    URL urlObj = response.request().url().url();
-                    String eventualBlogUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
-                    if (urlObj.getPort() >= 0) {
-                        eventualBlogUrl = eventualBlogUrl + ":" + urlObj.getPort();
-                    }
-                    return Observable.just(eventualBlogUrl);
+                    // to get that, chop off the admin page path from the end
+                    String potentiallyRedirectedUrl = response.request().url().toString();
+                    String finalBlogUrl = potentiallyRedirectedUrl.replaceFirst(adminPagePath + "?$", "");
+                    return Observable.just(finalBlogUrl);
                 });
     }
 
-    public static Observable<okhttp3.Response> checkUrl(@NonNull String url) {
-        OkHttpClient client = SpectreApplication.getInstance().getOkHttpClient();
+    public static Observable<okhttp3.Response> checkUrl(@NonNull String url,
+                                                        @NonNull OkHttpClient client) {
         try {
             Request request = new Request.Builder()
                     .url(url)
                     .head()     // make a HEAD request because we only want the response code
                     .build();
-            return networkCall(client.newCall(request))
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread());
+            return networkCall(client.newCall(request));
         } catch (IllegalArgumentException e) {
             // invalid url (whitespace chars etc)
             return Observable.error(new MalformedURLException("Invalid Ghost admin address: " + url));

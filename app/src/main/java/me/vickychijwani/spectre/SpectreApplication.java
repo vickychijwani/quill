@@ -3,9 +3,8 @@ package me.vickychijwani.spectre;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.os.Build;
-import android.os.StatFs;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -17,7 +16,6 @@ import com.squareup.picasso.Picasso;
 import com.tsengvn.typekit.Typekit;
 
 import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
@@ -27,8 +25,8 @@ import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.model.DatabaseMigration;
 import me.vickychijwani.spectre.network.NetworkService;
+import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
 import me.vickychijwani.spectre.util.NetworkUtils;
-import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import retrofit.RetrofitError;
 
@@ -37,10 +35,8 @@ public class SpectreApplication extends Application {
     private static final String TAG = "SpectreApplication";
     private static SpectreApplication sInstance;
 
-    private static final String IMAGE_CACHE_PATH = "images";
-    private static final int MIN_DISK_CACHE_SIZE = 5 * 1024 * 1024;     // in bytes
-    private static final int MAX_DISK_CACHE_SIZE = 50 * 1024 * 1024;    // in bytes
-    private static final int CONNECTION_TIMEOUT = 10 * 1000;            // in milliseconds
+    // this is named "images" but it actually caches all HTTP responses
+    private static final String HTTP_CACHE_PATH = "images";
 
     protected OkHttpClient mOkHttpClient = null;
     protected Picasso mPicasso = null;
@@ -93,15 +89,8 @@ public class SpectreApplication extends Application {
         if (mOkHttpClient != null) {
             return;
         }
-        File cacheDir = createCacheDir(this, IMAGE_CACHE_PATH);
-        long size = calculateDiskCacheSize(cacheDir);
-        Cache cache = new Cache(cacheDir, size);
-        mOkHttpClient = new OkHttpClient.Builder()
-                .cache(cache)
-                .connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
-                .readTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
-                .writeTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
-                .build();
+        File cacheDir = createCacheDir(this);
+        mOkHttpClient = new ProductionHttpClientFactory().create(cacheDir);
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -130,36 +119,18 @@ public class SpectreApplication extends Application {
         // no-op, overridden in debug build
     }
 
-    private static long calculateDiskCacheSize(File dir) {
-        long size = MIN_DISK_CACHE_SIZE;
-        try {
-            StatFs statFs = new StatFs(dir.getAbsolutePath());
-            long available;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                available = statFs.getBlockCountLong() * statFs.getBlockSizeLong();
-            } else {
-                // checked at runtime
-                //noinspection deprecation
-                available = statFs.getBlockCount() * statFs.getBlockSize();
-            }
-            // Target 2% of the total space.
-            size = available / 50;
-        } catch (IllegalArgumentException ignored) {
-        }
-        // Bound inside min/max size for disk cache.
-        return Math.max(Math.min(size, MAX_DISK_CACHE_SIZE), MIN_DISK_CACHE_SIZE);
-    }
-
-    private static File createCacheDir(Context context, String path) {
+    @Nullable protected static File createCacheDir(Context context) {
         File cacheDir = context.getApplicationContext().getExternalCacheDir();
-        if (cacheDir == null)
+        if (cacheDir == null) {
             cacheDir = context.getApplicationContext().getCacheDir();
-        File cache = new File(cacheDir, path);
-        if (!cache.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            cache.mkdirs();
         }
-        return cache;
+
+        File cache = new File(cacheDir, HTTP_CACHE_PATH);
+        if (cache.exists() || cache.mkdirs()) {
+            return cache;
+        } else {
+            return null;
+        }
     }
 
     @Subscribe

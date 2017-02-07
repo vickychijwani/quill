@@ -37,6 +37,7 @@ import javax.net.ssl.SSLHandshakeException;
 
 import butterknife.Bind;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.error.LoginFailedException;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
@@ -46,9 +47,12 @@ import me.vickychijwani.spectre.network.entity.ApiErrorList;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
+import okhttp3.OkHttpClient;
 import retrofit.RetrofitError;
 import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 
 /**
@@ -193,7 +197,10 @@ public class LoginActivity extends BaseActivity implements
         if (scheme != null) {
             blogUrl = scheme + blogUrl;
         }
-        Subscription subscription = NetworkUtils.checkGhostBlog(blogUrl)
+        OkHttpClient okHttpClient = SpectreApplication.getInstance().getOkHttpClient();
+        Subscription subscription = NetworkUtils.checkGhostBlog(blogUrl, okHttpClient)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((validGhostBlogUrl) -> {
                     mValidGhostBlogUrl = validGhostBlogUrl;
                     listener.setCheckBlogUrlSubscription(null);
