@@ -687,7 +687,7 @@ public class PostEditFragment extends BaseFragment implements
         }
         mPostTitleEditView.setText(post.getTitle());
         mPostEditView.setText(post.getMarkdown());
-        if (mPostEditViewCursorPos >= 0) {
+        if (mPostEditViewCursorPos >= 0 && mPostEditViewCursorPos < mPostEditView.getText().length()) {
             mPostEditView.setSelection(mPostEditViewCursorPos);
         }
     }
