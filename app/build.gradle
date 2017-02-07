@@ -134,13 +134,13 @@ dependencies {
     compile 'com.github.slugify:slugify:2.1.3'
 
     // debug
-    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     debugCompile 'com.jakewharton.scalpel:scalpel:1.1.2'
     debugCompile 'io.palaima.debugdrawer:debugdrawer:0.7.0'
     debugCompile 'io.palaima.debugdrawer:debugdrawer-commons:0.7.0'
     debugCompile 'io.palaima.debugdrawer:debugdrawer-okhttp3:0.7.0'
     debugCompile 'io.palaima.debugdrawer:debugdrawer-picasso:0.7.0'
     debugCompile 'io.palaima.debugdrawer:debugdrawer-scalpel:0.7.0'
+    debugCompile "com.squareup.leakcanary:leakcanary-android:1.5"
 
     // test
     testCompile 'junit:junit:4.12'
