@@ -1,12 +1,14 @@
 package me.vickychijwani.spectre.event;
 
+import java.io.InputStream;
+
 public class FileUploadEvent implements ApiCallEvent {
 
-    public final String path;
+    public final InputStream inputStream;
     public final String mimeType;
 
-    public FileUploadEvent(String path, String mimeType) {
-        this.path = path;
+    public FileUploadEvent(InputStream inputStream, String mimeType) {
+        this.inputStream = inputStream;
         this.mimeType = mimeType;
     }
 

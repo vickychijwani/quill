@@ -4,28 +4,22 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 
 import me.vickychijwani.spectre.R;
 import rx.Observable;
-import rx.functions.Func1;
 import rx.subscriptions.Subscriptions;
 
 public class Observables {
@@ -70,44 +64,25 @@ public class Observables {
         });
     }
 
-    public static Observable<Bitmap> getBitmapFromUri(@NonNull ContentResolver contentResolver,
-                                                      @NonNull Uri imageUri) {
-        Observable.OnSubscribe<Bitmap> onSubscribe = (subscriber) -> {
+    public static Observable<Pair<InputStream, String>> getFileUploadMetadataFromUri(
+            @NonNull ContentResolver contentResolver,
+            @NonNull Uri fileUri) {
+        Observable.OnSubscribe<Pair<InputStream, String>> onSubscribe = (subscriber) -> {
             try {
-                Log.d(TAG, "Attempting to decode: " + imageUri.getPath());
-                ParcelFileDescriptor parcelFileDescriptor =
-                        contentResolver.openFileDescriptor(imageUri, "r");
-                Bitmap bitmap = BitmapFactory.decodeFileDescriptor(parcelFileDescriptor.getFileDescriptor());
-                parcelFileDescriptor.close();
-                subscriber.onNext(bitmap);
-            } catch (IOException | NullPointerException e) {
+                Log.d(TAG, "Attempting to read uri: " + fileUri);
+                InputStream inputStream = contentResolver.openInputStream(fileUri);
+                String mimeType = contentResolver.getType(fileUri);
+                subscriber.onNext(new Pair<>(inputStream, mimeType));
+            } catch (IOException e) {
                 subscriber.onError(e);
-                Crashlytics.logException(new Exception("Failed to load bitmap, see previous " +
-                        "exception for details", e));
+                Crashlytics.logException(new Exception("Failed to open input stream for uri, " +
+                                                               "see previous exception", e));
                 Log.e(TAG, Log.getStackTraceString(e));
             } finally {
                 subscriber.onCompleted();
             }
         };
         return Observable.create(onSubscribe);
-    }
-
-    public static class Funcs {
-
-        public static Func1<Bitmap, String> copyBitmapToJpegFile() {
-            return (bitmap) -> {
-                try {
-                    File uploadFile = File.createTempFile("upload", ".jpeg");
-                    OutputStream os = new BufferedOutputStream(new FileOutputStream(uploadFile));
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 75, os);
-                    os.close();
-                    return uploadFile.getAbsolutePath();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);  // propagate checked exception to onError
-                }
-            };
-        }
-
     }
 
 }

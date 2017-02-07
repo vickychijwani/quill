@@ -15,7 +15,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -48,7 +47,6 @@ import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
 import me.vickychijwani.spectre.util.EditTextUtils;
-import me.vickychijwani.spectre.util.FileUtils;
 import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.view.BundleKeys;
@@ -359,9 +357,12 @@ public class PostEditFragment extends BaseFragment implements
         if (result == null || result.getData() == null || resultCode != Activity.RESULT_OK) {
             return;
         }
+        if (requestCode == REQUEST_CODE_IMAGE_PICK) {
+            uploadImage(result.getData());
+        }
+    }
 
-        Uri uri = result.getData();
-
+    public void uploadImage(@NonNull Uri uri) {
         if (mUploadSubscription != null) {
             mUploadSubscription.unsubscribe();
             mUploadSubscription = null;
@@ -370,39 +371,17 @@ public class PostEditFragment extends BaseFragment implements
         mUploadProgress = ProgressDialog.show(mActivity, null,
                 mActivity.getString(R.string.uploading), true, false);
 
-        Runnable jpegConversionFallback = () -> {
-            // Uri => Path conversion is better but doesn't always work, e.g., with Clean File Manager
-            Log.w(TAG, "Couldn't convert uri " + uri + " to path, falling back to JPEG conversion");
-            mUploadSubscription = Observables
-                    .getBitmapFromUri(mActivity.getContentResolver(), result.getData())
-                    .map(Observables.Funcs.copyBitmapToJpegFile())
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe((tempImagePath) -> {
-                        getBus().post(new FileUploadEvent(tempImagePath, "image/jpeg"));
-                    }, (error) -> {
-                        onFileUploadErrorEvent(new FileUploadErrorEvent(error));
-                    }, () -> {
-                        mUploadSubscription = null;
-                    });
-        };
-
-        try {
-            String imagePath = FileUtils.getPath(mActivity, uri);
-            if (imagePath == null) {
-                jpegConversionFallback.run();
-            } else {
-                String mimeType = mActivity.getContentResolver().getType(uri);
-                getBus().post(new FileUploadEvent(imagePath, mimeType));
-            }
-        } catch (Exception ignored) {
-            try {
-                // try the fallback before giving up
-                jpegConversionFallback.run();
-            } catch (Exception e) {
-                onFileUploadErrorEvent(new FileUploadErrorEvent(e));
-            }
-        }
+        mUploadSubscription = Observables
+                .getFileUploadMetadataFromUri(mActivity.getContentResolver(), uri)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((pair) -> {
+                    getBus().post(new FileUploadEvent(pair.first, pair.second));
+                }, (error) -> {
+                    onFileUploadErrorEvent(new FileUploadErrorEvent(error));
+                }, () -> {
+                    mUploadSubscription = null;
+                });
     }
 
     @Subscribe

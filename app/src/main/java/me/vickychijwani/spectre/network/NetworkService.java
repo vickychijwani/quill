@@ -1,9 +1,11 @@
 package me.vickychijwani.spectre.network;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
@@ -16,7 +18,10 @@ import com.squareup.otto.Subscribe;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -104,7 +109,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Header;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
-import retrofit.mime.TypedFile;
+import retrofit.mime.TypedOutput;
 import rx.Observable;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -803,13 +808,27 @@ public class NetworkService {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     @Subscribe
     public void onFileUploadEvent(FileUploadEvent event) {
         if (! validateAccessToken(event)) return;
         Crashlytics.log(Log.DEBUG, TAG, "[onFileUploadEvent] uploading file");
 
-        TypedFile typedFile = new TypedFile(event.mimeType, new File(event.path));
-        mApi.uploadFile(mAuthToken.getAuthHeader(), typedFile, new Callback<String>() {
+        InputStream inputStream = event.inputStream;
+        String mimeType = event.mimeType;
+
+        // generate a random filename, Ghost chokes without it
+        String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+        String filename = String.format("upload-%d.%s", System.currentTimeMillis() / 1000, ext);
+
+        TypedOutput typedOutput = null;
+        try {
+            typedOutput = new InputStreamTypedOutput(inputStream, mimeType, filename);
+        } catch (IOException e) {
+            getBus().post(new FileUploadErrorEvent(e));
+        }
+
+        mApi.uploadFile(mAuthToken.getAuthHeader(), typedOutput, new Callback<String>() {
             @Override
             public void success(String url, Response response) {
                 getBus().post(new FileUploadedEvent(url));
@@ -1179,6 +1198,55 @@ public class NetworkService {
 
     private Bus getBus() {
         return BusProvider.getBus();
+    }
+
+
+    private static class InputStreamTypedOutput implements TypedOutput {
+        private static final int CHUNK_SIZE = 4096;
+
+        private final String mimeType;
+        private final ByteArrayOutputStream bytes;
+        private final String filename;
+
+        public InputStreamTypedOutput(InputStream inputStream, String mimeType, String filename)
+                throws IOException {
+            this.mimeType = mimeType;
+            this.bytes = new ByteArrayOutputStream();
+            this.filename = filename;
+            readData(inputStream);
+        }
+
+        private void readData(InputStream inputStream) throws IOException {
+            byte[] buffer = new byte[CHUNK_SIZE];
+            try {
+                int read;
+                while ((read = inputStream.read(buffer)) != -1) {
+                    bytes.write(buffer, 0, read);
+                }
+            } finally {
+                inputStream.close();
+            }
+        }
+
+        @Override
+        public String fileName() {
+            return this.filename;
+        }
+
+        @Override
+        public String mimeType() {
+            return mimeType;
+        }
+
+        @Override
+        public long length() {
+            return this.bytes.size();
+        }
+
+        @Override
+        public void writeTo(OutputStream out) throws IOException {
+            bytes.writeTo(out);
+        }
     }
 
 }

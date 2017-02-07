@@ -23,7 +23,7 @@ import retrofit.http.PUT;
 import retrofit.http.Part;
 import retrofit.http.Path;
 import retrofit.http.Query;
-import retrofit.mime.TypedFile;
+import retrofit.mime.TypedOutput;
 
 interface GhostApiService {
 
@@ -88,6 +88,6 @@ interface GhostApiService {
     @Multipart
     @POST("/uploads/")
     void uploadFile(@Header("Authorization") String authHeader,
-                    @Part("uploadimage") TypedFile file, Callback<String> cb);
+                    @Part("uploadimage") TypedOutput file, Callback<String> cb);
 
 }
