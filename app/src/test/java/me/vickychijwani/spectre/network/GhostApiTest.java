@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import me.vickychijwani.spectre.model.entity.AuthToken;
@@ -26,11 +27,16 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-// PURPOSE: contract tests for the Ghost API
-// run these to detect breaking changes in the API when a new Ghost version comes out
-// these are integration-style tests that run against an actual Ghost instance
-// and verify whether the API matches the behaviour we expect
+/**
+ * PURPOSE: contract tests for the Ghost API
+ * run these to detect breaking changes in the API when a new Ghost version comes out
+ * these are integration-style tests that run against an actual Ghost instance
+ * and verify whether the API matches the behaviour we expect
+ */
 
+// ignored by default since these tests require a running Ghost instance so they can't run in CI yet
+// remove @Ignore and run this locally when needed
+@Ignore
 public final class GhostApiTest {
 
     // TODO set up a fixture with npm install ghost and some sql to make this portable
