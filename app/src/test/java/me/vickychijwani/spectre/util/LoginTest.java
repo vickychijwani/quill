@@ -53,11 +53,6 @@ public class LoginTest {
     }
 
 
-    // TODO add these tests using a custom Interceptor or something like https://android-arsenal.com/details/1/2517
-    // TODO since MockWebServer doesn't support these kinds of tests
-    // TODO 1. blog under subdomain: http://blog.example.com
-    // TODO 2. 301 redirect from HTTP to HTTPS
-
     // actual tests
     @Test
     public void checkGhostBlog_simpleHttpUrl() throws IOException {
