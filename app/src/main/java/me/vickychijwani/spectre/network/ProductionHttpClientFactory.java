@@ -14,7 +14,7 @@ public class ProductionHttpClientFactory implements HttpClientFactory {
 
     private static final int MIN_DISK_CACHE_SIZE = 5 * 1024 * 1024;     // in bytes
     private static final int MAX_DISK_CACHE_SIZE = 50 * 1024 * 1024;    // in bytes
-    private static final int CONNECTION_TIMEOUT = 10 * 1000;            // in milliseconds
+    private static final int CONNECTION_TIMEOUT = 30 * 1000;            // in milliseconds
 
     /**
      *
