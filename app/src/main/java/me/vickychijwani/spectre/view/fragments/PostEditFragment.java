@@ -351,6 +351,8 @@ public class PostEditFragment extends BaseFragment implements
         imagePickIntent.setType("image/*");
         if (imagePickIntent.resolveActivity(mActivity.getPackageManager()) != null) {
             startActivityForResult(imagePickIntent, REQUEST_CODE_IMAGE_PICK);
+        } else {
+            Toast.makeText(mActivity, R.string.intent_no_apps, Toast.LENGTH_SHORT).show();
         }
     }
 
