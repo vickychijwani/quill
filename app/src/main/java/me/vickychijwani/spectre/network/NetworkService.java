@@ -129,6 +129,7 @@ public class NetworkService {
     private final GsonConverter mGsonConverter;
 
     private boolean mbAuthRequestOnGoing = false;
+    private boolean mbSyncOnGoing = false;
     private RetrofitError mRefreshError = null;
     private final ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
     private final ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
@@ -550,6 +551,15 @@ public class NetworkService {
 
     @Subscribe
     public void onSyncPostsEvent(final SyncPostsEvent event) {
+        // FIXME (1) this prevents e.g., double draft creation but it may prevent e.g. a post from
+        // FIXME     being synced when it is triggered when a previous sync is in progress
+        // FIXME (2) also ensure 2 sync requests with different values for forceNetworkCall do
+        // FIXME     result in a network call instead of blindly skipping (see comment in
+        // FIXME     onSavePostEvent marked "synchack")
+        // don't trigger another sync if it is already in progress
+        if (mbSyncOnGoing) {
+            return;
+        }
         if (event.loadCachedData) {
             LoadPostsEvent loadPostsEvent = new LoadPostsEvent(false);
             mRefreshEventsQueue.add(loadPostsEvent);
@@ -568,17 +578,19 @@ public class NetworkService {
                 .equalTo("pendingActions.type", PendingAction.EDIT)
                 .findAll());
 
+        Deque<Post> postUploadQueue = new ArrayDeque<>();
+        postUploadQueue.addAll(localDeletedPosts);
+        postUploadQueue.addAll(localNewPosts);
+        postUploadQueue.addAll(localEditedPosts);
+
         // nothing to upload
-        if (localDeletedPosts.isEmpty() && localNewPosts.isEmpty() && localEditedPosts.isEmpty()
-                && event.forceNetworkCall) {
-            LoadPostsEvent loadPostsEvent = new LoadPostsEvent(true);
+        if (postUploadQueue.isEmpty()) {
+            LoadPostsEvent loadPostsEvent = new LoadPostsEvent(event.forceNetworkCall);
             mRefreshEventsQueue.add(loadPostsEvent);
             getBus().post(loadPostsEvent);
             refreshSucceeded(event);
             return;
         }
-
-        Deque<Post> mPostUploadQueue = new ArrayDeque<>();
 
         // keep track of new posts created successfully and posts deleted successfully, so the local copies can be deleted
         List<Post> postsToDelete = new ArrayList<>();
@@ -618,32 +630,33 @@ public class NetworkService {
                     getBus().post(loadPostsEvent);
                 }
             }
+
+            // SYNC COMPLETE
+            mbSyncOnGoing = false;
         };
 
         final Action2<Post, RetrofitError> onFailure = (post, retrofitError) -> {
             uploadErrorOccurred[0] = retrofitError;
-            mPostUploadQueue.removeFirstOccurrence(post);
+            postUploadQueue.removeFirstOccurrence(post);
             getBus().post(new ApiErrorEvent(retrofitError));
-            if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
+            if (postUploadQueue.isEmpty()) syncFinishedCB.call();
         };
 
-        mPostUploadQueue.addAll(localDeletedPosts);
-        mPostUploadQueue.addAll(localNewPosts);
-        mPostUploadQueue.addAll(localEditedPosts);
+        // MAKE SURE THIS IS NEVER true LONGER THAN IT NEEDS TO BE, CHECK ALL EXIT POINTS OF THIS FN
+        mbSyncOnGoing = true;
 
         // 1. DELETED POSTS
         // the loop variable is *local* to the loop block, so it can be captured in a closure easily
         // this is unlike JavaScript, in which the same loop variable is mutated
         for (final Post localPost : localDeletedPosts) {
-            if (! validateAccessToken(event)) return;
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] deleting post id = " + localPost.getId());
             mApi.deletePost(mAuthToken.getAuthHeader(), localPost.getId(), new ResponseCallback() {
                 @Override
                 public void success(Response response) {
                     AnalyticsService.logDraftDeleted();
-                    mPostUploadQueue.removeFirstOccurrence(localPost);
+                    postUploadQueue.removeFirstOccurrence(localPost);
                     postsToDelete.add(localPost);
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
+                    if (postUploadQueue.isEmpty()) syncFinishedCB.call();
                 }
 
                 @Override
@@ -655,18 +668,17 @@ public class NetworkService {
 
         // 2. NEW POSTS
         for (final Post localPost : localNewPosts) {
-            if (! validateAccessToken(event)) return;
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] creating post");    // local new posts don't have an id
             mApi.createPost(mAuthToken.getAuthHeader(), PostStubList.from(localPost), new Callback<PostList>() {
                 @Override
                 public void success(PostList postList, Response response) {
                     AnalyticsService.logNewDraftUploaded();
                     createOrUpdateModel(postList.posts);
-                    mPostUploadQueue.removeFirstOccurrence(localPost);
+                    postUploadQueue.removeFirstOccurrence(localPost);
                     postsToDelete.add(localPost);
                     // FIXME this is a new post! how do subscribers know which post changed?
                     getBus().post(new PostReplacedEvent(postList.posts.get(0)));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
+                    if (postUploadQueue.isEmpty()) syncFinishedCB.call();
                 }
 
                 @Override
@@ -684,9 +696,9 @@ public class NetworkService {
                 @Override
                 public void success(PostList postList, Response response) {
                     createOrUpdateModel(postList.posts);
-                    mPostUploadQueue.removeFirstOccurrence(editedPost);
+                    postUploadQueue.removeFirstOccurrence(editedPost);
                     getBus().post(new PostSyncedEvent(editedPost.getUuid()));
-                    if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
+                    if (postUploadQueue.isEmpty()) syncFinishedCB.call();
                 }
 
                 @Override
@@ -696,7 +708,6 @@ public class NetworkService {
             });
         };
         for (final Post localPost : localEditedPosts) {
-            if (! validateAccessToken(event)) return;
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] downloading edited post with id = " + localPost.getId() + " for comparison");
             mApi.getPost(mAuthToken.getAuthHeader(), localPost.getId(), new Callback<PostList>() {
                 @Override
@@ -710,8 +721,8 @@ public class NetworkService {
                     }
                     if (hasConflict && PostUtils.isDirty(serverPost, localPost)) {
                         Crashlytics.log(Log.WARN, TAG, "[onSyncPostsEvent] conflict found for post id = " + localPost.getId());
-                        mPostUploadQueue.removeFirstOccurrence(localPost);
-                        if (mPostUploadQueue.isEmpty()) syncFinishedCB.call();
+                        postUploadQueue.removeFirstOccurrence(localPost);
+                        if (postUploadQueue.isEmpty()) syncFinishedCB.call();
                         localPost.setConflictState(Post.CONFLICT_UNRESOLVED);
                         createOrUpdateModel(localPost);
                         Crashlytics.log(Log.DEBUG, TAG, "localPost updated at:" + localPost.getUpdatedAt().toString());
@@ -782,7 +793,9 @@ public class NetworkService {
 
         Post savedPost = new Post(realmPost);   // realmPost is guaranteed to be up-to-date
         getBus().post(new PostSavedEvent(savedPost));
-        getBus().post(new SyncPostsEvent(false));
+        // FIXME #synchack: force a network call because this preempts sync requests from the data
+        // FIXME refresh phase triggered when going back to the post list
+        getBus().post(new SyncPostsEvent(true));
     }
 
     @Subscribe
@@ -883,6 +896,7 @@ public class NetworkService {
         mApiEventQueue.clear();
         mRefreshEventsQueue.clear();
         mbAuthRequestOnGoing = false;
+        mbSyncOnGoing = false;
         mRefreshError = null;
         getBus().post(new LogoutStatusEvent(true, false));
 
