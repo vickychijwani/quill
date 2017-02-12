@@ -93,6 +93,7 @@
     <string name="uploading">Uploading…</string>
     <string name="image_upload_failed">Couldn\'t upload image</string>
     <string name="remove_image">Remove This Image</string>
+    <string name="enable_permission_tip">Tap "Permissions" and enable the "Storage" permission</string>
 
     <!-- conflict resolution -->
     <string name="conflict_explanation"><![CDATA[<b>The post <i>%s</i> has a conflict.</b> It was updated on the server before your device\'s copy could be uploaded. Which version of the post would you like to keep?]]></string>
