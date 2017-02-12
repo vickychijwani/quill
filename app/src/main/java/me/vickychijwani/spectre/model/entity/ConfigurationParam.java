@@ -1,12 +1,12 @@
 package me.vickychijwani.spectre.model.entity;
 
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
 
 @RealmClass
-public class ConfigurationParam extends RealmObject {
+public class ConfigurationParam implements RealmModel {
 
     @PrimaryKey @Required
     private String key;
@@ -14,7 +14,6 @@ public class ConfigurationParam extends RealmObject {
     @Required
     private String value;
 
-    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
     public String getKey() {
         return key;
     }
@@ -29,6 +28,11 @@ public class ConfigurationParam extends RealmObject {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "Config[" + this.key + " = " + this.value + "]";
     }
 
 }

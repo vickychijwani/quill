@@ -1,13 +1,13 @@
 package me.vickychijwani.spectre.model.entity;
 
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
 
 @RealmClass
-public class Setting extends RealmObject {
+public class Setting implements RealmModel {
 
     @PrimaryKey @Index
     private int id;
@@ -21,7 +21,6 @@ public class Setting extends RealmObject {
     @Required
     private String value;
 
-    // NOTE: DO NOT ADD / MODIFY METHODS, SEE https://realm.io/docs/java/#faq
     public int getId() {
         return id;
     }
@@ -52,6 +51,11 @@ public class Setting extends RealmObject {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "Setting[" + this.key + " = " + this.value + "]";
     }
 
 }

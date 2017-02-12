@@ -6,19 +6,26 @@ import android.support.annotation.Nullable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import me.vickychijwani.spectre.model.entity.AuthToken;
+import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.model.entity.Role;
+import me.vickychijwani.spectre.model.entity.Setting;
 import me.vickychijwani.spectre.model.entity.User;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
+import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.network.entity.RefreshReqBody;
 import me.vickychijwani.spectre.network.entity.RevokeReqBody;
+import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import okhttp3.OkHttpClient;
@@ -29,7 +36,11 @@ import retrofit2.Retrofit;
 import rx.functions.Action2;
 
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
@@ -37,7 +48,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
- * PURPOSE: contract tests for the Ghost API
+ * PURPOSE: contract tests for the latest version of the Ghost API that we support
  *
  * Run these to detect ANY behaviour changes (breaking or non-breaking) in the
  * API when a new Ghost version comes out. These are integration-style tests
@@ -150,6 +161,7 @@ public final class GhostApiTest {
             User user = users.users.get(0);
 
             assertThat(response.code(), is(HTTP_OK));
+            assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
             assertThat(user, notNullValue());
             //assertThat(user.getId(), instanceOf(Integer.class)); // no-op, int can't be null
             assertThat(user.getUuid(), notNullValue());
@@ -165,6 +177,61 @@ public final class GhostApiTest {
             assertThat(role.getUuid(), notNullValue());
             assertThat(role.getName(), notNullValue());
             assertThat(role.getDescription(), notNullValue());
+        });
+    }
+
+    @Test
+    public void test_getSettings() {
+        doWithAuthToken(api, (authToken, __) -> {
+            Response<SettingsList> response = execute(api.getSettings(authToken.getAuthHeader(), ""));
+            List<Setting> settings = response.body().settings;
+
+            assertThat(response.code(), is(HTTP_OK));
+            assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
+            assertThat(settings, notNullValue());
+            // blog title
+            assertThat(settings, hasItem(allOf(
+                    hasProperty("key", is("title")),
+                    hasProperty("value", not(isEmptyOrNullString())))));
+            // permalink format
+            assertThat(settings, hasItem(allOf(
+                    hasProperty("key", is("permalinks")),
+                    hasProperty("value", is("/:slug/")))));
+        });
+    }
+
+    @Test
+    public void test_getConfiguration() {
+        doWithAuthToken(api, (authToken, __) -> {
+            Response<ConfigurationList> response = execute(api.getConfiguration(authToken.getAuthHeader(), ""));
+            List<ConfigurationParam> config = response.body().configuration;
+
+            assertThat(response.code(), is(HTTP_OK));
+            assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
+            assertThat(config, notNullValue());
+            // is file storage enabled? if not, images etc can't be uploaded
+            assertThat(config, hasItem(allOf(
+                    hasProperty("key", is("fileStorage")),
+                    hasProperty("value", anyOf(is("true"), is("false"))))));
+        });
+    }
+
+    @Test
+    public void test_getConfigAbout() {
+        doWithAuthToken(api, (authToken, __) -> {
+            Response<JSONObject> response = execute(api.getVersion(authToken.getAuthHeader()));
+            JSONObject about = response.body();
+            String version = null;
+            try {
+                version = about.getJSONArray("configuration").getJSONObject(0).getString("version");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            assertThat(response.code(), is(HTTP_OK));
+            assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
+            assertThat(about, notNullValue());
+            assertThat(version, is("0.11.4"));
         });
     }
 
