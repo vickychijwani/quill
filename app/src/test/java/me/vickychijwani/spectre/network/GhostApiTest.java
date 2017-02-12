@@ -10,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -55,14 +54,10 @@ import static org.junit.Assert.assertThat;
  * that run against an actual Ghost instance.
  */
 
-// ignored by default since these tests require a running Ghost instance so they can't run in CI yet
-// remove @Ignore and run this locally when needed
-@Ignore
 public final class GhostApiTest {
 
-    // TODO set up a fixture with npm install ghost and some sql to make this portable
     private static final String BLOG_URL = "http://localhost:2368/";
-    private static final String TEST_USER = "vickychijwani@gmail.com";
+    private static final String TEST_USER = "user@example.com";
     private static final String TEST_PWD = "ghosttest";
 
     private GhostApiService api;
@@ -231,7 +226,7 @@ public final class GhostApiTest {
             assertThat(response.code(), is(HTTP_OK));
             assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
             assertThat(about, notNullValue());
-            assertThat(version, is("0.11.4"));
+            assertThat(version, not(isEmptyOrNullString()));
         });
     }
 

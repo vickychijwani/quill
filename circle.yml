@@ -3,8 +3,11 @@ machine:
     TARGET_SDK_VERSION: 25
     TOOLS_VERSION: 25.2.4
     BUILD_TOOLS_VERSION: 25.0.2
+    GHOST_VERSION: 0.11.4
   java:
     version: oraclejdk8
+  node:
+    version: 6.9
 
 dependencies:
   pre:
@@ -14,10 +17,18 @@ dependencies:
   cache_directories:
     - /usr/local/android-sdk-linux/tools
     - /usr/local/android-sdk-linux/build-tools/$BUILD_TOOLS_VERSION
+  override:
+    - npm install ghost@$GHOST_VERSION
 
 # actual build and test
 # can't build/test release because Fabric API keys are not available in CI
 test:
+  pre:
+    - node ./node_modules/ghost/index.js:
+        background: true
+    - sleep 10
+    - curl -vvvv -d 'setup[0][name]=User' -d 'setup[0][email]=user@example.com' -d 'setup[0][password]=ghosttest' -d 'setup[0][blogTitle]=My Blog' http://localhost:2368/ghost/api/v0.1/authentication/setup/
+
   override:
     - ./gradlew assembleDebug -PdisablePreDex --console=plain
     - ./gradlew testDebug -PdisablePreDex --console=plain
