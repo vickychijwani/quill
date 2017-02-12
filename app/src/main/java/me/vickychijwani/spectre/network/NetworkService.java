@@ -124,6 +124,7 @@ public class NetworkService {
     private Realm mRealm = null;
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
+    private String mBlogUrl = null;
     private OkHttpClient mOkHttpClient = null;
 
     private boolean mbAuthRequestOnGoing = false;
@@ -140,8 +141,8 @@ public class NetworkService {
         mRealm = Realm.getDefaultInstance();
         if (AppState.getInstance(context).getBoolean(AppState.Key.LOGGED_IN)) {
             mAuthToken = mRealm.where(AuthToken.class).findFirst();
-            String blogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
-            mApi = buildApiService(blogUrl);
+            mBlogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
+            mApi = buildApiService(mBlogUrl);
         }
     }
 
@@ -156,8 +157,9 @@ public class NetworkService {
     public void onLoginStartEvent(final LoginStartEvent event) {
         if (mbAuthRequestOnGoing) return;
         mbAuthRequestOnGoing = true;
-        mApi = buildApiService(event.blogUrl);
-        GhostApiUtils.doWithClientSecret(mApi, event.blogUrl, clientSecret -> {
+        mBlogUrl = event.blogUrl;
+        mApi = buildApiService(mBlogUrl);
+        GhostApiUtils.doWithClientSecret(mApi, mBlogUrl, clientSecret -> {
             doLogin(event, clientSecret);
         });
     }
@@ -988,6 +990,8 @@ public class NetworkService {
         AppState.getInstance(SpectreApplication.getInstance())
                 .setBoolean(AppState.Key.LOGGED_IN, false);
         // reset state, to be sure
+        mAuthToken = null;
+        mBlogUrl = null;
         mApiEventQueue.clear();
         mRefreshEventsQueue.clear();
         mbAuthRequestOnGoing = false;
@@ -1039,53 +1043,58 @@ public class NetworkService {
         }
         if (mbAuthRequestOnGoing) return;
 
+        // FIXME this is way overkill - the bandwidth savings are miniscule
+        // FIXME after Ghost 1.0, even more so, as token expiry times are increasing 100x
         // don't waste bandwidth by trying to use an expired refresh token
         if (hasRefreshTokenExpired()) {
             postLoginStartEvent();
             return;
         }
 
-        final RefreshReqBody credentials = new RefreshReqBody(mAuthToken.getRefreshToken());
         mbAuthRequestOnGoing = true;
-        mApi.refreshAuthToken(credentials).enqueue(new Callback<AuthToken>() {
-            @Override
-            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
-                mbAuthRequestOnGoing = false;
-                if (response.isSuccessful()) {
-                    // since this is a *refreshed* auth token, there is no refresh token in it, so add
-                    // it manually
-                    AuthToken authToken = response.body();
-                    authToken.setRefreshToken(credentials.refreshToken);
-                    onNewAuthToken(authToken);
-                } else {
-                    // if the response is 401 Unauthorized, we can recover from it by logging in anew
-                    // this should only happen if the refresh token is manually revoked or the
-                    // expiration time is changed inside Ghost (#92)
-                    if (NetworkUtils.isUnauthorized(response)) {
-                        try {
-                            String responseStr = response.errorBody().string();
-                            Crashlytics.logException(new ExpiredTokenUsedException(responseStr));
-                        } catch (IOException e) {
-                            Log.e(TAG, Log.getStackTraceString(e));
-                        }
-                        postLoginStartEvent();
+        GhostApiUtils.doWithClientSecret(mApi, mBlogUrl, clientSecret -> {
+            final RefreshReqBody credentials = new RefreshReqBody(mAuthToken.getRefreshToken(),
+                    clientSecret);
+            mApi.refreshAuthToken(credentials).enqueue(new Callback<AuthToken>() {
+                @Override
+                public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
+                    mbAuthRequestOnGoing = false;
+                    if (response.isSuccessful()) {
+                        // since this is a *refreshed* auth token, there is no refresh token in it,
+                        // so add it manually
+                        AuthToken authToken = response.body();
+                        authToken.setRefreshToken(credentials.refreshToken);
+                        onNewAuthToken(authToken);
                     } else {
-                        ApiFailure<AuthToken> apiFailure = new ApiFailure<>(response);
-                        ApiErrorList apiErrors = parseApiErrors(mRetrofit, response);
-                        getBus().post(new LoginErrorEvent<>(apiFailure, apiErrors, null, false));
-                        flushApiEventQueue(true);
+                        // if the response is 401 Unauthorized, we can recover from it by logging in
+                        // anew; this should only happen if the refresh token is manually revoked or
+                        // the expiration time is changed inside Ghost (#92)
+                        if (NetworkUtils.isUnauthorized(response)) {
+                            try {
+                                String responseStr = response.errorBody().string();
+                                Crashlytics.logException(new ExpiredTokenUsedException(responseStr));
+                            } catch (IOException e) {
+                                Log.e(TAG, Log.getStackTraceString(e));
+                            }
+                            postLoginStartEvent();
+                        } else {
+                            ApiFailure<AuthToken> apiFailure = new ApiFailure<>(response);
+                            ApiErrorList apiErrors = parseApiErrors(mRetrofit, response);
+                            getBus().post(new LoginErrorEvent<>(apiFailure, apiErrors, null, false));
+                            flushApiEventQueue(true);
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<AuthToken> call, Throwable error) {
-                // error in transport layer, or lower
-                mbAuthRequestOnGoing = false;
-                ApiFailure<AuthToken> apiFailure = new ApiFailure<>(error);
-                getBus().post(new LoginErrorEvent<>(apiFailure, null, null, false));
-                flushApiEventQueue(true);
-            }
+                @Override
+                public void onFailure(Call<AuthToken> call, Throwable error) {
+                    // error in transport layer, or lower
+                    mbAuthRequestOnGoing = false;
+                    ApiFailure<AuthToken> apiFailure = new ApiFailure<>(error);
+                    getBus().post(new LoginErrorEvent<>(apiFailure, null, null, false));
+                    flushApiEventQueue(true);
+                }
+            });
         });
     }
 

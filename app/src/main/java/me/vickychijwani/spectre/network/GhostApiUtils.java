@@ -26,25 +26,23 @@ final class GhostApiUtils {
 
     private static final String TAG = GhostApiUtils.class.getSimpleName();
 
-    static Retrofit getRetrofit(@NonNull String baseUrl, @Nullable OkHttpClient httpClient) {
+    static Retrofit getRetrofit(@NonNull String baseUrl, @NonNull OkHttpClient httpClient) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class, new DateDeserializer())
                 .registerTypeAdapter(ConfigurationList.class, new ConfigurationListDeserializer())
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setExclusionStrategies(new RealmExclusionStrategy(), new AnnotationExclusionStrategy())
                 .create();
-        Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+        return new Retrofit.Builder()
                 .baseUrl(baseUrl)
+                .client(httpClient)
                 // for HTML output (e.g., to get the client secret)
                 .addConverterFactory(StringConverterFactory.create())
                 // for raw JSONObject output (e.g., for the /configuration/about call)
                 .addConverterFactory(JSONObjectConverterFactory.create())
                 // for domain objects
-                .addConverterFactory(GsonConverterFactory.create(gson));
-        if (httpClient != null) {
-            retrofitBuilder.client(httpClient);
-        }
-        return retrofitBuilder.build();
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
     }
 
     static void doWithClientSecret(@NonNull GhostApiService apiService, @NonNull String blogUrl,

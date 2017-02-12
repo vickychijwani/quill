@@ -1,6 +1,7 @@
 package me.vickychijwani.spectre.network;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -16,24 +17,31 @@ import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.model.entity.Role;
 import me.vickychijwani.spectre.model.entity.User;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
+import me.vickychijwani.spectre.network.entity.RefreshReqBody;
 import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.UserList;
 import me.vickychijwani.spectre.util.NetworkUtils;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.Retrofit;
-import rx.functions.Action1;
+import rx.functions.Action2;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
  * PURPOSE: contract tests for the Ghost API
- * run these to detect breaking changes in the API when a new Ghost version comes out
- * these are integration-style tests that run against an actual Ghost instance
- * and verify whether the API matches the behaviour we expect
+ *
+ * Run these to detect ANY behaviour changes (breaking or non-breaking) in the
+ * API when a new Ghost version comes out. These are integration-style tests
+ * that run against an actual Ghost instance.
  */
 
 // ignored by default since these tests require a running Ghost instance so they can't run in CI yet
@@ -51,7 +59,12 @@ public final class GhostApiTest {
     @Before
     public void setupApiService() {
         String baseUrl = NetworkUtils.makeAbsoluteUrl(BLOG_URL, "ghost/api/v0.1/");
-        Retrofit retrofit = GhostApiUtils.getRetrofit(baseUrl, null);
+        OkHttpClient httpClient = new ProductionHttpClientFactory().create(null)
+                .newBuilder()
+                .addInterceptor(new HttpLoggingInterceptor()
+                        .setLevel(HttpLoggingInterceptor.Level.BODY))
+                .build();
+        Retrofit retrofit = GhostApiUtils.getRetrofit(baseUrl, httpClient);
         api = retrofit.create(GhostApiService.class);
     }
 
@@ -73,12 +86,38 @@ public final class GhostApiTest {
     }
 
     @Test
-    public void test_getAuthToken() {
-        doWithAuthToken(api, authToken -> {
+    public void test_getAuthToken_withPassword() {
+        doWithAuthToken(api, (authToken, response) -> {
+            assertThat(response.code(), is(HTTP_OK));
             assertThat(authToken.getTokenType(), is("Bearer"));
             assertThat(authToken.getAccessToken(), notNullValue());
             assertThat(authToken.getRefreshToken(), notNullValue());
-            //assertThat(authToken.getExpiresIn(), instanceOf(Integer.class)); // no-op, int can't be null
+            assertThat(authToken.getExpiresIn(), is(3600));
+        });
+    }
+
+    @Test
+    public void test_getAuthToken_withRefreshToken() {
+        doWithAuthToken(api, (expiredToken, __) -> {
+            String clientSecret = getClientSecret(api);
+            RefreshReqBody credentials = new RefreshReqBody(expiredToken.getRefreshToken(),
+                    clientSecret);
+            Response<AuthToken> response = execute(api.refreshAuthToken(credentials));
+            AuthToken refreshedToken = response.body();
+
+            assertThat(response.code(), is(HTTP_OK));
+            assertThat(refreshedToken.getTokenType(), is("Bearer"));
+            assertThat(refreshedToken.getAccessToken(), notNullValue());
+            assertThat(refreshedToken.getRefreshToken(), isEmptyOrNullString());
+            assertThat(refreshedToken.getExpiresIn(), is(3600));
+
+            RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
+                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, refreshedToken.getRefreshToken(), clientSecret),
+                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, refreshedToken.getAccessToken(), clientSecret)
+            };
+            for (RevokeReqBody reqBody : revokeReqs) {
+                execute(api.revokeAuthToken(refreshedToken.getAuthHeader(), reqBody));
+            }
         });
     }
 
@@ -86,16 +125,18 @@ public final class GhostApiTest {
     public void test_revokeAuthToken() {
         String clientSecret = getClientSecret(api);
         AuthReqBody credentials = new AuthReqBody(TEST_USER, TEST_PWD, clientSecret);
-        AuthToken authToken = execute(api.getAuthToken(credentials));
+        AuthToken authToken = execute(api.getAuthToken(credentials)).body();
 
         RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
                 new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, authToken.getRefreshToken(), clientSecret),
                 new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, authToken.getAccessToken(), clientSecret)
         };
         for (RevokeReqBody reqBody : revokeReqs) {
-            JsonElement jsonResponse = execute(api.revokeAuthToken(authToken.getAuthHeader(), reqBody));
-
+            Response<JsonElement> response = execute(api.revokeAuthToken(authToken.getAuthHeader(), reqBody));
+            JsonElement jsonResponse = response.body();
             JsonObject jsonObj = jsonResponse.getAsJsonObject();
+
+            assertThat(response.code(), is(HTTP_OK));
             assertThat(jsonObj.has("error"), is(false));
             assertThat(jsonObj.get("token").getAsString(), is(reqBody.token));
         }
@@ -103,11 +144,12 @@ public final class GhostApiTest {
 
     @Test
     public void test_getCurrentUser() {
-        doWithAuthToken(api, authToken -> {
-            UserList users = null;
-            users = execute(api.getCurrentUser(authToken.getAuthHeader(), ""));
+        doWithAuthToken(api, (authToken, __) -> {
+            Response<UserList> response = execute(api.getCurrentUser(authToken.getAuthHeader(), ""));
+            UserList users = response.body();
             User user = users.users.get(0);
 
+            assertThat(response.code(), is(HTTP_OK));
             assertThat(user, notNullValue());
             //assertThat(user.getId(), instanceOf(Integer.class)); // no-op, int can't be null
             assertThat(user.getUuid(), notNullValue());
@@ -129,11 +171,13 @@ public final class GhostApiTest {
 
 
     // private helpers
-    private static void doWithAuthToken(GhostApiService api, Action1<AuthToken> callback) {
+    private static void doWithAuthToken(GhostApiService api,
+                                        Action2<AuthToken, Response<AuthToken>> callback) {
         String clientSecret = getClientSecret(api);
         AuthReqBody credentials = new AuthReqBody(TEST_USER, TEST_PWD, clientSecret);
-        AuthToken authToken = execute(api.getAuthToken(credentials));
-        callback.call(authToken);
+        Response<AuthToken> response = execute(api.getAuthToken(credentials));
+        AuthToken authToken = response.body();
+        callback.call(authToken, response);
         RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
                 new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, authToken.getRefreshToken(), clientSecret),
                 new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, authToken.getAccessToken(), clientSecret)
@@ -143,16 +187,17 @@ public final class GhostApiTest {
         }
     }
 
+    @Nullable
     private static String getClientSecret(GhostApiService api) {
-        String html = execute(api.getLoginPage(NetworkUtils.makeAbsoluteUrl(BLOG_URL, "ghost/")));
+        String html = execute(api.getLoginPage(NetworkUtils.makeAbsoluteUrl(BLOG_URL, "ghost/"))).body();
         return GhostApiUtils.extractClientSecretFromHtml(html);
     }
 
     @NonNull
-    private static <T> T execute(Call<T> call) {
+    private static <T> Response<T> execute(Call<T> call) {
         // intentionally swallows the IOException to make test code cleaner
         try {
-            return call.execute().body();
+            return call.execute();
         } catch (IOException e) {
             e.printStackTrace();
             // suppress leaking knowledge of this null to hide false-positive errors by IntelliJ
