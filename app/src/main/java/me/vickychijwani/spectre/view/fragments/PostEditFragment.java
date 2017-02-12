@@ -1,5 +1,7 @@
 package me.vickychijwani.spectre.view.fragments;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -55,6 +57,8 @@ import me.vickychijwani.spectre.view.BundleKeys;
 import me.vickychijwani.spectre.view.FormatOptionClickListener;
 import me.vickychijwani.spectre.view.Observables;
 import me.vickychijwani.spectre.view.PostViewActivity;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.RuntimePermissions;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -63,6 +67,7 @@ import rx.functions.Actions;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
+@RuntimePermissions
 public class PostEditFragment extends BaseFragment implements
         FormatOptionClickListener {
 
@@ -329,7 +334,8 @@ public class PostEditFragment extends BaseFragment implements
             if (item.getItemId() == R.id.action_insert_image_url) {
                 onInsertImageUrlClicked(insertMarkdownAction);
             } else if (item.getItemId() == R.id.action_insert_image_upload) {
-                onInsertImageUploadClicked(insertMarkdownAction);
+                PostEditFragmentPermissionsDispatcher.onInsertImageUploadClickedWithCheck(
+                        insertMarkdownAction);
             }
             return true;
         });
@@ -344,6 +350,8 @@ public class PostEditFragment extends BaseFragment implements
         });
     }
 
+    @SuppressLint("InlinedApi") // suppressed because PermissionsDispatcher handles API levels for us
+    @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
     public void onInsertImageUploadClicked(Action1<String> uploadDoneAction) {
         mImageUploadDoneAction = uploadDoneAction;
         Intent imagePickIntent = new Intent(Intent.ACTION_GET_CONTENT);

@@ -10,7 +10,6 @@ buildscript {
         // quickly to Android tooling updates
         //noinspection GradleDynamicVersion
         classpath 'io.fabric.tools:gradle:1.+'
-        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
         classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
     }
 }
@@ -18,7 +17,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'realm-android'
 apply plugin: 'io.fabric'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.jakewharton.hugo'
 
 repositories {
@@ -133,6 +131,8 @@ dependencies {
     compile("com.crashlytics.sdk.android:answers:1.3.7@aar") {
         transitive = true
     }
+    compile "com.github.hotchemi:permissionsdispatcher:$rootProject.ext.permissionsDispatcherVersion"
+    annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:$rootProject.ext.permissionsDispatcherVersion"
     compile "com.github.slugify:slugify:2.1.3"
 
     // debug
