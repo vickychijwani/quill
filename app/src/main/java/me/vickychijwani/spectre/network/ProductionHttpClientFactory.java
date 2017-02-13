@@ -32,8 +32,8 @@ public class ProductionHttpClientFactory implements HttpClientFactory {
         }
         return builder
                 .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
-                .readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)
-                .writeTimeout(WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
+                .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
+                .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
                 .build();
     }
 
