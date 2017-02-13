@@ -334,8 +334,7 @@ public class PostEditFragment extends BaseFragment implements
             if (item.getItemId() == R.id.action_insert_image_url) {
                 onInsertImageUrlClicked(insertMarkdownAction);
             } else if (item.getItemId() == R.id.action_insert_image_upload) {
-                PostEditFragmentPermissionsDispatcher.onInsertImageUploadClickedWithCheck(
-                        insertMarkdownAction);
+                PostEditFragmentPermissionsDispatcher.onInsertImageUploadClickedWithCheck(this, insertMarkdownAction);
             }
             return true;
         });
