@@ -14,10 +14,12 @@ public class ProductionHttpClientFactory implements HttpClientFactory {
 
     private static final int MIN_DISK_CACHE_SIZE = 5 * 1024 * 1024;     // in bytes
     private static final int MAX_DISK_CACHE_SIZE = 50 * 1024 * 1024;    // in bytes
-    private static final int CONNECTION_TIMEOUT = 30 * 1000;            // in milliseconds
+
+    private static final int CONNECT_TIMEOUT = 20;
+    private static final int READ_TIMEOUT = 30;
+    private static final int WRITE_TIMEOUT = 5 * 60;    // for file uploads
 
     /**
-     *
      * @param cacheDir - directory for the HTTP cache, disabled if null
      * @return an HTTP client intended for production use
      */
@@ -28,9 +30,10 @@ public class ProductionHttpClientFactory implements HttpClientFactory {
             long size = calculateDiskCacheSize(cacheDir);
             builder.cache(new Cache(cacheDir, size));
         }
-        return builder.connectTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
-                .readTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
-                .writeTimeout(CONNECTION_TIMEOUT, TimeUnit.MILLISECONDS)
+        return builder
+                .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+                .readTimeout(READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                .writeTimeout(WRITE_TIMEOUT, TimeUnit.MILLISECONDS)
                 .build();
     }
 
