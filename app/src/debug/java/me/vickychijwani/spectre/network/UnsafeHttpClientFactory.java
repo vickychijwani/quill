@@ -3,6 +3,8 @@ package me.vickychijwani.spectre.network;
 import android.annotation.SuppressLint;
 import android.support.annotation.Nullable;
 
+import com.facebook.stetho.okhttp3.StethoInterceptor;
+
 import java.io.File;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -26,6 +28,8 @@ public class UnsafeHttpClientFactory extends ProductionHttpClientFactory {
     @Override
     public OkHttpClient create(@Nullable File cacheDir) {
         return super.create(cacheDir).newBuilder()
+                // allow inspecting network requests with Chrome DevTools
+                .addNetworkInterceptor(new StethoInterceptor())
                 // log requests and responses
                 .addInterceptor(new HttpLoggingInterceptor()
                         .setLevel(HttpLoggingInterceptor.Level.BODY))

@@ -22,6 +22,7 @@ apply plugin: 'com.jakewharton.hugo'
 repositories {
     mavenCentral()
     maven { url 'https://maven.fabric.io/public' }
+    maven { url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo' }
 }
 
 // don't lint for every build (run it manually when you want it to run)
@@ -140,6 +141,9 @@ dependencies {
     debugCompile "io.palaima.debugdrawer:debugdrawer-okhttp3:$rootProject.ext.debugdrawerVersion"
     debugCompile "io.palaima.debugdrawer:debugdrawer-picasso:$rootProject.ext.debugdrawerVersion"
     debugCompile "io.palaima.debugdrawer:debugdrawer-scalpel:$rootProject.ext.debugdrawerVersion"
+    debugCompile "com.facebook.stetho:stetho:1.4.2"
+    debugCompile "com.facebook.stetho:stetho-okhttp3:1.4.2"
+    debugCompile "com.uphyca:stetho_realm:2.0.0"
 
     // test
     testCompile "junit:junit:4.12"

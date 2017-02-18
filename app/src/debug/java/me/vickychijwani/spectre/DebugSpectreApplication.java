@@ -3,7 +3,9 @@ package me.vickychijwani.spectre;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 
+import com.facebook.stetho.Stetho;
 import com.squareup.leakcanary.LeakCanary;
+import com.uphyca.stetho_realm.RealmInspectorModulesProvider;
 
 import java.io.File;
 
@@ -30,6 +32,10 @@ public class DebugSpectreApplication extends SpectreApplication {
 
         // auto-detect Activity memory leaks!
         LeakCanary.install(this);
+
+        Stetho.initialize(Stetho.newInitializerBuilder(this)
+                .enableWebKitInspector(RealmInspectorModulesProvider.builder(this).build())
+                .build());
     }
 
     @Override
