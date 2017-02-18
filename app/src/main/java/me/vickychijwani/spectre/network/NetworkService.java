@@ -538,8 +538,10 @@ public class NetworkService {
 
                     // skip edited posts because they've not yet been uploaded
                     RealmResults<Post> localOnlyEdits = mRealm.where(Post.class)
-                            .equalTo("pendingActions.type", PendingAction.EDIT_LOCAL)
-                            .or().equalTo("pendingActions.type", PendingAction.EDIT)
+                            .in("pendingActions.type", new String[] {
+                                    PendingAction.EDIT_LOCAL,
+                                    PendingAction.EDIT
+                            })
                             .findAll();
                     for (int i = postList.posts.size() - 1; i >= 0; --i) {
                         for (int j = 0; j < localOnlyEdits.size(); ++j) {

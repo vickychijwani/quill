@@ -64,7 +64,8 @@ public class SpectreApplication extends Application {
 
     private void setupRealm() {
         final int DB_SCHEMA_VERSION = 3;
-        RealmConfiguration config = new RealmConfiguration.Builder(this)
+        Realm.init(this);
+        RealmConfiguration config = new RealmConfiguration.Builder()
                 .schemaVersion(DB_SCHEMA_VERSION)
                 .migration(new DatabaseMigration())
                 .build();
