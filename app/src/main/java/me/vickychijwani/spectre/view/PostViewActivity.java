@@ -68,7 +68,8 @@ public class PostViewActivity extends BaseActivity implements
         ViewPager.OnPageChangeListener,
         PostViewFragmentPagerAdapter.OnFragmentsInitializedListener,
         View.OnClickListener,
-        PostEditFragment.PostSettingsManager
+        PostEditFragment.PostSettingsManager,
+        TabLayout.OnTabSelectedListener
 {
 
     private static final String TAG = PostViewActivity.class.getSimpleName();
@@ -192,6 +193,7 @@ public class PostViewActivity extends BaseActivity implements
         mViewPager.addOnPageChangeListener(this);
         mViewPager.setCurrentItem(startingTabPosition);
         mTabLayout.setupWithViewPager(mViewPager);
+        mTabLayout.addOnTabSelectedListener(this);
         updatePostSettings();
         mPostImageLayoutManager.setOnClickListener(this);
 
@@ -527,6 +529,9 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     private void onShowEditor() {
+        if (mPostEditFragment != null) {
+            mPostEditFragment.restoreSelectionState();
+        }
         supportInvalidateOptionsMenu();
     }
 
@@ -540,6 +545,23 @@ public class PostViewActivity extends BaseActivity implements
         mToolbarTitle.setText(titleId);
     }
 
+    @Override
+    public void onTabSelected(TabLayout.Tab tab) {
+        // no-op
+    }
+
+    @Override
+    public void onTabUnselected(TabLayout.Tab tab) {
+        if (tab.getPosition() == PostViewFragmentPagerAdapter.TAB_POSITION_EDIT) {
+            // can't do this in onPageSelected because that is called *after* the focus changes
+            mPostEditFragment.saveSelectionState();
+        }
+    }
+
+    @Override
+    public void onTabReselected(TabLayout.Tab tab) {
+        // no-op
+    }
 
 
     public final static class FormattingToolbarManager implements View.OnClickListener {
