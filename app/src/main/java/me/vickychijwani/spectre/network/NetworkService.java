@@ -13,9 +13,6 @@ import com.google.gson.JsonObject;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -281,18 +278,17 @@ public class NetworkService {
             doLoadConfiguration(new LoadConfigurationEvent(true), successCallback, failureCallback);
         };
 
-        mApi.getVersion(mAuthToken.getAuthHeader()).enqueue(new Callback<JSONObject>() {
+        mApi.getVersion(mAuthToken.getAuthHeader()).enqueue(new Callback<JsonObject>() {
             @Override
-            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
-                    JSONObject jsonObject = response.body();
                     try {
-                        String ghostVersion = jsonObject
-                                .getJSONArray("configuration")
-                                .getJSONObject(0)
-                                .getString("version");
+                        String ghostVersion = response.body()
+                                .get("configuration").getAsJsonArray()
+                                .get(0).getAsJsonObject()
+                                .get("version").getAsString();
                         getBus().post(new GhostVersionLoadedEvent(ghostVersion));
-                    } catch (JSONException e) {
+                    } catch (Exception e) {
                         getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
                     }
                 } else {
@@ -308,7 +304,7 @@ public class NetworkService {
             }
 
             @Override
-            public void onFailure(Call<JSONObject> call, Throwable error) {
+            public void onFailure(Call<JsonObject> call, Throwable error) {
                 // error in transport layer, or lower
                 getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
             }
@@ -933,18 +929,18 @@ public class NetworkService {
         RequestBody body = RequestBody.create(MediaType.parse(mimeType), fileBytes);
         MultipartBody.Part filePart = MultipartBody.Part.createFormData("uploadimage", filename, body);
 
-        mApi.uploadFile(mAuthToken.getAuthHeader(), filePart).enqueue(new Callback<String>() {
+        mApi.uploadFile(mAuthToken.getAuthHeader(), filePart).enqueue(new Callback<JsonElement>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
+            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
                 if (response.isSuccessful()) {
-                    String url = response.body();
+                    String url = response.body().getAsString();
                     getBus().post(new FileUploadedEvent(url));
                 } else {
                     if (NetworkUtils.isUnauthorized(response)) {
                         // defer the event and try to re-authorize
                         refreshAccessToken(event);
                     } else {
-                        ApiFailure<String> apiFailure = new ApiFailure<>(response);
+                        ApiFailure<JsonElement> apiFailure = new ApiFailure<>(response);
                         getBus().post(new FileUploadErrorEvent(apiFailure));
                         getBus().post(new ApiErrorEvent(apiFailure));
                     }
@@ -952,7 +948,7 @@ public class NetworkService {
             }
 
             @Override
-            public void onFailure(Call<String> call, Throwable error) {
+            public void onFailure(Call<JsonElement> call, Throwable error) {
                 // error in transport layer, or lower
                 getBus().post(new ApiErrorEvent(new ApiFailure(error)));
             }

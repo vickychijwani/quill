@@ -1,8 +1,7 @@
 package me.vickychijwani.spectre.network;
 
 import com.google.gson.JsonElement;
-
-import org.json.JSONObject;
+import com.google.gson.JsonObject;
 
 import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
@@ -78,12 +77,12 @@ interface GhostApiService {
                                              @Header("If-None-Match") String etag);
 
     @GET("configuration/about/")
-    Call<JSONObject> getVersion(@Header("Authorization") String authHeader);
+    Call<JsonObject> getVersion(@Header("Authorization") String authHeader);
 
     // file upload
     @Multipart
     @POST("uploads/")
-    Call<String> uploadFile(@Header("Authorization") String authHeader,
-                            @Part MultipartBody.Part file);
+    Call<JsonElement> uploadFile(@Header("Authorization") String authHeader,
+                                 @Part MultipartBody.Part file);
 
 }
