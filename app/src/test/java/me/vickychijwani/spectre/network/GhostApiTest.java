@@ -6,8 +6,6 @@ import android.support.annotation.Nullable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -214,14 +212,13 @@ public final class GhostApiTest {
     @Test
     public void test_getConfigAbout() {
         doWithAuthToken(api, (authToken, __) -> {
-            Response<JSONObject> response = execute(api.getVersion(authToken.getAuthHeader()));
-            JSONObject about = response.body();
+            Response<JsonObject> response = execute(api.getVersion(authToken.getAuthHeader()));
+            JsonObject about = response.body();
             String version = null;
-            try {
-                version = about.getJSONArray("configuration").getJSONObject(0).getString("version");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            version = about
+                    .get("configuration").getAsJsonArray()
+                    .get(0).getAsJsonObject()
+                    .get("version").getAsString();
 
             assertThat(response.code(), is(HTTP_OK));
             assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
