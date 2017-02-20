@@ -15,6 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 
+import me.vickychijwani.spectre.error.UrlNotFoundException;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -99,13 +100,20 @@ public class NetworkUtils {
         String adminPageUrl = makeAbsoluteUrl(blogUrl, adminPagePath);
         return checkUrl(adminPageUrl, client)
                 .flatMap(response -> {
-                    // the request may have been redirected, most commonly from HTTP => HTTPS
-                    // so pick up the eventual URL of the blog and use that
-                    // (even if the user manually entered HTTP - it's certainly a mistake)
-                    // to get that, chop off the admin page path from the end
-                    String potentiallyRedirectedUrl = response.request().url().toString();
-                    String finalBlogUrl = potentiallyRedirectedUrl.replaceFirst(adminPagePath + "?$", "");
-                    return Observable.just(finalBlogUrl);
+                    if (response.isSuccessful()) {
+                        // the request may have been redirected, most commonly from HTTP => HTTPS
+                        // so pick up the eventual URL of the blog and use that
+                        // (even if the user manually entered HTTP - it's certainly a mistake)
+                        // to get that, chop off the admin page path from the end
+                        String potentiallyRedirectedUrl = response.request().url().toString();
+                        String finalBlogUrl = potentiallyRedirectedUrl.replaceFirst(adminPagePath + "?$", "");
+                        return Observable.just(finalBlogUrl);
+                    } else if (response.code() == HttpURLConnection.HTTP_NOT_FOUND) {
+                        return Observable.error(new UrlNotFoundException(blogUrl));
+                    } else {
+                        return Observable.error(new RuntimeException("Response code " + response.code()
+                                + " when request admin page"));
+                    }
                 });
     }
 
