@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
+import me.vickychijwani.spectre.error.UrlNotFoundException;
 import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -24,6 +25,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import rx.functions.Func1;
 
 import static me.vickychijwani.spectre.hamcrest.UrlMatches.urlMatches;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertThat;
@@ -63,6 +65,23 @@ public class LoginTest {
         rx.Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
 
         assertThat(result.toBlocking().first(), is(blogUrl));
+    }
+
+    @Test
+    public void checkGhostBlog_404() throws IOException {
+        String blogUrl = "http://" + server.getHostName() + ":" + server.getPort() + "/THIS_DOESNT_EXIST";
+        server.enqueue(new MockResponse().setResponseCode(404));
+        OkHttpClient httpClient = getProdHttpClient();
+
+        rx.Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+
+        try {
+            result.toBlocking().first();
+            // fail the test if no exception is thrown
+            assertThat("Test did not throw exception as expected!", false, is(true));
+        } catch (Exception e) {
+            assertThat(e, instanceOf(UrlNotFoundException.class));
+        }
     }
 
     @Test

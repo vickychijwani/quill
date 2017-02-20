@@ -38,6 +38,7 @@ import butterknife.Bind;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.error.LoginFailedException;
+import me.vickychijwani.spectre.error.UrlNotFoundException;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LoginStartEvent;
@@ -449,7 +450,8 @@ public class LoginActivity extends BaseActivity implements
 
     public static boolean isUserNetworkError(Throwable error) {
         // user provided a malformed / non-existent URL
-        return error instanceof UnknownHostException || error instanceof MalformedURLException;
+        return error instanceof UnknownHostException || error instanceof MalformedURLException
+                || error instanceof UrlNotFoundException;
     }
 
     private static boolean isEmailValid(String email) {

@@ -99,7 +99,10 @@ public class PostEditFragment extends BaseFragment implements
     private Post mLastSavedPost;    // copy of post since it was last saved
     private Post mPost;             // current copy of post in memory
 
+    // used in onPause/onResume
     private int mPostEditViewCursorPos = -1;
+    // used only when changing tabs (no fragment lifecycle methods are triggered)
+    private EditTextSelectionState mFocusedEditTextSelectionState = null;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private boolean mbDiscardChanges = false;
@@ -189,6 +192,20 @@ public class PostEditFragment extends BaseFragment implements
         outState.putBoolean(BundleKeys.POST_EDITED, mPostChangedInMemory);
         // save the editor cursor pos because setPost is called in onCreate/onResume
         outState.putInt(EDITOR_CURSOR_POS, mPostEditView.getSelectionEnd());
+    }
+
+    public void saveSelectionState() {
+        final View focusedView = mActivity.getCurrentFocus();
+        if (focusedView != null && focusedView instanceof EditText) {
+            mFocusedEditTextSelectionState = new EditTextSelectionState((EditText) focusedView);
+        }
+    }
+
+    public void restoreSelectionState() {
+        if (mFocusedEditTextSelectionState != null) {
+            mFocusedEditTextSelectionState.focusAndRestoreSelectionState();
+            mFocusedEditTextSelectionState = null;
+        }
     }
 
     @Override
@@ -710,7 +727,9 @@ public class PostEditFragment extends BaseFragment implements
         }
         mPostTitleEditView.setText(post.getTitle());
         mPostEditView.setText(post.getMarkdown());
-        if (mPostEditViewCursorPos >= 0 && mPostEditViewCursorPos < mPostEditView.getText().length()) {
+        if (mPostEditViewCursorPos >= 0
+                // cursor pos is == length, when it's at the very end
+                && mPostEditViewCursorPos <= mPostEditView.getText().length()) {
             mPostEditView.setSelection(mPostEditViewCursorPos);
         }
     }

@@ -4,10 +4,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,12 +53,24 @@ final class GhostApiUtils {
         apiService.getLoginPage(NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/")).enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
-                String html = response.body();
-                String clientSecret = GhostApiUtils.extractClientSecretFromHtml(html);
-                if (clientSecret == null) {
-                    Log.w(TAG, "No client secret found, assuming old Ghost version without client secret support");
+                if (response.isSuccessful()) {
+                    String html = response.body();
+                    String clientSecret = GhostApiUtils.extractClientSecretFromHtml(html);
+                    if (clientSecret == null) {
+                        Crashlytics.log(Log.WARN, TAG, "No client secret found, assuming old Ghost version without client secret support");
+                    }
+                    callback.call(clientSecret);
+                } else {
+                    try {
+                        Crashlytics.log(Log.ERROR, TAG, "HTML IS NULL - this is definitely a bug");
+                        Crashlytics.log(Log.ERROR, TAG, "Response: " + response.errorBody().string());
+                    } catch (IOException e) {
+                        Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(e));
+                    }
+                    // as they say... fail loudly!
+                    throw new RuntimeException("BUG: Code assumes the blog url = " + blogUrl
+                            + " is valid, but it's not because the response was NOT successful here!");
                 }
-                callback.call(clientSecret);
             }
 
             @Override

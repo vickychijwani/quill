@@ -43,4 +43,21 @@ public class EditTextSelectionState {
         return mSelectionEnd;
     }
 
+    /**
+     * Focus the associated EditText and restore its selection state.
+     */
+    public void focusAndRestoreSelectionState() {
+        EditText focusedEditView = this.getEditText();
+        int start = this.getSelectionStart();
+        int end = this.getSelectionEnd();
+        final int len = focusedEditView.getText().length();
+        focusedEditView.requestFocus();
+        // cursor pos is == length, when it's at the very end
+        if (start <= end && start >= 0 && start <= len && end >= 0 && end <= len) {
+            focusedEditView.setSelection(start, end);
+        } else if (end >= 0 && end <= len) {
+            focusedEditView.setSelection(end);
+        }
+    }
+
 }
