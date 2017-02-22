@@ -15,13 +15,12 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 
+import io.reactivex.Observable;
 import me.vickychijwani.spectre.error.UrlNotFoundException;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import retrofit2.Response;
-import rx.Observable;
-import rx.subscriptions.Subscriptions;
 
 public class NetworkUtils {
 
@@ -132,14 +131,14 @@ public class NetworkUtils {
     }
 
     public static Observable<okhttp3.Response> networkCall(@NonNull Call call) {
-        return Observable.create(subscriber -> {
+        return Observable.create(emitter -> {
             // cancel the request when there are no subscribers
-            subscriber.add(Subscriptions.create(call::cancel));
+            emitter.setCancellable(call::cancel);
             try {
-                subscriber.onNext(call.execute());
-                subscriber.onCompleted();
+                emitter.onNext(call.execute());
+                emitter.onComplete();
             } catch (IOException e) {
-                subscriber.onError(e);
+                emitter.onError(e);
             }
         });
     }

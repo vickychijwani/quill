@@ -19,14 +19,13 @@ public class PostList {
         return postList;
     }
 
-    public int indexOf(@NonNull String uuid) {
-        for (int i = 0, numPosts = posts.size(); i < numPosts; ++i) {
-            Post post = posts.get(i);
+    public boolean contains(@NonNull String uuid) {
+        for (Post post : posts) {
             if (uuid.equals(post.getUuid())) {
-                return i;
+                return true;
             }
         }
-        return -1;
+        return false;
     }
 
     public Post remove(int idx) {

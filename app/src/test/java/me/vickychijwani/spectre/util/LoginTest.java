@@ -10,8 +10,10 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
+import io.reactivex.Observable;
 import me.vickychijwani.spectre.error.UrlNotFoundException;
 import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
+import me.vickychijwani.spectre.util.functions.Func1;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -22,7 +24,6 @@ import okhttp3.internal.tls.SslClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import rx.functions.Func1;
 
 import static me.vickychijwani.spectre.hamcrest.UrlMatches.urlMatches;
 import static org.hamcrest.Matchers.instanceOf;
@@ -62,9 +63,9 @@ public class LoginTest {
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        rx.Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.toBlocking().first(), is(blogUrl));
+        assertThat(result.blockingFirst(), is(blogUrl));
     }
 
     @Test
@@ -73,10 +74,10 @@ public class LoginTest {
         server.enqueue(new MockResponse().setResponseCode(404));
         OkHttpClient httpClient = getProdHttpClient();
 
-        rx.Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
 
         try {
-            result.toBlocking().first();
+            result.blockingFirst();
             // fail the test if no exception is thrown
             assertThat("Test did not throw exception as expected!", false, is(true));
         } catch (Exception e) {
@@ -90,9 +91,9 @@ public class LoginTest {
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        rx.Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.toBlocking().first(), isOneOf(blogUrl, blogUrl.replaceFirst("/$", "")));
+        assertThat(result.blockingFirst(), isOneOf(blogUrl, blogUrl.replaceFirst("/$", "")));
     }
 
     @Test
@@ -102,9 +103,9 @@ public class LoginTest {
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        rx.Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.toBlocking().first(), is(blogUrl));
+        assertThat(result.blockingFirst(), is(blogUrl));
     }
 
 
@@ -131,9 +132,9 @@ public class LoginTest {
                     .build();
         }).build();
 
-        rx.Observable<String> result = NetworkUtils.checkGhostBlog(httpUrl, httpClient);
+        Observable<String> result = NetworkUtils.checkGhostBlog(httpUrl, httpClient);
 
-        assertThat(result.toBlocking().first(), urlMatches(httpsUrl));
+        assertThat(result.blockingFirst(), urlMatches(httpsUrl));
     }
 
     @Test
@@ -142,9 +143,9 @@ public class LoginTest {
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        rx.Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.toBlocking().first(), is(blogUrl));
+        assertThat(result.blockingFirst(), is(blogUrl));
     }
 
     @Test
@@ -162,9 +163,9 @@ public class LoginTest {
                     .build();
         }).build();
 
-        rx.Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.toBlocking().first(), is(blogUrl));
+        assertThat(result.blockingFirst(), is(blogUrl));
     }
 
 

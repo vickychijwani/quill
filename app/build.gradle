@@ -95,16 +95,13 @@ tasks.whenTaskAdded { task ->
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-
     // reactive extensions (rx)
-    compile "io.reactivex:rxandroid:0.24.0"
-    compile "com.trello:rxlifecycle:0.1.0"
-    compile "com.trello:rxlifecycle-components:0.1.0"
+    compile "io.reactivex.rxjava2:rxjava:2.0.6"
+    compile "io.reactivex.rxjava2:rxandroid:2.0.1"
 
     // networking / communication / data storage
     compile("com.squareup.retrofit2:retrofit:2.1.0") {
-        exclude module: 'okhttp'
+        exclude module: "okhttp"
     }
     compile "com.squareup.retrofit2:converter-gson:2.1.0"
     compile "com.squareup.okhttp3:okhttp:$rootProject.ext.okhttpVersion"
