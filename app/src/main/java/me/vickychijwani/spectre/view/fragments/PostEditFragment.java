@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,7 +25,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -35,6 +38,10 @@ import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
@@ -49,6 +56,7 @@ import me.vickychijwani.spectre.model.entity.PendingAction;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.network.ApiFailure;
+import me.vickychijwani.spectre.util.functions.Action1;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.EditTextSelectionState;
 import me.vickychijwani.spectre.util.EditTextUtils;
@@ -62,13 +70,6 @@ import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnNeverAskAgain;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
-import rx.Observable;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Actions;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.Subscriptions;
 
 @RuntimePermissions
 public class PostEditFragment extends BaseFragment implements
@@ -116,7 +117,7 @@ public class PostEditFragment extends BaseFragment implements
 
     // image insert / upload
     private static final int REQUEST_CODE_IMAGE_PICK = 1;
-    private Subscription mUploadSubscription = null;
+    private Disposable mUploadDisposable = null;
     private ProgressDialog mUploadProgress = null;
     private EditTextSelectionState mMarkdownEditSelectionState;
     private boolean mbFileStorageEnabled = true;
@@ -230,9 +231,9 @@ public class PostEditFragment extends BaseFragment implements
         super.onPause();
 
         // unsubscribe from observable and hide progress bar
-        if (mUploadSubscription != null) {
-            mUploadSubscription.unsubscribe();
-            mUploadSubscription = null;
+        if (mUploadDisposable != null && !mUploadDisposable.isDisposed()) {
+            mUploadDisposable.dispose();
+            mUploadDisposable = null;
             Toast.makeText(mActivity, R.string.image_upload_failed, Toast.LENGTH_SHORT).show();
         }
         if (mUploadProgress != null) {
@@ -370,7 +371,41 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     public void onInsertImageUrlClicked(Action1<String> resultAction) {
-        Observables.getImageUrlDialog(mActivity).subscribe((imageUrl) -> {
+        // ok to pass null here: https://possiblemobile.com/2013/05/layout-inflation-as-intended/
+        @SuppressLint("InflateParams")
+        final View dialogView = mActivity.getLayoutInflater().inflate(R.layout.dialog_image_insert,
+                null, false);
+        final TextView imageUrlView = (TextView) dialogView.findViewById(R.id.image_url);
+
+        // hack for word wrap with "Done" IME action! see http://stackoverflow.com/a/13563946/504611
+        imageUrlView.setHorizontallyScrolling(false);
+        imageUrlView.setMaxLines(20);
+
+        Observable<String> imageUrlObservable = Observables.getDialog(emitter -> {
+            AlertDialog dialog = new AlertDialog.Builder(mActivity)
+                    .setTitle(mActivity.getString(R.string.insert_image))
+                    .setView(dialogView)
+                    .setCancelable(true)
+                    .setPositiveButton(R.string.insert, (d, which) -> {
+                        emitter.onNext(imageUrlView.getText().toString());
+                        emitter.onComplete();
+                    })
+                    .setNegativeButton(android.R.string.cancel, (d, which) -> {
+                        d.dismiss();
+                        emitter.onComplete();
+                    })
+                    .create();
+            imageUrlView.setOnEditorActionListener((view, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+                    return true;
+                }
+                return false;
+            });
+            return dialog;
+        });
+
+        imageUrlObservable.subscribe((imageUrl) -> {
             resultAction.call(imageUrl);
             mMarkdownEditSelectionState = null;
             KeyboardUtils.focusAndShowKeyboard(mActivity, mPostEditView);
@@ -415,15 +450,15 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     public void uploadImage(@NonNull Uri uri) {
-        if (mUploadSubscription != null) {
-            mUploadSubscription.unsubscribe();
-            mUploadSubscription = null;
+        if (mUploadDisposable != null && !mUploadDisposable.isDisposed()) {
+            mUploadDisposable.dispose();
+            mUploadDisposable = null;
         }
 
         mUploadProgress = ProgressDialog.show(mActivity, null,
                 mActivity.getString(R.string.uploading), true, false);
 
-        mUploadSubscription = Observables
+        mUploadDisposable = Observables
                 .getFileUploadMetadataFromUri(mActivity.getContentResolver(), uri)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -432,7 +467,7 @@ public class PostEditFragment extends BaseFragment implements
                 }, (error) -> {
                     onFileUploadErrorEvent(new FileUploadErrorEvent(new ApiFailure(error)));
                 }, () -> {
-                    mUploadSubscription = null;
+                    mUploadDisposable = null;
                 });
     }
 
@@ -559,7 +594,8 @@ public class PostEditFragment extends BaseFragment implements
             onPublishUnpublishClicked();
         } else {
             // case (2): saving edits to a scheduled or published post
-            onSaveClicked().subscribe(Actions.empty());
+            // empty subscribe() because we don't care about the Observable in this case
+            onSaveClicked().subscribe();
         }
     }
 
@@ -572,22 +608,22 @@ public class PostEditFragment extends BaseFragment implements
         if (mPost.isDraft()) {
             return Observable.just(saveToServerExplicitly());
         }
-        return Observable.create((subscriber) -> {
+        return Observable.create(emitter -> {
             // confirm save for scheduled and published posts
             final AlertDialog alertDialog = new AlertDialog.Builder(mActivity)
                     .setMessage(getString(R.string.alert_save_msg))
                     .setPositiveButton(R.string.alert_save_yes, (dialog, which) -> {
-                        subscriber.onNext(saveToServerExplicitly());
-                        subscriber.onCompleted();
+                        emitter.onNext(saveToServerExplicitly());
+                        emitter.onComplete();
                     })
                     .setNegativeButton(R.string.alert_save_no, (dialog, which) -> {
                         dialog.dismiss();
-                        subscriber.onNext(false);
-                        subscriber.onCompleted();
+                        emitter.onNext(false);
+                        emitter.onComplete();
                     })
                     .create();
             // dismiss the dialog automatically if this subscriber unsubscribes
-            subscriber.add(Subscriptions.create(alertDialog::dismiss));
+            emitter.setCancellable(alertDialog::dismiss);
             alertDialog.show();
         });
     }

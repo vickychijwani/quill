@@ -35,6 +35,10 @@ import java.util.Vector;
 import javax.net.ssl.SSLHandshakeException;
 
 import butterknife.Bind;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.error.LoginFailedException;
@@ -50,10 +54,6 @@ import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import okhttp3.OkHttpClient;
 import retrofit2.Response;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 
 
 /**
@@ -161,7 +161,7 @@ public class LoginActivity extends BaseActivity implements
         mValidGhostBlogUrl = null;
         mCheckBlogUrlListeners.add(listener);
         listener.onCheckStarted();
-        Action1<Throwable> invalidGhostUrlHandler = (e) -> {
+        Consumer<Throwable> invalidGhostUrlHandler = (e) -> {
             mValidGhostBlogUrl = null;
             Log.e(TAG, Log.getStackTraceString(e));
             listener.setCheckBlogUrlSubscription(null);
@@ -180,11 +180,11 @@ public class LoginActivity extends BaseActivity implements
     }
 
     private abstract class CheckBlogUrlListener {
-        private Subscription mCheckBlogUrlSubscription = null;
-        public Subscription getCheckBlogUrlSubscription() {
+        private Disposable mCheckBlogUrlSubscription = null;
+        public Disposable getCheckBlogUrlSubscription() {
             return mCheckBlogUrlSubscription;
         }
-        public void setCheckBlogUrlSubscription(@Nullable Subscription s) {
+        public void setCheckBlogUrlSubscription(@Nullable Disposable s) {
             mCheckBlogUrlSubscription = s;
         }
         abstract void onReset();
@@ -194,12 +194,12 @@ public class LoginActivity extends BaseActivity implements
     }
 
     private void tryUrl(@Nullable @NetworkUtils.Scheme String scheme, @NonNull String blogUrl,
-                        @NonNull CheckBlogUrlListener listener, @NonNull Action1<Throwable> errorHandler) {
+                        @NonNull CheckBlogUrlListener listener, @NonNull Consumer<Throwable> errorHandler) {
         if (scheme != null) {
             blogUrl = scheme + blogUrl;
         }
         OkHttpClient okHttpClient = SpectreApplication.getInstance().getOkHttpClient();
-        Subscription subscription = NetworkUtils.checkGhostBlog(blogUrl, okHttpClient)
+        Disposable subscription = NetworkUtils.checkGhostBlog(blogUrl, okHttpClient)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((validGhostBlogUrl) -> {
@@ -214,11 +214,11 @@ public class LoginActivity extends BaseActivity implements
     private void stopCheckingBlogUrl() {
         List<CheckBlogUrlListener> listenersToRemove = new ArrayList<>();
         for (CheckBlogUrlListener listener : mCheckBlogUrlListeners) {
-            Subscription subscription = listener.getCheckBlogUrlSubscription();
-            if (subscription != null && !subscription.isUnsubscribed()) {
+            Disposable subscription = listener.getCheckBlogUrlSubscription();
+            if (subscription != null && !subscription.isDisposed()) {
                 mValidGhostBlogUrl = null;
                 // cancel any ongoing network requests
-                subscription.unsubscribe();
+                subscription.dispose();
                 listener.setCheckBlogUrlSubscription(null);
                 listener.onReset();
                 listenersToRemove.add(listener); // can't remove directly, produces ConcurrentModificationException on next iteration

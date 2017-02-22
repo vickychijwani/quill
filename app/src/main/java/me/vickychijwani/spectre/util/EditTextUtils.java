@@ -5,7 +5,7 @@ import android.text.Editable;
 import android.util.Patterns;
 import android.widget.EditText;
 
-import rx.functions.Action1;
+import me.vickychijwani.spectre.util.functions.Action1;
 
 public final class EditTextUtils {
 

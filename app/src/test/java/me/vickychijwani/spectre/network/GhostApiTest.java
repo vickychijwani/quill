@@ -24,13 +24,13 @@ import me.vickychijwani.spectre.network.entity.RefreshReqBody;
 import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
+import me.vickychijwani.spectre.util.functions.Action2;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import rx.functions.Action2;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.Matchers.allOf;

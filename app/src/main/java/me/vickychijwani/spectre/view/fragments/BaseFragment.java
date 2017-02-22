@@ -3,6 +3,7 @@ package me.vickychijwani.spectre.view.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,13 +12,12 @@ import android.view.ViewGroup;
 import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
 import com.squareup.picasso.Picasso;
-import com.trello.rxlifecycle.components.support.RxFragment;
 
 import butterknife.ButterKnife;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BusProvider;
 
-public abstract class BaseFragment extends RxFragment {
+public abstract class BaseFragment extends Fragment {
 
     private static final String TAG = "BaseFragment";
 

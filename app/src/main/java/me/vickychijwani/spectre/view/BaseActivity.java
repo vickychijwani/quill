@@ -10,6 +10,7 @@ import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -18,22 +19,25 @@ import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
-import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 import com.tsengvn.typekit.TypekitContextWrapper;
 
 import java.util.List;
 
 import butterknife.ButterKnife;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.event.PasswordChangedEvent;
 import me.vickychijwani.spectre.view.fragments.BaseFragment;
 
-public abstract class BaseActivity extends RxAppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
     private static final String TAG = "BaseActivity";
     private PasswordChangedEventHandler mPasswordChangedEventHandler = null;
+
+    private final CompositeDisposable mOnPauseDisposables = new CompositeDisposable();
 
     protected Bus getBus() {
         return BusProvider.getBus();
@@ -41,6 +45,10 @@ public abstract class BaseActivity extends RxAppCompatActivity {
 
     protected Picasso getPicasso() {
         return SpectreApplication.getInstance().getPicasso();
+    }
+
+    protected void disposeOnPause(Disposable d) {
+        mOnPauseDisposables.add(d);
     }
 
     @Override
@@ -75,6 +83,7 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     protected void onPause() {
         super.onPause();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onPause()");
+        mOnPauseDisposables.dispose();
     }
 
     @Override

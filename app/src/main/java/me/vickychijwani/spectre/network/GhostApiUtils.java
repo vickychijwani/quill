@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
+import me.vickychijwani.spectre.util.functions.Action1;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
@@ -22,7 +23,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import rx.functions.Action1;
 
 final class GhostApiUtils {
 

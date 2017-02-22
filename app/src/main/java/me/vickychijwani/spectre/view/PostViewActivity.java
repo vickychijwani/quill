@@ -44,6 +44,8 @@ import java.util.Set;
 import butterknife.Bind;
 import butterknife.BindDimen;
 import butterknife.ButterKnife;
+import io.reactivex.Observable;
+import io.reactivex.functions.Consumer;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.event.DeletePostEvent;
@@ -58,11 +60,10 @@ import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
+import me.vickychijwani.spectre.util.functions.Action1;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
 import me.vickychijwani.spectre.view.widget.ChipsEditText;
-import rx.Observable;
-import rx.functions.Action1;
 
 public class PostViewActivity extends BaseActivity implements
         ViewPager.OnPageChangeListener,
@@ -302,7 +303,7 @@ public class PostViewActivity extends BaseActivity implements
         } else {
             waitForNetworkObservable = Observable.just(false);
         }
-        Action1<Boolean> waitForNetworkAction = isNetworkCallPending -> {
+        Consumer<Boolean> waitForNetworkAction = isNetworkCallPending -> {
             if (isNetworkCallPending) {
                 mProgressDialog = new ProgressDialog(this);
                 mProgressDialog.setIndeterminate(true);
@@ -315,9 +316,8 @@ public class PostViewActivity extends BaseActivity implements
                 startBrowserActivity(PostUtils.getPostUrl(mPost));
             }
         };
-        waitForNetworkObservable
-                .compose(bindToLifecycle())         // ensure unsubscription on activity pause
-                .subscribe(waitForNetworkAction);
+        disposeOnPause(
+                waitForNetworkObservable.subscribe(waitForNetworkAction));
     }
 
     private void onDeleteClicked() {

@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
+import io.reactivex.Observable;
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmModel;
@@ -93,6 +94,9 @@ import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
+import me.vickychijwani.spectre.util.functions.Action0;
+import me.vickychijwani.spectre.util.functions.Action1;
+import me.vickychijwani.spectre.util.functions.Action2;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
@@ -106,10 +110,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import rx.Observable;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Action2;
 
 public class NetworkService {
 
@@ -527,10 +527,10 @@ public class NetworkService {
                     // delete posts that are no longer present on the server
                     // this assumes that postList.posts is a list of ALL posts on the server
                     // FIXME time complexity is quadratic in the number of posts!
-                    Observable.from(mRealm.where(Post.class).findAll())
-                            .filter(cached -> postList.indexOf(cached.getUuid()) == -1)
-                            .toList()
-                            .forEach(NetworkService.this::deleteModels);
+                    Iterable<Post> deletedPosts = Observable.fromIterable(mRealm.where(Post.class).findAll())
+                            .filter(cached -> ! postList.contains(cached.getUuid()))
+                            .blockingIterable();
+                    deleteModels(deletedPosts);
 
                     // skip edited posts because they've not yet been uploaded
                     RealmResults<Post> localOnlyEdits = mRealm.where(Post.class)
@@ -548,7 +548,7 @@ public class NetworkService {
                     }
 
                     // make sure drafts have a publishedAt of FAR_FUTURE so they're sorted to the top
-                    Observable.from(postList.posts)
+                    Observable.fromIterable(postList.posts)
                             .filter(post -> post.getPublishedAt() == null)
                             .forEach(post -> post.setPublishedAt(DateTimeUtils.FAR_FUTURE));
 
