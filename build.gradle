@@ -20,6 +20,7 @@ allprojects {
 }
 
 ext {
+    retrofitVersion = '2.2.0'
     okhttpVersion = '3.6.0'
     supportLibVersion = '25.1.1'
     permissionsDispatcherVersion = '2.3.1'

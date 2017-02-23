@@ -100,10 +100,10 @@ dependencies {
     compile "io.reactivex.rxjava2:rxandroid:2.0.1"
 
     // networking / communication / data storage
-    compile("com.squareup.retrofit2:retrofit:2.1.0") {
+    compile("com.squareup.retrofit2:retrofit:$rootProject.ext.retrofitVersion") {
         exclude module: "okhttp"
     }
-    compile "com.squareup.retrofit2:converter-gson:2.1.0"
+    compile "com.squareup.retrofit2:converter-gson:$rootProject.ext.retrofitVersion"
     compile "com.squareup.okhttp3:okhttp:$rootProject.ext.okhttpVersion"
     compile "com.squareup.okhttp3:logging-interceptor:$rootProject.ext.okhttpVersion"
     compile "com.squareup.picasso:picasso:2.5.2"
