@@ -48,6 +48,10 @@ interface GhostApiService {
                                   @Header("If-None-Match") String etag);
 
     // posts
+    @POST("posts/?include=tags")
+    Call<PostList> createPost(@Header("Authorization") String authHeader,
+                              @Body PostStubList posts);
+
     // FIXME (issue #81) only allowing N posts right now to avoid too much data transfer
     @GET("posts/?status=all&staticPages=all&include=tags")
     Call<PostList> getPosts(@Header("Authorization") String authHeader,
@@ -55,10 +59,6 @@ interface GhostApiService {
 
     @GET("posts/{id}/?status=all&include=tags")
     Call<PostList> getPost(@Header("Authorization") String authHeader, @Path("id") int id);
-
-    @POST("posts/?include=tags")
-    Call<PostList> createPost(@Header("Authorization") String authHeader,
-                              @Body PostStubList posts);
 
     @PUT("posts/{id}/?include=tags")
     Call<PostList> updatePost(@Header("Authorization") String authHeader,
