@@ -2,7 +2,6 @@ package me.vickychijwani.spectre.model.entity;
 
 import io.realm.RealmList;
 import io.realm.RealmModel;
-import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.Required;
@@ -11,11 +10,8 @@ import io.realm.annotations.Required;
 @RealmClass
 public class User implements RealmModel {
 
-    @PrimaryKey @Index
-    private int id;
-
-    @Required
-    private String uuid;
+    @PrimaryKey
+    private String id;
 
     @Required
     private String name;
@@ -32,20 +28,12 @@ public class User implements RealmModel {
     private RealmList<Role> roles;
 
     // accessors
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
-    }
-
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
     }
 
     public String getName() {

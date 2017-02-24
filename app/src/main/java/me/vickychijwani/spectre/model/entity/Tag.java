@@ -15,8 +15,8 @@ import io.realm.annotations.Required;
 @RealmClass
 public class Tag implements RealmModel, Parcelable {
 
-    @PrimaryKey @Required
-    private String uuid = null;
+    @PrimaryKey
+    private String id = null;
 
     @Required
     private String name;
@@ -41,7 +41,7 @@ public class Tag implements RealmModel, Parcelable {
 
     // TODO remember to update this, equals, Parcelable methods, and DB migration whenever fields are changed!
     public Tag(@NonNull Tag other) {
-        this.setUuid(other.getUuid());
+        this.setId(other.getId());
         this.setName(other.getName());
         this.setSlug(other.getSlug());
         this.setDescription(other.getDescription());
@@ -60,7 +60,7 @@ public class Tag implements RealmModel, Parcelable {
 
         Tag tag = (Tag) o;
         if (isHidden() != tag.isHidden()) return false;
-        if (getUuid() != null ? !getUuid().equals(tag.getUuid()) : tag.getUuid() != null)
+        if (getId() != null ? !getId().equals(tag.getId()) : tag.getId() != null)
             return false;
         if (getName() != null ? !getName().equals(tag.getName()) : tag.getName() != null)
             return false;
@@ -87,7 +87,7 @@ public class Tag implements RealmModel, Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.uuid);
+        dest.writeString(this.id);
         dest.writeString(this.name);
         dest.writeString(this.slug);
         dest.writeString(this.description);
@@ -100,7 +100,7 @@ public class Tag implements RealmModel, Parcelable {
     }
 
     protected Tag(Parcel in) {
-        this.uuid = in.readString();
+        this.id = in.readString();
         this.name = in.readString();
         this.slug = in.readString();
         this.description = in.readString();
@@ -128,12 +128,12 @@ public class Tag implements RealmModel, Parcelable {
 
 
     // accessors
-    public String getUuid() {
-        return uuid;
+    public String getId() {
+        return id;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {

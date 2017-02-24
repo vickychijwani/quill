@@ -169,8 +169,7 @@ public final class GhostApiTest {
             assertThat(response.code(), is(HTTP_OK));
             assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
             assertThat(user, notNullValue());
-            //assertThat(user.getId(), instanceOf(Integer.class)); // no-op, int can't be null
-            assertThat(user.getUuid(), notNullValue());
+            assertThat(user.getId(), notNullValue());
             assertThat(user.getName(), notNullValue());
             assertThat(user.getSlug(), notNullValue());
             assertThat(user.getEmail(), is(TEST_USER));
@@ -180,7 +179,6 @@ public final class GhostApiTest {
 
             Role role = user.getRoles().first();
             //assertThat(role.getId(), instanceOf(Integer.class)); // no-op, int can't be null
-            assertThat(role.getUuid(), notNullValue());
             assertThat(role.getName(), notNullValue());
             assertThat(role.getDescription(), notNullValue());
         });

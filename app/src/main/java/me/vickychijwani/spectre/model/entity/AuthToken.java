@@ -10,7 +10,7 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 @RealmClass
 public class AuthToken implements RealmModel {
 
-    @PrimaryKey @Required   // intentional; there should only ever be one auth token
+    @PrimaryKey   // intentional; there should only ever be one auth token
     private String tokenType = "Bearer";
 
     @Required

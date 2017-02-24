@@ -32,7 +32,6 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.Sort;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.error.ExpiredTokenUsedException;
@@ -513,11 +512,11 @@ public class NetworkService {
                     if (users.size() > 0) {
                         User user = users.first();
                         if (user.hasOnlyAuthorRole()) {
-                            int currentUser = user.getId();
+                            String currentUser = user.getId();
                             // reverse iteration because in forward iteration, indices change on deleting
                             for (int i = postList.posts.size() - 1; i >= 0; --i) {
                                 Post post = postList.posts.get(i);
-                                if (post.getAuthor() != currentUser) {
+                                if (currentUser.equals(post.getAuthor())) {
                                     postList.posts.remove(i);
                                 }
                             }
@@ -528,7 +527,7 @@ public class NetworkService {
                     // this assumes that postList.posts is a list of ALL posts on the server
                     // FIXME time complexity is quadratic in the number of posts!
                     Iterable<Post> deletedPosts = Observable.fromIterable(mRealm.where(Post.class).findAll())
-                            .filter(cached -> ! postList.contains(cached.getUuid()))
+                            .filter(cached -> ! postList.contains(cached.getId()))
                             .blockingIterable();
                     deleteModels(deletedPosts);
 
@@ -541,7 +540,7 @@ public class NetworkService {
                             .findAll();
                     for (int i = postList.posts.size() - 1; i >= 0; --i) {
                         for (int j = 0; j < localOnlyEdits.size(); ++j) {
-                            if (postList.posts.get(i).getUuid().equals(localOnlyEdits.get(j).getUuid())) {
+                            if (postList.posts.get(i).getId().equals(localOnlyEdits.get(j).getId())) {
                                 postList.posts.remove(i);
                             }
                         }
@@ -589,7 +588,7 @@ public class NetworkService {
         Crashlytics.log(Log.DEBUG, TAG, "[onCreatePostEvent] creating new post");
         Post newPost = new Post();
         newPost.addPendingAction(PendingAction.CREATE);
-        newPost.setUuid(getTempUniqueId(Post.class));
+        newPost.setId(getTempUniqueId(Post.class));
         createOrUpdateModel(newPost);                    // save the local post to db
         getBus().post(new PostCreatedEvent(newPost));
         getBus().post(new SyncPostsEvent(false));
@@ -619,7 +618,7 @@ public class NetworkService {
                 .findAll());
         final List<Post> localNewPosts = copyPosts(mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.CREATE)
-                .findAllSorted("uuid", Sort.DESCENDING));
+                .findAll());
         final List<Post> localEditedPosts = copyPosts(mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.EDIT)
                 .findAll());
@@ -651,7 +650,7 @@ public class NetworkService {
                 for (int i = 0; i < postsToDelete.size(); ++i) {
                     Post post = postsToDelete.get(i);
                     if (i > 0) deleteQuery.or();
-                    deleteQuery.equalTo("uuid", post.getUuid());
+                    deleteQuery.equalTo("id", post.getId());
                 }
                 deleteModels(deleteQuery.findAll());
             }
@@ -755,7 +754,7 @@ public class NetworkService {
                         PostList postList = response.body();
                         createOrUpdateModel(postList.posts);
                         postUploadQueue.removeFirstOccurrence(editedPost);
-                        getBus().post(new PostSyncedEvent(editedPost.getUuid()));
+                        getBus().post(new PostSyncedEvent(editedPost.getId()));
                         if (postUploadQueue.isEmpty()) syncFinishedCB.call();
                     } else {
                         onFailure.call(editedPost, new ApiFailure<>(response));
@@ -834,8 +833,8 @@ public class NetworkService {
 
         // save tags to Realm first
         for (Tag tag : updatedPost.getTags()) {
-            if (tag.getUuid() == null) {
-                tag.setUuid(getTempUniqueId(Tag.class));
+            if (tag.getId() == null) {
+                tag.setId(getTempUniqueId(Tag.class));
                 createOrUpdateModel(tag);
             }
         }
@@ -867,7 +866,7 @@ public class NetworkService {
 
     @Subscribe
     public void onDeletePostEvent(DeletePostEvent event) {
-        int postId = event.post.getId();
+        String postId = event.post.getId();
         Crashlytics.log(Log.DEBUG, TAG, "[onDeletePostEvent] post id = " + postId);
 
         Post realmPost = mRealm.where(Post.class).equalTo("id", postId).findFirst();
@@ -1262,7 +1261,7 @@ public class NetworkService {
     @NonNull
     private <T extends RealmModel> String getTempUniqueId(Class<T> clazz) {
         int tempId = Integer.MAX_VALUE;
-        while (mRealm.where(clazz).equalTo("uuid", String.valueOf(tempId)).findAll().size() > 0) {
+        while (mRealm.where(clazz).equalTo("id", String.valueOf(tempId)).findAll().size() > 0) {
             --tempId;
         }
         return String.valueOf(tempId);

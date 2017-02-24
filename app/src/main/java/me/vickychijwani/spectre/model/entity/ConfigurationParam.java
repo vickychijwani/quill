@@ -8,7 +8,7 @@ import io.realm.annotations.Required;
 @RealmClass
 public class ConfigurationParam implements RealmModel {
 
-    @PrimaryKey @Required
+    @PrimaryKey
     private String key;
 
     @Required

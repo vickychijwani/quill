@@ -19,9 +19,9 @@ public class PostList {
         return postList;
     }
 
-    public boolean contains(@NonNull String uuid) {
+    public boolean contains(@NonNull String id) {
         for (Post post : posts) {
-            if (uuid.equals(post.getUuid())) {
+            if (id.equals(post.getId())) {
                 return true;
             }
         }

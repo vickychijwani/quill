@@ -78,9 +78,8 @@ public class PostUtils {
             return -lhs.getCreatedAt().compareTo(rhs.getCreatedAt());
         }
 
-        // this is just paranoia
-        // higher id above, because it was likely created later
-        return -lhs.getId() + rhs.getId();
+        // if all else fails
+        return -1;
     };
 
     @SuppressWarnings({"RedundantIfStatement", "OverlyComplexMethod"})

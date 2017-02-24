@@ -678,7 +678,7 @@ public class PostEditFragment extends BaseFragment implements
     public void onPostSavedEvent(PostSavedEvent event) {
         // FIXME the assumption is that SavePostEvent and PostSavedEvent are synchronously sent one
         // FIXME after the other, which breaks the EventBus' "don't assume synchronous" contract
-        if (mPost.getUuid().equals(event.post.getUuid())) {
+        if (mPost.getId().equals(event.post.getId())) {
             mLastSavedPost = new Post(mPost);
         }
 

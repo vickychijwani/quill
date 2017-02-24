@@ -95,7 +95,7 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public long getItemId(int position) {
         if (getItemViewType(position) == TYPE_POST) {
-            return ((Post) getItem(position)).getUuid().hashCode();
+            return ((Post) getItem(position)).getId().hashCode();
         } else {
             return -9999;   // footer
         }

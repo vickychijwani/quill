@@ -2,10 +2,10 @@ package me.vickychijwani.spectre.event;
 
 public class PostSyncedEvent {
 
-    public final String uuid;
+    public final String id;
 
-    public PostSyncedEvent(String uuid) {
-        this.uuid = uuid;
+    public PostSyncedEvent(String id) {
+        this.id = id;
     }
 
 }

@@ -58,14 +58,14 @@ interface GhostApiService {
                             @Header("If-None-Match") String etag, @Query("limit") int numPosts);
 
     @GET("posts/{id}/?status=all&include=tags")
-    Call<PostList> getPost(@Header("Authorization") String authHeader, @Path("id") int id);
+    Call<PostList> getPost(@Header("Authorization") String authHeader, @Path("id") String id);
 
     @PUT("posts/{id}/?include=tags")
     Call<PostList> updatePost(@Header("Authorization") String authHeader,
-                              @Path("id") int id, @Body PostStubList posts);
+                              @Path("id") String id, @Body PostStubList posts);
 
     @DELETE("posts/{id}/")
-    Call<String> deletePost(@Header("Authorization") String authHeader, @Path("id") int id);
+    Call<String> deletePost(@Header("Authorization") String authHeader, @Path("id") String id);
 
     // settings / configuration
     @GET("settings/?type=blog")
