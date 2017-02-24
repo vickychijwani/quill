@@ -47,9 +47,8 @@ import static org.junit.Assert.assertThat;
 /**
  * PURPOSE: contract tests for the latest version of the Ghost API that we support
  *
- * Run these to detect ANY behaviour changes (breaking or non-breaking) in the
- * API when a new Ghost version comes out. These are integration-style tests
- * that run against an actual Ghost instance.
+ * Run these against a live Ghost instance to detect ANY behaviour changes (breaking or
+ * non-breaking) in the API when a new Ghost version comes out.
  */
 
 public final class GhostApiTest {
@@ -113,7 +112,7 @@ public final class GhostApiTest {
             assertThat(refreshedToken.getTokenType(), is("Bearer"));
             assertThat(refreshedToken.getAccessToken(), notNullValue());
             assertThat(refreshedToken.getRefreshToken(), isEmptyOrNullString());
-            assertThat(refreshedToken.getExpiresIn(), is(3600));
+            assertThat(refreshedToken.getExpiresIn(), is(2628000));
 
             RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
                     new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, refreshedToken.getRefreshToken(), clientSecret),
@@ -235,6 +234,9 @@ public final class GhostApiTest {
         String clientSecret = getClientSecret(api);
         AuthReqBody credentials = new AuthReqBody(TEST_USER, TEST_PWD, clientSecret);
         Response<AuthToken> response = execute(api.getAuthToken(credentials));
+        if (!response.isSuccessful()) {
+            throw new RuntimeException("Failed to get auth token");
+        }
         AuthToken authToken = response.body();
         callback.call(authToken, response);
         RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
