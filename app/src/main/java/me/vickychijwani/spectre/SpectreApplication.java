@@ -21,6 +21,7 @@ import java.io.IOException;
 import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.exceptions.RealmMigrationNeededException;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
@@ -44,6 +45,8 @@ public class SpectreApplication extends Application {
     @SuppressWarnings("FieldCanBeLocal")
     private AnalyticsService mAnalyticsService = null;
 
+    private int mHACKOldSchemaVersion = -1;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -62,14 +65,31 @@ public class SpectreApplication extends Application {
         mAnalyticsService.start();
     }
 
+    public void setOldRealmSchemaVersion(int oldSchemaVersion) {
+        mHACKOldSchemaVersion = oldSchemaVersion;
+    }
+
     private void setupRealm() {
-        final int DB_SCHEMA_VERSION = 3;
+        final int DB_SCHEMA_VERSION = 4;
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder()
                 .schemaVersion(DB_SCHEMA_VERSION)
                 .migration(new DatabaseMigration())
                 .build();
         Realm.setDefaultConfiguration(config);
+
+        // open the Realm to check if a migration is needed
+        try {
+            Realm realm = Realm.getDefaultInstance();
+            realm.close();
+        } catch (RealmMigrationNeededException e) {
+            // delete existing Realm if we're below v4
+            if (mHACKOldSchemaVersion >= 0 && mHACKOldSchemaVersion < 4) {
+                Realm.deleteRealm(config);
+                mHACKOldSchemaVersion = -1;
+            }
+        }
+
         AnalyticsService.logDbSchemaVersion(String.valueOf(DB_SCHEMA_VERSION));
     }
 

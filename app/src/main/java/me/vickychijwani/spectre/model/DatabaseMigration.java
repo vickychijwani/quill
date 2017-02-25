@@ -1,5 +1,6 @@
 package me.vickychijwani.spectre.model;
 
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -8,10 +9,15 @@ import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
 import io.realm.FieldAttribute;
 import io.realm.RealmMigration;
+import io.realm.RealmObjectSchema;
 import io.realm.RealmResults;
 import io.realm.RealmSchema;
+import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.model.entity.ETag;
 import me.vickychijwani.spectre.model.entity.Post;
+import me.vickychijwani.spectre.pref.AppState;
+import me.vickychijwani.spectre.pref.UserPrefs;
+import me.vickychijwani.spectre.util.functions.Action3;
 
 public class DatabaseMigration implements RealmMigration {
 
@@ -97,6 +103,42 @@ public class DatabaseMigration implements RealmMigration {
             }
             ++oldVersion;
         }
+
+        if (oldVersion == 3) {
+            // Ghost 1.0 upgrade, drop all data
+            Crashlytics.log(Log.WARN, TAG, "DROPPING ALL DATA");
+            final SpectreApplication app = SpectreApplication.getInstance();
+            app.setOldRealmSchemaVersion(3);
+
+            // clear logged in state
+            AppState.getInstance(app).clear(AppState.Key.LOGGED_IN);
+            UserPrefs.getInstance(app).clear(UserPrefs.Key.USERNAME);
+            UserPrefs.getInstance(app).clear(UserPrefs.Key.PASSWORD);
+            UserPrefs.getInstance(app).clear(UserPrefs.Key.PERMALINK_FORMAT);
+
+            ++oldVersion;
+        }
+    }
+
+    private void changeFieldType(RealmObjectSchema objectSchema, String fieldName,
+                                 Class newType, @Nullable FieldAttribute attribute,
+                                 Action3<DynamicRealmObject, String, String> transformation) {
+        String tempFieldName = fieldName + "_temp";
+        if (attribute != null) {
+            if (attribute == FieldAttribute.PRIMARY_KEY && objectSchema.hasPrimaryKey()) {
+                // remove existing primary key
+                objectSchema.removePrimaryKey();
+            }
+            objectSchema.addField(tempFieldName, newType, attribute);
+        } else {
+            objectSchema.addField(tempFieldName, newType);
+        }
+        objectSchema
+                .transform(obj -> {
+                    transformation.call(obj, fieldName, tempFieldName);
+                })
+                .removeField(fieldName)
+                .renameField(tempFieldName, fieldName);
     }
 
 }
