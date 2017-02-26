@@ -1,22 +1,18 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="login_heading1">サインイン</string>
-    <string name="login_heading2">ブログ</string>
-
     <string name="prompt_blog_url">ブログのアドレス</string>
     <string name="prompt_email">メールアドレス</string>
     <string name="prompt_password">パスワード</string>
     <string name="action_sign_in">サインイン</string>
 
-    <string name="error_invalid_url">この URL は無効です。</string>
-    <string name="error_invalid_email">このメールアドレスは無効です。</string>
-    <string name="error_invalid_password">このパスワードは短すぎます。</string>
-    <string name="error_field_required">このフィールドは必須です。</string>
+    <string name="error_invalid_email">このメールアドレスは無効です</string>
+    <string name="error_invalid_password">このパスワードは短すぎます</string>
+    <string name="error_field_required">このフィールドは必須です</string>
 
-    <string name="no_such_blog">%s/ghost に Ghost admin がありません。</string>
+    <string name="no_such_blog">%s/ghost に Ghost admin がありません</string>
     <string name="login_unexpected_error">サインイン中に予期しないエラー。もう一度やり直してください。</string>
     <string name="login_connection_error">%s/ghost に接続できませんでした。もう一度やり直してください。</string>
-    <string name="login_ssl_unsupported">あなたのブログは https:// (SSL) をサポートしていません。http:// に変更してみてください。</string>
+    <string name="login_ssl_unsupported">あなたのブログは https:// (SSL) をサポートしていません</string>
     <string name="logout">ログアウト</string>
     <string name="password_changed">パスワードを変更しましたか? そのパスワードでログインできませんでした。</string>
     <string name="unsynced_changes_msg">今ログアウトすると、未同期の変更がすべて失われます</string>
@@ -29,7 +25,6 @@
     <string name="status_published_auto_saved">変更を自動保存しました。まだ公開されていません</string>
     <string name="status_marked_for_deletion">削除対象としてマークしました。オンラインへの待機中…</string>
     <string name="status_marked_for_deletion_open_error">その記事は削除対象としてマークされていて、開くことができません</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">%1$s は現在、あなたのブログから最新の %2$d 記事のみ読み込みます。古い記事の読み込みサポートを参照したい場合は、&lt;a href=%3$s&gt;Github でこの機能に投票&lt;/a&gt; して、開発の優先を支援してください。</string>
     <string name="send_feedback">フィードバックを送信…</string>
 
     <string name="preview">プレビュー</string>
@@ -77,11 +72,6 @@
     <string name="post_image_load_error">記事の画像を読み込み中にエラー</string>
     <string name="post_feature_hint">この記事をフィーチャー</string>
 
-    <string name="format_bold">太字</string>
-    <string name="format_italic">斜体</string>
-    <string name="format_link">リンクを挿入</string>
-    <string name="format_image">画像を挿入</string>
-
     <string name="insert_image">画像を挿入</string>
     <string name="insert_image_url">URL を挿入</string>
     <string name="image_url">画像の URL</string>
@@ -94,24 +84,10 @@
     <string name="about">アプリについて</string>
 
     <string name="version">バージョン</string>
-    <string name="version_unknown">不明</string>
-    <string name="open_source_libs">オープンソース ライブラリー</string>
-
-    <string name="category_developer">開発者</string>
-    <string name="fork_on_github">Github でフォーク</string>
-    <string name="follow_on_twitter">Twitter でフォロー</string>
-    <string name="visit_website">ウェブサイトを訪問</string>
 
     <string name="category_support_development">開発をサポートする</string>
-    <string name="report_bugs">バグの報告</string>
-    <string name="report_bugs_subtitle">バグを報告したり、新しい機能を提案します</string>
     <string name="play_store">Play ストアで評価する</string>
     <string name="play_store_subtitle">サポートをありがとうございます!</string>
-    <string name="email_developer">開発者にメール</string>
-    <string name="email_developer_subtitle">開発者に直接連絡します</string>
-    <string name="email_subject">%s - フィードバック</string>
-
-    <string name="about_icon_credits">ランチャーアイコン \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
 
     <string name="no_internet_connection">インターネット接続がありません</string>
     <string name="network_timeout">接続がタイムアウトしました</string>
@@ -125,10 +101,7 @@
     <string name="insert">挿入</string>
     <string name="intent_no_apps">このアクションを処理できるアプリがありません</string>
 
-    <string name="user_image">ユーザー画像</string>
-    <string name="cdesc_post_image">記事の画像</string>
-
-<string name="conflict_explanation"><b>記事 <i>%s</i> は競合しています。</b> デバイスのコピーがアップロードされる前に、サーバーで更新されました。どちらのバージョンの記事を保存しますか?</string>
+    <string name="conflict_explanation"><b>記事 <i>%s</i> は競合しています。</b> デバイスのコピーがアップロードされる前に、サーバーで更新されました。どちらのバージョンの記事を保存しますか?</string>
     <string name="conflict_choice_use_device_copy">デバイスのコピーをアップロード</string>
     <string name="conflict_choice_use_server_copy">サーバー側のコピーをダウンロード</string>
     <string name="conflict_last_update_at">最終更新 %s</string>

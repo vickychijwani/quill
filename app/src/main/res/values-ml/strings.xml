@@ -1,19 +1,18 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources><string name="login_heading2">ബ്ലോഗ്</string>
+<resources>
 
     <string name="prompt_blog_url">ബ്ലോഗ് വിലാസം</string>
     <string name="prompt_email">ഇ-മെയിൽ</string>
     <string name="prompt_password">രഹസ്യ വാക്ക്</string>
     <string name="action_sign_in">പ്രവേശിക്കുക</string>
 
-    <string name="error_invalid_url">ഈ URL അസാധുവാണ്.</string>
-    <string name="error_invalid_email">ഈ ഇ-മെയിൽ വിലാസം അസാധുവാണ്.</string>
-    <string name="error_invalid_password">ഈ രഹസ്യ വാക്ക് തീരെ ചെറുതാണ്.</string>
-    <string name="error_field_required">നിർബന്ധമായും പൂരിപ്പിക്കുക.</string>
+    <string name="error_invalid_email">ഈ ഇ-മെയിൽ വിലാസം അസാധുവാണ്</string>
+    <string name="error_invalid_password">ഈ രഹസ്യ വാക്ക് തീരെ ചെറുതാണ്</string>
+    <string name="error_field_required">നിർബന്ധമായും പൂരിപ്പിക്കുക</string>
 
-    <string name="no_such_blog">%s/ghost വിലാസത്തിൽ ഒരു Ghost അഡ്മിൻ ലഭ്യമല്ല.</string>
+    <string name="no_such_blog">%s/ghost വിലാസത്തിൽ ഒരു Ghost അഡ്മിൻ ലഭ്യമല്ല</string>
     <string name="login_unexpected_error">പ്രവേശനമദ്ധ്യേ അപ്രതീക്ഷിതമായ തടസ്സം നേരിട്ടിരിക്കുന്നു. ദയവായി വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="login_connection_error">%s/ghost ലേക്ക് ബന്ധപ്പെടുവാൻ സാധിക്കുന്നില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.</string>
-    <string name="login_ssl_unsupported">താങ്കളുടെ ബ്ലോഗ് https:// മുഖാന്തരം ലഭ്യമല്ല. http:// ലേക്ക് മാറ്റി വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="login_ssl_unsupported">താങ്കളുടെ ബ്ലോഗ് https:// മുഖാന്തരം ലഭ്യമല്ല</string>
     <string name="logout">പുറത്തു കടക്കുക</string>
     </resources>

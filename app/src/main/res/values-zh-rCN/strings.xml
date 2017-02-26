@@ -1,21 +1,18 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools"><string name="login_heading1">登录到您的</string>
-    <string name="login_heading2">博客</string>
-
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="prompt_blog_url">博客地址</string>
     <string name="prompt_email">邮箱</string>
     <string name="prompt_password">密码</string>
     <string name="action_sign_in">登录</string>
 
-    <string name="error_invalid_url">URL 无效。</string>
-    <string name="error_invalid_email">此电子邮件地址无效。</string>
-    <string name="error_invalid_password">密码过短。</string>
-    <string name="error_field_required">此字段不能为空。</string>
+    <string name="error_invalid_email">此电子邮件地址无效</string>
+    <string name="error_invalid_password">密码过短</string>
+    <string name="error_field_required">此字段不能为空</string>
 
-    <string name="no_such_blog">在 %s/ghost 中找不到ghost博客管理页面。</string>
+    <string name="no_such_blog">在 %s/ghost 中找不到ghost博客管理页面</string>
     <string name="login_unexpected_error">登录出错。请重试。</string>
     <string name="login_connection_error">无法连接到 %s/ghost。请重试。</string>
-    <string name="login_ssl_unsupported">您的博客不支持 https:// (SSL)。请尝试更改为 http://。</string>
+    <string name="login_ssl_unsupported">您的博客不支持 https:// (SSL)</string>
     <string name="logout">注销</string>
     <string name="password_changed">我们无法使用这个密码登录你的博客。</string>
     <string name="unsynced_changes_msg">所有未储存的更改会在注销后丢失</string>
@@ -49,10 +46,8 @@
     <string name="discard_changes">放弃更改</string>
     <string name="alert_discard_changes_title">打开文章后，所有的更改就会失效。要打开文章并放弃更改吗？</string>
     <string name="alert_discard_changes_msg">这将无法恢复！</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"已从 %1$s  中仅读取了最新的 %2$d 篇文章。如果你想查看较早的文章（尚未开发），请 &lt;a href=%3$s&gt;点击这里并在Github上投票 &lt;/a&gt;  。您的建议对我很重要。"</string>
-    <string name="cdesc_post_image">文章图片</string>
 
-<string name="view_homepage">浏览博客主页</string>
+    <string name="view_homepage">浏览博客主页</string>
     <string name="discard">放弃</string>
     <string name="view_post_on_blog">查看原文</string>
     <string name="post_settings">文章设置</string>
@@ -77,10 +72,6 @@
     <string name="post_tags_format_hint">使用英文半角逗号来分隔标签</string>
     <string name="post_body_hint">在此处输入…</string>
     <string name="post_image_load_error">加载文章图像时出错</string>
-    <string name="format_bold">粗体</string>
-    <string name="format_italic">斜体</string>
-    <string name="format_link">插入链接</string>
-    <string name="format_image">插入图片</string>
 
     <string name="insert_image">插入图片</string>
     <string name="insert_image_url">插入网络图片</string>
@@ -94,22 +85,9 @@
     <string name="about">关于</string>
 
     <string name="version">版本</string>
-    <string name="version_unknown">未知</string>
-    <string name="open_source_libs">开放源码库</string>
-
-    <string name="category_developer">开发者</string>
-    <string name="fork_on_github">在 Github 上查看项目</string>
-    <string name="follow_on_twitter">在Twitter上推荐</string>
-    <string name="visit_website">访问网站</string>
 
     <string name="category_support_development">支持开发</string>
-    <string name="report_bugs_subtitle">报告bug或提出建议</string>
     <string name="play_store">在play商店上评分</string>
-    <string name="email_developer">发送电子邮件给开发人员</string>
-    <string name="email_developer_subtitle">直接与开发者联系</string>
-    <string name="email_subject">%s - 反馈</string>
-
-    <string name="about_icon_credits">应用图标 \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
 
     <string name="no_internet_connection">没有网络连接</string>
     <string name="network_timeout">连接超时</string>
@@ -123,8 +101,6 @@
     <string name="insert">插入</string>
     <string name="intent_no_apps">没有可以处理此操作的应用程序</string>
 
-    <string name="user_image">用户图像</string>
-    <string name="report_bugs">报告错误</string>
     <string name="post_feature_hint">高亮文章</string>
 
     <string name="conflict_explanation"><b>文章<i>％s</i>有冲突。</b>在您上传设备副本之前，它已在服务器上更新。您希望保留哪个版本的文章？</string>

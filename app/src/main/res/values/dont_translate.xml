@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- strings in this file should NOT be translated to other locales -->
 
@@ -11,5 +11,33 @@
     <!-- ignoring missing translations for these strings because they are only meaningful if the user understands English -->
     <string name="translate" translatable="false">Help with translation</string>
     <string name="translate_subtitle" translatable="false">Help me translate this app to your language!</string>
+
+    <!-- non-critical strings that don't need translations -->
+    <string name="post_limit_exceeded" translatable="false" tools:ignore="PluralsCandidate"><![CDATA[%1$s currently only loads the latest %2$d posts from your blog. If you would like to see support for loading older posts, <a href="%3$s">vote for this feature on Github</a> and help me prioritize development.]]></string>
+
+    <string name="version_unknown" translatable="false">Unknown</string>
+    <string name="open_source_libs" translatable="false">Open-source libraries</string>
+
+    <string name="category_developer" translatable="false">Developer</string>
+    <string name="fork_on_github" translatable="false">Fork on Github</string>
+    <string name="follow_on_twitter" translatable="false">Follow on Twitter</string>
+    <string name="visit_website" translatable="false">Visit website</string>
+
+    <string name="report_bugs" translatable="false">Report bugs</string>
+    <string name="report_bugs_subtitle" translatable="false">Report bugs or propose new features</string>
+    <string name="email_developer" translatable="false">Email the developer</string>
+    <string name="email_developer_subtitle" translatable="false">Contact the developer directly</string>
+
+    <string name="email_subject" translatable="false">%s - Feedback</string>
+
+    <string name="about_icon_credits" translatable="false">Launcher icon \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
+
+    <!-- content descriptions -->
+    <string name="format_bold" translatable="false">Bold</string>
+    <string name="format_italic" translatable="false">Italic</string>
+    <string name="format_link" translatable="false">Insert link</string>
+    <string name="format_image" translatable="false">Insert image</string>
+    <string name="cdesc_user_image" translatable="false">User image</string>
+    <string name="cdesc_post_image" translatable="false">Post image</string>
 
 </resources>

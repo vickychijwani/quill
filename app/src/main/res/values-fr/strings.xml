@@ -1,21 +1,18 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools"><string name="login_heading1">Connectez vous à votre</string>
-    <string name="login_heading2">blog</string>
-
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="prompt_blog_url">Adresse du blog</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Mot de passe</string>
     <string name="action_sign_in">Connexion</string>
 
-    <string name="error_invalid_url">Adresse invalide.</string>
-    <string name="error_invalid_email">Adresse mail invalide.</string>
-    <string name="error_invalid_password">Mot de passe trop court.</string>
-    <string name="error_field_required">Champ requis.</string>
+    <string name="error_invalid_email">Adresse mail invalide</string>
+    <string name="error_invalid_password">Mot de passe trop court</string>
+    <string name="error_field_required">Champ requis</string>
 
-    <string name="no_such_blog">Pas d\'administration Ghost à l\'adresse %s/ghost.</string>
+    <string name="no_such_blog">Pas d\'administration Ghost à l\'adresse %s/ghost</string>
     <string name="login_unexpected_error">Erreur inattendue durant la connexion. Veuillez essayer à nouveau.</string>
     <string name="login_connection_error">Connexion impossible à %s/Ghost. Veuillez essayer à nouveau.</string>
-    <string name="login_ssl_unsupported">Votre blog ne supporte pas le https:// (SSL). Essayez avec http://.</string>
+    <string name="login_ssl_unsupported">Votre blog ne supporte pas le https:// (SSL)</string>
     <string name="logout">Déconnexion</string>
     <string name="password_changed">Votre mot de passe a t\'il changé? Connexion impossible avec ce mot de passe.</string>
     <string name="unsynced_changes_msg">Vous perdrez toutes les modifications non synchronisés si vous vous déconnectez maintenant</string>
@@ -28,7 +25,6 @@
     <string name="status_published_auto_saved">Changements sauvés automatiquement, pas encore publié</string>
     <string name="status_marked_for_deletion">Suppression en attente de connexion…</string>
     <string name="status_marked_for_deletion_open_error">Cet article est marqué pour être supprimé, il ne peut pas être ouvert</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">"Pour l\'instant, %1$s ne charge que les %2$d derniers articles de votre blog. Si vous souhaitez que le chargement des articles plus anciens soit supporté, &lt;a href=%3$s&gt;votez pour cette fonctionnalité sur Github&lt;/a&gt;  et aidez moi à prioriser les développements."</string>
     <string name="send_feedback">Envoyer un commentaire…</string>
 
     <string name="preview">Aperçu</string>
@@ -76,11 +72,6 @@
     <string name="post_image_load_error">Erreur de chargement de l\'image de l\'article</string>
     <string name="post_feature_hint">Mettre cet article en avant</string>
 
-    <string name="format_bold">Gras</string>
-    <string name="format_italic">Italique</string>
-    <string name="format_link">Insérer un lien</string>
-    <string name="format_image">Insérer une image</string>
-
     <string name="insert_image">Insérer une image</string>
     <string name="insert_image_url">Insérer une adresse d\'image</string>
     <string name="image_url">Adresse de l\'image</string>
@@ -93,24 +84,10 @@
     <string name="about">À propos</string>
 
     <string name="version">Version</string>
-    <string name="version_unknown">Inconnue</string>
-    <string name="open_source_libs">Librairies libres</string>
-
-    <string name="category_developer">Développeur</string>
-    <string name="fork_on_github">Fork sur Github</string>
-    <string name="follow_on_twitter">Suivre sur Twitter</string>
-    <string name="visit_website">Visiter le site</string>
 
     <string name="category_support_development">Soutenir le développement</string>
-    <string name="report_bugs">Rapporter des bugs</string>
-    <string name="report_bugs_subtitle">Rapporter des bugs ou proposer des fonctionnalités</string>
     <string name="play_store">Noter sur le Play Store</string>
     <string name="play_store_subtitle">Merci de votre soutien !</string>
-    <string name="email_developer">Envoyer un mail au développeur</string>
-    <string name="email_developer_subtitle">Contacter le développeur directement</string>
-    <string name="email_subject">Feedback sur %s</string>
-
-    <string name="about_icon_credits">Icone \"Feather\" par <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
 
     <string name="no_internet_connection">Pas de connexion Internet</string>
     <string name="network_timeout">Délai de réponse de la connexion dépassé</string>
@@ -123,9 +100,6 @@
     <string name="loading">Chargement…</string>
     <string name="insert">Insérer</string>
     <string name="intent_no_apps">Aucune application pour gérer cette action</string>
-
-    <string name="user_image">Image utilisateur</string>
-    <string name="cdesc_post_image">Image d\'article</string>
     <string name="next">Prochain</string>
 
 </resources>
