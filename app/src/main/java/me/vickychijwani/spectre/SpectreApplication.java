@@ -174,7 +174,7 @@ public class SpectreApplication extends Application {
 
     @Subscribe
     public void onDeadEvent(DeadEvent event) {
-        Log.w(TAG, "Dead event ignored: " + event.event.getClass().getName());
+        Crashlytics.log(Log.WARN, TAG, "Dead event ignored: " + event.event.getClass().getName());
     }
 
 }

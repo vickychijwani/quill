@@ -55,7 +55,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onCreate()");
-        getBus().register(this);
     }
 
     protected void setLayout(int layoutResID) {
@@ -67,6 +66,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onStart()");
+        getBus().register(this);
         if (! (this instanceof LoginActivity)) {
             mPasswordChangedEventHandler = new PasswordChangedEventHandler(this);
             getBus().register(mPasswordChangedEventHandler);
@@ -94,13 +94,13 @@ public abstract class BaseActivity extends AppCompatActivity {
             getBus().unregister(mPasswordChangedEventHandler);
             mPasswordChangedEventHandler = null;
         }
+        getBus().unregister(this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onDestroy()");
-        getBus().unregister(this);
     }
 
     @Override

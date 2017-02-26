@@ -211,6 +211,7 @@ public class PostEditFragment extends BaseFragment implements
 
     @Override
     public void onPause() {
+        super.onPause();
         // remove pending callbacks
         mHandler.removeCallbacks(mSaveTimeoutRunnable);
         // persist changes to disk, unless the user opted to discard those changes
@@ -226,9 +227,6 @@ public class PostEditFragment extends BaseFragment implements
         }
         // save misc editor state because setPost is called in onResume
         mPostEditViewCursorPos = mPostEditView.getSelectionEnd();
-
-        // must call super method AFTER saving, else we won't get the PostSavedEvent reply!
-        super.onPause();
 
         // unsubscribe from observable and hide progress bar
         if (mUploadDisposable != null && !mUploadDisposable.isDisposed()) {
@@ -608,9 +606,9 @@ public class PostEditFragment extends BaseFragment implements
         if (mPost.isDraft()) {
             return Observable.just(saveToServerExplicitly());
         }
-        return Observable.create(emitter -> {
+        return Observables.getDialog(emitter -> {
             // confirm save for scheduled and published posts
-            final AlertDialog alertDialog = new AlertDialog.Builder(mActivity)
+            return new AlertDialog.Builder(mActivity)
                     .setMessage(getString(R.string.alert_save_msg))
                     .setPositiveButton(R.string.alert_save_yes, (dialog, which) -> {
                         emitter.onNext(saveToServerExplicitly());
@@ -622,9 +620,6 @@ public class PostEditFragment extends BaseFragment implements
                         emitter.onComplete();
                     })
                     .create();
-            // dismiss the dialog automatically if this subscriber unsubscribes
-            emitter.setCancellable(alertDialog::dismiss);
-            alertDialog.show();
         });
     }
 

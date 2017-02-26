@@ -24,7 +24,6 @@ public class PostViewFragment extends BaseFragment
     private int mMarkdownHashCode;
     private WebViewFragment mWebViewFragment;
 
-    @SuppressWarnings("unused")
     public static PostViewFragment newInstance(@NonNull Post post) {
         PostViewFragment fragment = new PostViewFragment();
         Bundle args = new Bundle();

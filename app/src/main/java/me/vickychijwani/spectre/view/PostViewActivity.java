@@ -197,8 +197,6 @@ public class PostViewActivity extends BaseActivity implements
         mTabLayout.addOnTabSelectedListener(this);
         updatePostSettings();
         mPostImageLayoutManager.setOnClickListener(this);
-
-        getBus().post(new LoadTagsEvent());
     }
 
     @Override
@@ -210,6 +208,14 @@ public class PostViewActivity extends BaseActivity implements
         outState.putBoolean(BundleKeys.FILE_STORAGE_ENABLED, mbFileStorageEnabled);
         outState.putBoolean(BundleKeys.START_EDITING,
                 mViewPager.getCurrentItem() == PostViewFragmentPagerAdapter.TAB_POSITION_EDIT);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (mPostTagsEditText.getAdapter() == null || mPostTagsEditText.getAdapter().isEmpty()) {
+            getBus().post(new LoadTagsEvent());
+        }
     }
 
     @Override

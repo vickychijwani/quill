@@ -202,14 +202,13 @@ public class PostListActivity extends BaseActivity {
         mRefreshTimeoutRunnable = this::refreshTimedOut;
         mSwipeRefreshLayout.setColorSchemeColors(mColorAccent, mColorPrimary);
         mSwipeRefreshLayout.setOnRefreshListener(() -> refreshData(false));
-
-        // load cached data immediately
-        refreshData(true);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        // load cached data immediately
+        refreshData(true);
         // reset views involved in new post animation
         mNewPostRevealView.setVisibility(View.INVISIBLE);
         mNewPostRevealShrinkView.setScaleY(1f);
