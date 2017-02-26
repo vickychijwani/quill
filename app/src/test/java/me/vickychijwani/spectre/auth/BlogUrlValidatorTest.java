@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.util;
+package me.vickychijwani.spectre.auth;
 
 import org.junit.After;
 import org.junit.Before;
@@ -10,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
-import io.reactivex.Observable;
+import io.reactivex.Single;
 import me.vickychijwani.spectre.error.UrlNotFoundException;
 import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
 import me.vickychijwani.spectre.util.functions.Func1;
@@ -32,13 +32,16 @@ import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertThat;
 
 /**
- * PURPOSE: Android-independent unit tests for login-related functionality
+ * TYPE: unit tests (independent of server and android)
+ * PURPOSE: testing blog URL validation
  */
 
-public class LoginTest {
+public class BlogUrlValidatorTest {
 
     private static final SSLSocketFactory LOCALHOST_SOCKET_FACTORY = SslClient.localhost().socketFactory;
     private static final X509TrustManager LOCALHOST_TRUST_MANAGER = SslClient.localhost().trustManager;
+    private static final String HTTP = "http://";
+    private static final String HTTPS = "https://";
 
     private MockWebServer server;
 
@@ -58,26 +61,39 @@ public class LoginTest {
 
     // actual tests
     @Test
-    public void checkGhostBlog_simpleHttpUrl() throws IOException {
-        String blogUrl = "http://" + server.getHostName() + ":" + server.getPort();
+    public void checkGhostBlog_simpleHttps() throws IOException, NoSuchAlgorithmException {
+        String blogUrl = HTTPS + server.getHostName() + ":" + server.getPort();
+        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.blockingFirst(), is(blogUrl));
+        assertThat(result.blockingGet(), is(blogUrl));
+    }
+
+    @Test
+    public void checkGhostBlog_simpleHttp() throws IOException, NoSuchAlgorithmException {
+        String blogUrl = HTTP + server.getHostName() + ":" + server.getPort();
+        server.enqueue(new MockResponse());
+        OkHttpClient httpClient = getProdHttpClient();
+
+        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
+
+        assertThat(result.blockingGet(), is(blogUrl));
     }
 
     @Test
     public void checkGhostBlog_404() throws IOException {
-        String blogUrl = "http://" + server.getHostName() + ":" + server.getPort() + "/THIS_DOESNT_EXIST";
+        String blogUrl = HTTPS + server.getHostName() + ":" + server.getPort() + "/THIS_DOESNT_EXIST";
+        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse().setResponseCode(404));
         OkHttpClient httpClient = getProdHttpClient();
 
-        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
 
         try {
-            result.blockingFirst();
+            result.blockingGet();
             // fail the test if no exception is thrown
             assertThat("Test did not throw exception as expected!", false, is(true));
         } catch (Exception e) {
@@ -86,34 +102,22 @@ public class LoginTest {
     }
 
     @Test
-    public void checkGhostBlog_httpUrlWithTrailingSlash() throws IOException {
-        String blogUrl = "http://" + server.getHostName() + ":" + server.getPort() + "/";
-        server.enqueue(new MockResponse());
-        OkHttpClient httpClient = getProdHttpClient();
-
-        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
-
-        assertThat(result.blockingFirst(), isOneOf(blogUrl, blogUrl.replaceFirst("/$", "")));
-    }
-
-    @Test
-    public void checkGhostBlog_simpleHttpsUrl() throws IOException, NoSuchAlgorithmException {
-        String blogUrl = "https://" + server.getHostName() + ":" + server.getPort();
+    public void checkGhostBlog_trailingSlash() throws IOException {
+        String blogUrl = HTTPS + server.getHostName() + ":" + server.getPort() + "/";
         server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.blockingFirst(), is(blogUrl));
+        assertThat(result.blockingGet(), isOneOf(blogUrl, blogUrl.replaceFirst("/$", "")));
     }
-
 
     @Test
     public void checkGhostBlog_httpToHttpsRedirect() throws IOException, NoSuchAlgorithmException {
         Func1<HttpUrl, HttpUrl> toHttps = (httpUrl) -> httpUrl.newBuilder().scheme("https").build();
 
-        String httpUrl = "http://" + server.getHostName() + ":" + server.getPort();
+        String httpUrl = HTTP + server.getHostName() + ":" + server.getPort();
         String httpsUrl = toHttps.call(HttpUrl.parse(httpUrl)).toString();
         server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
@@ -132,25 +136,27 @@ public class LoginTest {
                     .build();
         }).build();
 
-        Observable<String> result = NetworkUtils.checkGhostBlog(httpUrl, httpClient);
+        Single<String> result = BlogUrlValidator.checkGhostBlog(httpUrl, httpClient);
 
-        assertThat(result.blockingFirst(), urlMatches(httpsUrl));
+        assertThat(result.blockingGet(), urlMatches(httpsUrl));
     }
 
     @Test
     public void checkGhostBlog_underSubFolder() throws IOException {
-        String blogUrl = "http://" + server.getHostName() + ":" + server.getPort() + "/blog";
+        String blogUrl = HTTPS + server.getHostName() + ":" + server.getPort() + "/blog";
+        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.blockingFirst(), is(blogUrl));
+        assertThat(result.blockingGet(), is(blogUrl));
     }
 
     @Test
     public void checkGhostBlog_underSubDomain() throws IOException {
-        String blogUrl = "http://blog." + server.getHostName() + ":" + server.getPort();
+        String blogUrl = HTTPS + "blog." + server.getHostName() + ":" + server.getPort();
+        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
         httpClient = httpClient.newBuilder().addInterceptor(chain -> {
@@ -163,9 +169,9 @@ public class LoginTest {
                     .build();
         }).build();
 
-        Observable<String> result = NetworkUtils.checkGhostBlog(blogUrl, httpClient);
+        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
 
-        assertThat(result.blockingFirst(), is(blogUrl));
+        assertThat(result.blockingGet(), is(blogUrl));
     }
 
 

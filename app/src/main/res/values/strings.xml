@@ -4,7 +4,7 @@
     <string name="login_heading1">Sign in to your</string>
     <string name="login_heading2">blog</string>
 
-    <string name="prompt_blog_url">Blog address (blog.example.com)</string>
+    <string name="prompt_blog_url">Blog address</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in</string>
@@ -148,5 +148,6 @@
     <!-- content descriptions -->
     <string name="user_image">User image</string>
     <string name="cdesc_post_image">Post image</string>
+    <string name="next">Next</string>
 
 </resources>

@@ -3,7 +3,7 @@
     <string name="login_heading1">サインイン</string>
     <string name="login_heading2">ブログ</string>
 
-    <string name="prompt_blog_url">ブログのアドレス (blog.example.com)</string>
+    <string name="prompt_blog_url">ブログのアドレス</string>
     <string name="prompt_email">メールアドレス</string>
     <string name="prompt_password">パスワード</string>
     <string name="action_sign_in">サインイン</string>
@@ -139,6 +139,7 @@
     <string name="draft">ドラフト</string>
     <string name="published">公開</string>
     <string name="scheduled">スケジュール済</string>
+    <string name="next">次</string>
 
     <string name="enable_permission_tip">アクセス許可をタップして、ストレージのアクセス許可を有効にします</string>
 

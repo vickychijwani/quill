@@ -4,6 +4,7 @@
     <dimen name="padding_inline">4dp</dimen>
     <dimen name="padding_default">8dp</dimen>
     <dimen name="padding_large">16dp</dimen>
+    <dimen name="padding_huge">32dp</dimen>
     <dimen name="padding_fab_normal">88dp</dimen>  <!-- fab_size_normal + 2 * padding_large -->
 
     <!-- card view with useCompatPadding=true already has 3dp horizontal for shadow -->
@@ -29,6 +30,9 @@
     <dimen name="text_size_hyperlarge">72sp</dimen>
 
     <!-- view dimensions and spacing -->
+    <dimen name="touch_size_default">48dp</dimen>
+    <dimen name="touch_size_comfy">56dp</dimen>
+
     <dimen name="toolbar_height">56dp</dimen>
     <dimen name="toolbar_container_height">96dp</dimen>
     <dimen name="toolbar_elevation">4dp</dimen>

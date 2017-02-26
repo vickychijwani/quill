@@ -17,7 +17,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +33,7 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
+import me.vickychijwani.spectre.auth.LoginOrchestrator;
 import me.vickychijwani.spectre.error.ExpiredTokenUsedException;
 import me.vickychijwani.spectre.error.PostConflictFoundException;
 import me.vickychijwani.spectre.error.TokenRevocationFailedException;
@@ -41,7 +41,6 @@ import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
-import me.vickychijwani.spectre.event.ConfigurationLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.DeletePostEvent;
@@ -51,7 +50,6 @@ import me.vickychijwani.spectre.event.FileUploadedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.GhostVersionLoadedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
-import me.vickychijwani.spectre.event.LoadConfigurationEvent;
 import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
@@ -84,7 +82,6 @@ import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.model.entity.User;
 import me.vickychijwani.spectre.network.entity.ApiErrorList;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
-import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.network.entity.PostList;
 import me.vickychijwani.spectre.network.entity.PostStubList;
 import me.vickychijwani.spectre.network.entity.RefreshReqBody;
@@ -93,12 +90,12 @@ import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.util.functions.Action0;
-import me.vickychijwani.spectre.util.functions.Action1;
-import me.vickychijwani.spectre.util.functions.Action2;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
+import me.vickychijwani.spectre.util.functions.Action0;
+import me.vickychijwani.spectre.util.functions.Action1;
+import me.vickychijwani.spectre.util.functions.Action2;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -110,7 +107,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class NetworkService {
+public class NetworkService implements LoginOrchestrator.HACKListener {
 
     private static final String TAG = "NetworkService";
 
@@ -121,7 +118,6 @@ public class NetworkService {
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
     private String mBlogUrl = null;
-    private OkHttpClient mOkHttpClient = null;
 
     private boolean mbAuthRequestOnGoing = false;
     private boolean mbSyncOnGoing = false;
@@ -130,15 +126,15 @@ public class NetworkService {
     private final ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
     private Retrofit mRetrofit;
 
-    public void start(Context context, OkHttpClient okHttpClient) {
+    public void start(Context context, OkHttpClient httpClient) {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
         getBus().register(this);
-        mOkHttpClient = okHttpClient;
         mRealm = Realm.getDefaultInstance();
         if (AppState.getInstance(context).getBoolean(AppState.Key.LOGGED_IN)) {
             mAuthToken = mRealm.where(AuthToken.class).findFirst();
             mBlogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
-            mApi = buildApiService(mBlogUrl);
+            mRetrofit = GhostApiUtils.getRetrofit(mBlogUrl, httpClient);
+            mApi = mRetrofit.create(GhostApiService.class);
         }
     }
 
@@ -149,28 +145,45 @@ public class NetworkService {
         mRealm.close();
     }
 
+    // TODO temporary crutch while I refactor this huge class
+    @Override
+    public void setApiService(GhostApiService api, Retrofit retrofit) {
+        mApi = api;
+        mRetrofit = retrofit;
+    }
+
+    @Override
+    public void onNewAuthToken(AuthToken authToken) {
+        Log.d(TAG, "Got new access token = " + authToken.getAccessToken());
+        authToken.setCreatedAt(DateTimeUtils.getEpochSeconds());
+        mAuthToken = createOrUpdateModel(authToken);
+        AppState.getInstance(SpectreApplication.getInstance())
+                .setBoolean(AppState.Key.LOGGED_IN, true);
+        flushApiEventQueue(false);
+    }
+
     @Subscribe
     public void onLoginStartEvent(final LoginStartEvent event) {
         if (mbAuthRequestOnGoing) return;
         mbAuthRequestOnGoing = true;
         mBlogUrl = event.blogUrl;
-        mApi = buildApiService(mBlogUrl);
+        // FIXME FIXME
+//        mApi = buildApiService(mBlogUrl);
         GhostApiUtils.doWithClientSecret(mApi, mBlogUrl, clientSecret -> {
             doLogin(event, clientSecret);
         });
     }
 
     private void doLogin(@NonNull LoginStartEvent event, @Nullable String clientSecret) {
-        AuthReqBody credentials = new AuthReqBody(event.username, event.password, clientSecret);
-        mApi.getAuthToken(credentials).enqueue(new Callback<AuthToken>() {
+        AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, event.username, event.password);
+        mApi.getAuthTokenV0(credentials).enqueue(new Callback<AuthToken>() {
             @Override
             public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
                 mbAuthRequestOnGoing = false;
                 if (response.isSuccessful()) {
                     AuthToken authToken = response.body();
                     onNewAuthToken(authToken);
-                    getBus().post(new LoginDoneEvent(event.blogUrl, event.username, event.password,
-                            event.initiatedByUser));
+                    getBus().post(new LoginDoneEvent(event.blogUrl, event.initiatedByUser));
                 } else {
                     // if this request was not initiated by the user and the response is 401 Unauthorized,
                     // it means the password changed - ask for the password again
@@ -211,7 +224,6 @@ public class NetworkService {
         mRefreshEventsQueue.addAll(Arrays.asList(
                 new LoadUserEvent(true),
                 new LoadBlogSettingsEvent(true),
-                new LoadConfigurationEvent(true),
                 new SyncPostsEvent(true)
         ));
 
@@ -252,31 +264,6 @@ public class NetworkService {
 
         if (! validateAccessToken(event)) return;
 
-        Action0 checkVersionInConfiguration = () -> {
-            Action1<List<ConfigurationParam>> successCallback = configParams -> {
-                boolean versionFound = false;
-                for (ConfigurationParam param : configParams) {
-                    if ("version".equals(param.getKey())) {
-                        versionFound = true;
-                        getBus().post(new GhostVersionLoadedEvent(param.getValue()));
-                    }
-                }
-                if (! versionFound) {
-                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
-                }
-            };
-            Action1<ApiFailure> failureCallback = apiFailure -> {
-                Response response = apiFailure.response;
-                if (response != null && NetworkUtils.isNotModified(response)) {
-                    // fallback to cached data
-                    successCallback.call(mRealm.where(ConfigurationParam.class).findAll());
-                } else {
-                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
-                }
-            };
-            doLoadConfiguration(new LoadConfigurationEvent(true), successCallback, failureCallback);
-        };
-
         mApi.getVersion(mAuthToken.getAuthHeader()).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
@@ -291,14 +278,7 @@ public class NetworkService {
                         getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
                     }
                 } else {
-                    if (response.code() == HttpURLConnection.HTTP_NOT_FOUND) {
-                        // this condition means the version is < 0.7.9, because that is when
-                        // the new /configuration/about endpoint was introduced
-                        // FIXME remove this mess once we stop supporting < 0.7.9
-                        checkVersionInConfiguration.call();
-                    } else {
-                        getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
-                    }
+                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
                 }
             }
 
@@ -416,69 +396,6 @@ public class NetworkService {
                 ApiFailure<SettingsList> apiFailure = new ApiFailure<>(error);
                 getBus().post(new ApiErrorEvent(apiFailure));
                 refreshFailed(event, apiFailure);
-            }
-        });
-    }
-
-    @Subscribe
-    public void onLoadConfigurationEvent(final LoadConfigurationEvent event) {
-        Action1<List<ConfigurationParam>> successCallback = configParams -> {
-            getBus().post(new ConfigurationLoadedEvent(configParams));
-            refreshSucceeded(event);
-        };
-        Action1<ApiFailure> failureCallback = apiFailure -> {
-            Response response = apiFailure.response;
-            // fallback to cached data
-            RealmResults<ConfigurationParam> params = mRealm.where(ConfigurationParam.class).findAll();
-            if (params.size() > 0) {
-                getBus().post(new ConfigurationLoadedEvent(params));
-            }
-            if (response == null || NetworkUtils.isUnrecoverableError(response)) {
-                refreshFailed(event, apiFailure);
-            } else {
-                refreshSucceeded(event);
-            }
-        };
-        doLoadConfiguration(event, successCallback, failureCallback);
-    }
-
-    private void doLoadConfiguration(final LoadConfigurationEvent event,
-                                     @NonNull Action1<List<ConfigurationParam>> successCallback,
-                                     @NonNull Action1<ApiFailure> failureCallback) {
-        if (event.loadCachedData || ! event.forceNetworkCall) {
-            RealmResults<ConfigurationParam> params = mRealm.where(ConfigurationParam.class).findAll();
-            if (params.size() > 0) {
-                successCallback.call(params);
-                return;
-            }
-            // no configuration params found in db, force a network call!
-        }
-
-        if (! validateAccessToken(event)) return;
-        mApi.getConfiguration(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_CONFIGURATION)).enqueue(new Callback<ConfigurationList>() {
-            @Override
-            public void onResponse(Call<ConfigurationList> call, Response<ConfigurationList> response) {
-                if (response.isSuccessful()) {
-                    ConfigurationList configurationList = response.body();
-                    storeEtag(response.headers(), ETag.TYPE_CONFIGURATION);
-                    createOrUpdateModel(configurationList.configuration);
-                    successCallback.call(configurationList.configuration);
-                } else {
-                    ApiFailure<ConfigurationList> apiFailure = new ApiFailure<>(response);
-                    if (NetworkUtils.isUnauthorized(response)) {
-                        // defer the event and try to re-authorize
-                        refreshAccessToken(event);
-                    } else if (NetworkUtils.isUnrecoverableError(response)) {
-                        getBus().post(new ApiErrorEvent(apiFailure));
-                    }
-                    failureCallback.call(new ApiFailure<>(response));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ConfigurationList> call, Throwable error) {
-                // error in transport layer, or lower
-                failureCallback.call(new ApiFailure(error));
             }
         });
     }
@@ -1181,15 +1098,6 @@ public class NetworkService {
         getBus().post(new LoginStartEvent(blogUrl, username, password, false));
     }
 
-    private void onNewAuthToken(AuthToken authToken) {
-        Log.d(TAG, "Got new access token = " + authToken.getAccessToken());
-        authToken.setCreatedAt(DateTimeUtils.getEpochSeconds());
-        mAuthToken = createOrUpdateModel(authToken);
-        AppState.getInstance(SpectreApplication.getInstance())
-                .setBoolean(AppState.Key.LOGGED_IN, true);
-        flushApiEventQueue(false);
-    }
-
     private boolean hasAccessTokenExpired() {
         // consider the token as "expired" 60 seconds earlier, because the createdAt timestamp can
         // be off by several seconds
@@ -1201,12 +1109,6 @@ public class NetworkService {
         // consider the token as "expired" 60 seconds earlier, because the createdAt timestamp can
         // be off by several seconds
         return DateTimeUtils.getEpochSeconds() > mAuthToken.getCreatedAt() + 86400 - 60;
-    }
-
-    private GhostApiService buildApiService(@NonNull String blogUrl) {
-        String baseUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/api/v0.1/");
-        mRetrofit = GhostApiUtils.getRetrofit(baseUrl, mOkHttpClient);
-        return mRetrofit.create(GhostApiService.class);
     }
 
     @Nullable

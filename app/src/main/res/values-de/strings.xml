@@ -5,7 +5,7 @@
     <string name="login_heading1">Einloggen in deinen</string>
     <string name="login_heading2">Blog</string>
 
-    <string name="prompt_blog_url">Blogadresse (blog.beispiel.de)</string>
+    <string name="prompt_blog_url">Blogadresse</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Passwort</string>
     <string name="action_sign_in">Anmelden</string>
@@ -132,6 +132,7 @@
     <string name="loading">Lädt…</string>
     <string name="insert">Einfügen</string>
     <string name="intent_no_apps">Es konnte keine App gefunden werde, die diese Aufgabe ausführen kann</string>
+    <string name="next">Nächster</string>
 
     <!-- content descriptions -->
     <string name="user_image">Benutzerbild</string>

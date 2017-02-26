@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools"><string name="login_heading1">登录到您的</string>
     <string name="login_heading2">博客</string>
 
-    <string name="prompt_blog_url">博客地址 (blog.example.com)</string>
+    <string name="prompt_blog_url">博客地址</string>
     <string name="prompt_email">邮箱</string>
     <string name="prompt_password">密码</string>
     <string name="action_sign_in">登录</string>
@@ -138,6 +138,7 @@
     <string name="draft">草稿</string>
     <string name="published">已发布</string>
     <string name="scheduled">计划中</string>
+    <string name="next">下一个</string>
 
     <string name="enable_permission_tip">点击以启用储存权限</string>
 

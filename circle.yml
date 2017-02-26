@@ -3,7 +3,7 @@ machine:
     TARGET_SDK_VERSION: 25
     TOOLS_VERSION: 25.2.4
     BUILD_TOOLS_VERSION: 25.0.2
-    GHOST_VERSION: 0.11.7
+    GHOST_VERSION: 1.0.0-alpha.14
   java:
     version: oraclejdk8
   node:
@@ -17,8 +17,9 @@ dependencies:
   cache_directories:
     - /usr/local/android-sdk-linux/tools
     - /usr/local/android-sdk-linux/build-tools/$BUILD_TOOLS_VERSION
+    - $HOME/.cache/yarn
   override:
-    - npm install ghost@$GHOST_VERSION
+    - ./tests/ghost-setup.sh $GHOST_VERSION password
 
 # actual build and test
 # can't build/test release because Fabric API keys are not available in CI

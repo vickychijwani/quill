@@ -5,7 +5,7 @@
     <string name="login_heading1">Iniciar sesión en su</string>
     <string name="login_heading2">blog</string>
 
-    <string name="prompt_blog_url">Dirección del blog (blog.example.com)</string>
+    <string name="prompt_blog_url">Dirección del blog</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Iniciar sesión</string>
@@ -132,6 +132,7 @@
     <string name="loading">Cargando…</string>
     <string name="insert">Insertar</string>
     <string name="intent_no_apps">No se ha encontrado ninguna aplicación que pueda realizar esta acción</string>
+    <string name="next">Siguiente</string>
 
     <!-- content descriptions -->
     <string name="user_image">Imagen del usuario</string>

@@ -18,16 +18,10 @@
         <item name="android:checkboxStyle">@style/MyCheckBox</item>
     </style>
 
-    <style name="BaseLoginTheme" parent="AppTheme">
-        <item name="android:buttonStyle">@style/Widget.AppCompat.Button.Colored</item>
+    <style name="LoginTheme" parent="AppTheme">
+        <item name="android:buttonStyle">@style/MyBigButton</item>
         <item name="android:textColorHint">@color/text_primary_inverted_dim</item>
-        <item name="colorControlNormal">@color/text_primary_inverted_dim</item>
-        <item name="colorControlActivated">@color/text_primary_inverted</item>
-        <item name="textColorError">?attr/colorAccent</item>
-        <item name="android:windowBackground">@drawable/login_bg</item>
-    </style>
-
-    <style name="LoginTheme" parent="BaseLoginTheme">
+        <item name="textColorError">@color/login_error</item>
     </style>
 
     <style name="CardListActivityTheme" parent="AppTheme">

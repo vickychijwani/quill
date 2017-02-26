@@ -2,6 +2,7 @@
 <resources>
 
     <integer name="ime_action_id_signin">769</integer>
+    <integer name="ime_action_id_next">770</integer>
     <integer name="post_grid_num_columns">1</integer>
 
 </resources>

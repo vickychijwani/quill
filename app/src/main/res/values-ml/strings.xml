@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources><string name="login_heading2">ബ്ലോഗ്</string>
 
-    <string name="prompt_blog_url">ബ്ലോഗ് വിലാസം (blog.example.com)</string>
+    <string name="prompt_blog_url">ബ്ലോഗ് വിലാസം</string>
     <string name="prompt_email">ഇ-മെയിൽ</string>
     <string name="prompt_password">രഹസ്യ വാക്ക്</string>
     <string name="action_sign_in">പ്രവേശിക്കുക</string>

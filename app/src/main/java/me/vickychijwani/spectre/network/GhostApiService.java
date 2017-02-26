@@ -3,6 +3,7 @@ package me.vickychijwani.spectre.network;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import io.reactivex.Single;
 import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
@@ -14,6 +15,7 @@ import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import okhttp3.MultipartBody;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
@@ -26,14 +28,17 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
 
-interface GhostApiService {
+public interface GhostApiService {
 
     // auth
     @GET
     Call<String> getLoginPage(@Url String url);
 
     @POST("authentication/token/")
-    Call<AuthToken> getAuthToken(@Body AuthReqBody credentials);
+    Call<AuthToken> getAuthTokenV0(@Body AuthReqBody credentials);
+
+    @POST("authentication/token/")
+    Single<AuthToken> getAuthToken(@Body AuthReqBody credentials);
 
     @POST("authentication/token/")
     Call<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials);
@@ -72,9 +77,9 @@ interface GhostApiService {
     Call<SettingsList> getSettings(@Header("Authorization") String authHeader,
                                    @Header("If-None-Match") String etag);
 
+    // not Single<ConfigurationList> because we need access to response headers (E-Tag)
     @GET("configuration/")
-    Call<ConfigurationList> getConfiguration(@Header("Authorization") String authHeader,
-                                             @Header("If-None-Match") String etag);
+    Single<Response<ConfigurationList>> getConfiguration();
 
     @GET("configuration/about/")
     Call<JsonObject> getVersion(@Header("Authorization") String authHeader);

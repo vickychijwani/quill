@@ -19,10 +19,13 @@ import java.io.File;
 import java.io.IOException;
 
 import io.fabric.sdk.android.Fabric;
+import io.reactivex.plugins.RxJavaPlugins;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmMigrationNeededException;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
+import me.vickychijwani.spectre.auth.LoginOrchestrator;
+import me.vickychijwani.spectre.error.UncaughtRxException;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.model.DatabaseMigration;
@@ -45,6 +48,8 @@ public class SpectreApplication extends Application {
     @SuppressWarnings("FieldCanBeLocal")
     private AnalyticsService mAnalyticsService = null;
 
+    // FIXME hacks
+    private LoginOrchestrator.HACKListener mHACKListener;
     private int mHACKOldSchemaVersion = -1;
 
     @Override
@@ -55,11 +60,16 @@ public class SpectreApplication extends Application {
         BusProvider.getBus().register(this);
         sInstance = this;
 
+        RxJavaPlugins.setErrorHandler(this::uncaughtRxException);
+
         setupRealm();
         setupFonts();
         initOkHttpClient();
         initPicasso();
-        new NetworkService().start(this, mOkHttpClient);
+
+        NetworkService networkService = new NetworkService();
+        mHACKListener = networkService;
+        networkService.start(this, mOkHttpClient);
 
         mAnalyticsService = new AnalyticsService(BusProvider.getBus());
         mAnalyticsService.start();
@@ -136,6 +146,10 @@ public class SpectreApplication extends Application {
         return mPicasso;
     }
 
+    public LoginOrchestrator.HACKListener getHACKListener() {
+        return mHACKListener;
+    }
+
     public void addDebugDrawer(@NonNull Activity activity) {
         // no-op, overridden in debug build
     }
@@ -175,6 +189,10 @@ public class SpectreApplication extends Application {
     @Subscribe
     public void onDeadEvent(DeadEvent event) {
         Crashlytics.log(Log.WARN, TAG, "Dead event ignored: " + event.event.getClass().getName());
+    }
+
+    private void uncaughtRxException(Throwable e) {
+        Crashlytics.logException(new UncaughtRxException(e));
     }
 
 }

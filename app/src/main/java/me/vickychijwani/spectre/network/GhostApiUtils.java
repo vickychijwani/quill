@@ -15,20 +15,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
-import me.vickychijwani.spectre.util.functions.Action1;
 import me.vickychijwani.spectre.util.NetworkUtils;
+import me.vickychijwani.spectre.util.functions.Action1;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-final class GhostApiUtils {
+public final class GhostApiUtils {
 
     private static final String TAG = GhostApiUtils.class.getSimpleName();
 
-    static Retrofit getRetrofit(@NonNull String baseUrl, @NonNull OkHttpClient httpClient) {
+    public static Retrofit getRetrofit(@NonNull String blogUrl, @NonNull OkHttpClient httpClient) {
+        String baseUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/api/v0.1/");
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class, new DateDeserializer())
                 .registerTypeAdapter(ConfigurationList.class, new ConfigurationListDeserializer())
@@ -38,6 +40,7 @@ final class GhostApiUtils {
         return new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .client(httpClient)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 // for HTML output (e.g., to get the client secret)
                 .addConverterFactory(StringConverterFactory.create())
                 // for raw JSONObject output (e.g., for the /configuration/about call)

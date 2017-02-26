@@ -52,7 +52,6 @@ import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.error.SyncException;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
-import me.vickychijwani.spectre.event.ConfigurationLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
@@ -63,7 +62,6 @@ import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
-import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Setting;
 import me.vickychijwani.spectre.pref.AppState;
@@ -337,15 +335,6 @@ public class PostListActivity extends BaseActivity {
             }
         }
         mBlogTitleView.setText(blogTitle);
-    }
-
-    @Subscribe
-    public void onConfigurationLoadedEvent(ConfigurationLoadedEvent event) {
-        for (ConfigurationParam param : event.params) {
-            if (param.getKey().equals("fileStorage")) {
-                mFileStorageEnabled = Boolean.valueOf(param.getValue());
-            }
-        }
     }
 
     @Subscribe

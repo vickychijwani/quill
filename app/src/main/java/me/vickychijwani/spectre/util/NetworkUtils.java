@@ -7,19 +7,20 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringDef;
 
-import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
-import io.reactivex.Observable;
+import javax.net.ssl.SSLHandshakeException;
+
+import io.reactivex.Single;
 import me.vickychijwani.spectre.error.UrlNotFoundException;
 import okhttp3.Call;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import retrofit2.HttpException;
 import retrofit2.Response;
 
 public class NetworkUtils {
@@ -51,6 +52,17 @@ public class NetworkUtils {
                 || response.code() == HttpURLConnection.HTTP_FORBIDDEN;
     }
 
+    public static boolean isUnauthorized(@Nullable Throwable e) {
+        if (e == null || !(e instanceof HttpException)) {
+            return false;
+        }
+        HttpException httpEx = (HttpException) e;
+        // Ghost returns 403 Forbidden in some cases, inappropriately
+        // see this for what 401 vs 403 should mean: http://stackoverflow.com/a/3297081/504611
+        return httpEx.code() == HttpURLConnection.HTTP_UNAUTHORIZED
+                || httpEx.code() == HttpURLConnection.HTTP_FORBIDDEN;
+    }
+
     public static boolean isNotModified(@Nullable Response response) {
         //noinspection SimplifiableIfStatement
         if (response == null) {
@@ -68,6 +80,16 @@ public class NetworkUtils {
 
     public static boolean isConnectionError(Throwable error) {
         return error instanceof ConnectException || error instanceof SocketTimeoutException;
+    }
+
+    public static boolean isUserNetworkError(Throwable error) {
+        // user provided a malformed / non-existent URL
+        return error instanceof UnknownHostException || error instanceof MalformedURLException
+                || error instanceof UrlNotFoundException;
+    }
+
+    public static boolean isSslError(Throwable error) {
+        return error instanceof SSLHandshakeException;
     }
 
     public static String makeAbsoluteUrl(@NonNull String baseUrl, @NonNull String relativePath) {
@@ -93,54 +115,10 @@ public class NetworkUtils {
         }
     }
 
-    public static Observable<String> checkGhostBlog(@NonNull String blogUrl,
-                                                    @NonNull OkHttpClient client) {
-        final String adminPagePath = "/ghost/";
-        String adminPageUrl = makeAbsoluteUrl(blogUrl, adminPagePath);
-        return checkUrl(adminPageUrl, client)
-                .flatMap(response -> {
-                    if (response.isSuccessful()) {
-                        // the request may have been redirected, most commonly from HTTP => HTTPS
-                        // so pick up the eventual URL of the blog and use that
-                        // (even if the user manually entered HTTP - it's certainly a mistake)
-                        // to get that, chop off the admin page path from the end
-                        String potentiallyRedirectedUrl = response.request().url().toString();
-                        String finalBlogUrl = potentiallyRedirectedUrl.replaceFirst(adminPagePath + "?$", "");
-                        return Observable.just(finalBlogUrl);
-                    } else if (response.code() == HttpURLConnection.HTTP_NOT_FOUND) {
-                        return Observable.error(new UrlNotFoundException(blogUrl));
-                    } else {
-                        return Observable.error(new RuntimeException("Response code " + response.code()
-                                + " when request admin page"));
-                    }
-                });
-    }
-
-    public static Observable<okhttp3.Response> checkUrl(@NonNull String url,
-                                                        @NonNull OkHttpClient client) {
-        try {
-            Request request = new Request.Builder()
-                    .url(url)
-                    .head()     // make a HEAD request because we only want the response code
-                    .build();
-            return networkCall(client.newCall(request));
-        } catch (IllegalArgumentException e) {
-            // invalid url (whitespace chars etc)
-            return Observable.error(new MalformedURLException("Invalid Ghost admin address: " + url));
-        }
-    }
-
-    public static Observable<okhttp3.Response> networkCall(@NonNull Call call) {
-        return Observable.create(emitter -> {
-            // cancel the request when there are no subscribers
-            emitter.setCancellable(call::cancel);
-            try {
-                emitter.onNext(call.execute());
-                emitter.onComplete();
-            } catch (IOException e) {
-                emitter.onError(e);
-            }
-        });
+    public static Single<okhttp3.Response> networkCall(@NonNull Call call) {
+        return Single
+                .fromCallable(call::execute)
+                .doOnDispose(call::cancel);
     }
 
 }

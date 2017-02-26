@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary">
+
+    <RelativeLayout
+        android:id="@+id/blog_url_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/blog_url_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/padding_default"
+            android:layout_marginLeft="@dimen/padding_large"
+            android:layout_marginStart="@dimen/padding_large"
+            android:layout_marginRight="@dimen/padding_large"
+            android:layout_marginEnd="@dimen/padding_large"
+            android:text="@string/prompt_blog_url"
+            android:textAppearance="@style/TextAppearance.Small"
+            android:textColor="@color/text_primary_inverted"
+            />
+
+        <TextView
+            android:id="@+id/blog_url_protocol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/blog_url_title"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="@dimen/padding_large"
+            android:layout_marginStart="@dimen/padding_large"
+            android:maxLines="1"
+            android:includeFontPadding="false"
+            android:textAppearance="@style/TextAppearance.Large"
+            android:textColor="@color/text_primary_inverted_dim"
+            android:text="https://"
+            tools:ignore="HardcodedText"
+            />
+
+        <EditText
+            android:id="@+id/blog_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/blog_url_title"
+            android:layout_toRightOf="@id/blog_url_protocol"
+            android:layout_toEndOf="@id/blog_url_protocol"
+            android:layout_marginRight="@dimen/padding_large"
+            android:layout_marginEnd="@dimen/padding_large"
+            android:layout_marginLeft="1dp"
+            android:layout_marginStart="1dp"
+            android:background="@null"
+            android:requiresFadingEdge="horizontal"
+            android:fadingEdgeLength="20dp"
+            android:hint="blog.my-site.com"
+            android:imeActionId="@integer/ime_action_id_next"
+            android:imeActionLabel="@string/next"
+            android:imeOptions="actionUnspecified"
+            android:inputType="textUri"
+            android:maxLines="1"
+            android:includeFontPadding="false"
+            android:textAppearance="@style/TextAppearance.Large"
+            android:textColor="@color/text_primary_inverted"
+            android:textColorHint="@color/text_primary_inverted_dim"
+            tools:ignore="HardcodedText">
+
+            <requestFocus />
+
+        </EditText>
+
+        <TextView
+            android:id="@+id/blog_url_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/blog_url_protocol"
+            android:layout_marginTop="@dimen/padding_inline"
+            android:layout_marginLeft="@dimen/padding_large"
+            android:layout_marginStart="@dimen/padding_large"
+            android:layout_marginRight="@dimen/padding_large"
+            android:layout_marginEnd="@dimen/padding_large"
+            tools:text="An error occurred"
+            android:textColor="?attr/textColorError"
+            />
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/next_btn"
+        android:layout_width="200dp"
+        android:layout_height="@dimen/touch_size_comfy"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="@dimen/padding_huge"
+        android:paddingLeft="@dimen/padding_large"
+        android:paddingRight="@dimen/padding_large"
+        android:text="@string/next"
+        />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="@dimen/padding_huge"
+        android:paddingBottom="@dimen/padding_inline"
+        android:visibility="gone"
+        />
+
+</FrameLayout>

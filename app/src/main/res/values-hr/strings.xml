@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools"><string name="login_heading1">Prijavi se na svoj</string>
     <string name="login_heading2">blog</string>
 
-    <string name="prompt_blog_url">Blog adresa (blog.primjer.com)</string>
+    <string name="prompt_blog_url">Blog adresa</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Lozinka</string>
     <string name="action_sign_in">Prijavi se</string>
@@ -126,5 +126,6 @@
 
     <string name="user_image">Korisnička slika</string>
     <string name="cdesc_post_image">Slika posta</string>
+    <string name="next">Sljedeći</string>
 
 </resources>

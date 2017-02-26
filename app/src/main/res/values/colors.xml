@@ -7,6 +7,7 @@
     <color name="background">#FFFFFF</color>
     <color name="card_list_background">#EEEEEE</color>
     <color name="format_toolbar_background">#DFDFDF</color>
+    <color name="login_error">#E57373</color>
 
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#727272</color>
