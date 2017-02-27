@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
-import io.reactivex.Single;
+import io.reactivex.Observable;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.model.entity.ConfigurationParam;
@@ -22,6 +22,7 @@ import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Role;
 import me.vickychijwani.spectre.model.entity.Setting;
 import me.vickychijwani.spectre.model.entity.User;
+import me.vickychijwani.spectre.network.entity.ApiErrorList;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.network.entity.PostList;
@@ -35,6 +36,7 @@ import me.vickychijwani.spectre.util.functions.Action3;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
+import retrofit2.HttpException;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
@@ -46,6 +48,7 @@ import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
@@ -71,6 +74,7 @@ public final class GhostApiTest {
 
     private static GhostApiService API;
     private static Slugify SLUGIFY;
+    private static Retrofit RETROFIT;
 
     @BeforeClass
     public static void setupApiService() {
@@ -79,8 +83,8 @@ public final class GhostApiTest {
                 .addInterceptor(new HttpLoggingInterceptor()
                         .setLevel(HttpLoggingInterceptor.Level.BODY))
                 .build();
-        Retrofit retrofit = GhostApiUtils.getRetrofit(BLOG_URL, httpClient);
-        API = retrofit.create(GhostApiService.class);
+        RETROFIT = GhostApiUtils.getRetrofit(BLOG_URL, httpClient);
+        API = RETROFIT.create(GhostApiService.class);
 
         // delete the default "Welcome to Ghost" post, if it exists
         doWithAuthToken(token -> {
@@ -119,6 +123,46 @@ public final class GhostApiTest {
             assertThat(token.getRefreshToken(), notNullValue());
             assertThat(token.getExpiresIn(), is(2628000));
         });
+    }
+
+    @Test
+    public void test_getAuthToken_wrongEmail() {
+        String clientSecret = getClientSecret();
+        AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, "wrong@email.com", TEST_PWD);
+        try {
+            execute(API.getAuthToken(credentials));
+            // fail the test if no exception is thrown
+            assertThat("Test did not throw exception as expected!", false, is(true));
+        } catch (Exception e) {
+            assertThat(e.getCause(), instanceOf(HttpException.class));
+            HttpException httpEx = (HttpException) e.getCause();
+            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, httpEx);
+            assertThat(apiErrors, notNullValue());
+            assertThat(apiErrors.errors.size(), is(1));
+            assertThat(apiErrors.errors.get(0).errorType, is("NotFoundError"));
+            assertThat(apiErrors.errors.get(0).message, notNullValue());
+            assertThat(apiErrors.errors.get(0).message, not(""));
+        }
+    }
+
+    @Test
+    public void test_getAuthToken_wrongPassword() {
+        String clientSecret = getClientSecret();
+        AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, TEST_USER, "wrongpassword");
+        try {
+            execute(API.getAuthToken(credentials));
+            // fail the test if no exception is thrown
+            assertThat("Test did not throw exception as expected!", false, is(true));
+        } catch (Exception e) {
+            assertThat(e.getCause(), instanceOf(HttpException.class));
+            HttpException httpEx = (HttpException) e.getCause();
+            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, httpEx);
+            assertThat(apiErrors, notNullValue());
+            assertThat(apiErrors.errors.size(), is(1));
+            assertThat(apiErrors.errors.get(0).errorType, is("UnauthorizedError"));
+            assertThat(apiErrors.errors.get(0).message, notNullValue());
+            assertThat(apiErrors.errors.get(0).message, not(""));
+        }
     }
 
     @Test
@@ -395,8 +439,8 @@ public final class GhostApiTest {
         }
     }
 
-    private static <T> T execute(Single<T> single) {
-        return single.blockingGet();
+    private static <T> T execute(Observable<T> observable) {
+        return observable.blockingFirst();
     }
 
     private static String getRandomString(int length) {

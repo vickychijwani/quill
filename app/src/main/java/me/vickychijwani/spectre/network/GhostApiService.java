@@ -3,7 +3,7 @@ package me.vickychijwani.spectre.network;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import io.reactivex.Single;
+import io.reactivex.Observable;
 import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
@@ -38,7 +38,7 @@ public interface GhostApiService {
     Call<AuthToken> getAuthTokenV0(@Body AuthReqBody credentials);
 
     @POST("authentication/token/")
-    Single<AuthToken> getAuthToken(@Body AuthReqBody credentials);
+    Observable<AuthToken> getAuthToken(@Body AuthReqBody credentials);
 
     @POST("authentication/token/")
     Call<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials);
@@ -79,7 +79,7 @@ public interface GhostApiService {
 
     // not Single<ConfigurationList> because we need access to response headers (E-Tag)
     @GET("configuration/")
-    Single<Response<ConfigurationList>> getConfiguration();
+    Observable<Response<ConfigurationList>> getConfiguration();
 
     @GET("configuration/about/")
     Call<JsonObject> getVersion(@Header("Authorization") String authHeader);

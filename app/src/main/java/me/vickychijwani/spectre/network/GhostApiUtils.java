@@ -10,16 +10,21 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import me.vickychijwani.spectre.model.entity.AuthToken;
+import me.vickychijwani.spectre.network.entity.ApiErrorList;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.functions.Action1;
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.HttpException;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -86,9 +91,25 @@ public final class GhostApiUtils {
         });
     }
 
-    // IMPORTANT: client secret may be null in older Ghost versions (< 0.7.x)
     @Nullable
-    static String extractClientSecretFromHtml(@NonNull String html) {
+    public static ApiErrorList parseApiErrors(Retrofit retrofit, HttpException exception) {
+        ApiErrorList apiErrors = null;
+        try {
+            //noinspection unchecked
+            Response<AuthToken> response = (Response<AuthToken>) exception.response();
+            ResponseBody errorBody = response.errorBody();
+            apiErrors = (ApiErrorList) retrofit.responseBodyConverter(
+                    ApiErrorList.class, new Annotation[0]).convert(errorBody);
+        } catch (IOException | ClassCastException e) {
+            Crashlytics.log(Log.ERROR, TAG, "Error while parsing login errors! "
+                    + "Response code = " + exception.response().code());
+            Crashlytics.logException(e);
+        }
+        return apiErrors;
+    }
+
+    @Nullable
+    private static String extractClientSecretFromHtml(@NonNull String html) {
         // quotes around attribute values are optional in HTML5: http://stackoverflow.com/q/6495310/504611
         Pattern clientSecretPattern = Pattern.compile("^.*<meta[ ]+name=['\"]?env-clientSecret['\"]?[ ]+content=['\"]?([^'\"]+)['\"]?.*$", Pattern.DOTALL);
         Matcher matcher = clientSecretPattern.matcher(html);

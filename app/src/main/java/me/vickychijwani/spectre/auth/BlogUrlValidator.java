@@ -6,6 +6,7 @@ import android.support.annotation.VisibleForTesting;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import me.vickychijwani.spectre.error.UrlNotFoundException;
 import me.vickychijwani.spectre.util.NetworkUtils;
@@ -22,16 +23,16 @@ class BlogUrlValidator {
     /**
      * @param blogUrl - URL to validate, without http:// or https://
      */
-    static Single<String> validate(@NonNull String blogUrl, @NonNull OkHttpClient httpClient) {
+    static Observable<String> validate(@NonNull String blogUrl, @NonNull OkHttpClient httpClient) {
         if (blogUrl.startsWith("http://") || blogUrl.startsWith("https://")) {
             throw new IllegalArgumentException("Blog URL must not have a scheme! (http or https)");
         }
 
         // try HTTPS and HTTP, in that order
-        return Single.create(source -> {
+        return Observable.create(source -> {
             checkGhostBlog(NetworkUtils.SCHEME_HTTPS + blogUrl, httpClient)
                     .onErrorResumeNext(checkGhostBlog(NetworkUtils.SCHEME_HTTP + blogUrl, httpClient))
-                    .subscribe(source::onSuccess, e -> {
+                    .subscribe(source::onNext, e -> {
                         source.onError(new UrlValidationException(e, NetworkUtils.SCHEME_HTTPS + blogUrl));
                     });
         });

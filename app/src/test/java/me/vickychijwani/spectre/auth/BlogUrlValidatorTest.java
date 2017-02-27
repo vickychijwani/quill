@@ -67,9 +67,9 @@ public class BlogUrlValidatorTest {
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
-
-        assertThat(result.blockingGet(), is(blogUrl));
+        assertThat(
+                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
+                is(blogUrl));
     }
 
     @Test
@@ -78,9 +78,9 @@ public class BlogUrlValidatorTest {
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
-
-        assertThat(result.blockingGet(), is(blogUrl));
+        assertThat(
+                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
+                is(blogUrl));
     }
 
     @Test
@@ -90,10 +90,8 @@ public class BlogUrlValidatorTest {
         server.enqueue(new MockResponse().setResponseCode(404));
         OkHttpClient httpClient = getProdHttpClient();
 
-        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
-
         try {
-            result.blockingGet();
+            execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient));
             // fail the test if no exception is thrown
             assertThat("Test did not throw exception as expected!", false, is(true));
         } catch (Exception e) {
@@ -108,9 +106,9 @@ public class BlogUrlValidatorTest {
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
-
-        assertThat(result.blockingGet(), isOneOf(blogUrl, blogUrl.replaceFirst("/$", "")));
+        assertThat(
+                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
+                isOneOf(blogUrl, blogUrl.replaceFirst("/$", "")));
     }
 
     @Test
@@ -136,9 +134,9 @@ public class BlogUrlValidatorTest {
                     .build();
         }).build();
 
-        Single<String> result = BlogUrlValidator.checkGhostBlog(httpUrl, httpClient);
-
-        assertThat(result.blockingGet(), urlMatches(httpsUrl));
+        assertThat(
+                execute(BlogUrlValidator.checkGhostBlog(httpUrl, httpClient)),
+                urlMatches(httpsUrl));
     }
 
     @Test
@@ -148,9 +146,9 @@ public class BlogUrlValidatorTest {
         server.enqueue(new MockResponse());
         OkHttpClient httpClient = getProdHttpClient();
 
-        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
-
-        assertThat(result.blockingGet(), is(blogUrl));
+        assertThat(
+                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
+                is(blogUrl));
     }
 
     @Test
@@ -169,9 +167,9 @@ public class BlogUrlValidatorTest {
                     .build();
         }).build();
 
-        Single<String> result = BlogUrlValidator.checkGhostBlog(blogUrl, httpClient);
-
-        assertThat(result.blockingGet(), is(blogUrl));
+        assertThat(
+                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
+                is(blogUrl));
     }
 
 
@@ -186,6 +184,10 @@ public class BlogUrlValidatorTest {
                 .sslSocketFactory(LOCALHOST_SOCKET_FACTORY, LOCALHOST_TRUST_MANAGER)
                 .addInterceptor(loggingInterceptor)
                 .build();
+    }
+
+    private static <T> T execute(Single<T> single) {
+        return single.blockingGet();
     }
 
 }

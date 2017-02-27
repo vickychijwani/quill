@@ -143,6 +143,11 @@ public class LoginUrlFragment extends BaseFragment implements
     }
 
     @Override
+    public void onApiError(String error, boolean isEmailError) {
+        // no-op
+    }
+
+    @Override
     public void onGhostV0Error() {
         // no-op
     }

@@ -36,7 +36,6 @@ public class OpenSourceLibsActivity extends BaseActivity {
             new Library("Realm", "Realm Inc.", "http://realm.io/"),
             new Library("Retrofit", "Square Inc.", "http://square.github.io/retrofit/"),
             new Library("RxAndroid", "ReactiveX", "https://github.com/ReactiveX/RxAndroid"),
-            new Library("RxTuples2", "Paco", "https://github.com/pakoito/RxTuples2"),
             new Library("Showdown", "ShowdownJS and Hannah Wolfe", "https://github.com/ErisDS/showdown/"),
             new Library("Slugify", "Danny Trunk", "https://github.com/slugify/slugify"),
             new Library("Stetho", "Facebook Inc.", "http://facebook.github.io/stetho/"),

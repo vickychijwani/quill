@@ -129,6 +129,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onBackPressed()");
+        // give fragments a chance to handle back press
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         if (fragments != null) {
             for (Fragment f : fragments) {
@@ -142,6 +143,11 @@ public abstract class BaseActivity extends AppCompatActivity {
                 }
             }
         }
+        // pop back stack if any
+        if (getSupportFragmentManager().popBackStackImmediate()) {
+            return;
+        }
+        // finally, delegate to superclass
         super.onBackPressed();
     }
 

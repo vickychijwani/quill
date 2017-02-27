@@ -16,7 +16,6 @@ import com.squareup.otto.Subscribe;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,9 +100,9 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.HttpException;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
@@ -192,7 +191,8 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
                         getBus().post(new PasswordChangedEvent());
                     } else {
                         ApiFailure<AuthToken> apiFailure = new ApiFailure<>(response);
-                        ApiErrorList apiErrors = parseApiErrors(mRetrofit, response);
+                        ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(mRetrofit,
+                                new HttpException(response));
                         getBus().post(new LoginErrorEvent<>(apiFailure, apiErrors, event.blogUrl, event.initiatedByUser));
                     }
                 }
@@ -993,7 +993,8 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
                             postLoginStartEvent();
                         } else {
                             ApiFailure<AuthToken> apiFailure = new ApiFailure<>(response);
-                            ApiErrorList apiErrors = parseApiErrors(mRetrofit, response);
+                            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(mRetrofit,
+                                    new HttpException(response));
                             getBus().post(new LoginErrorEvent<>(apiFailure, apiErrors, null, false));
                             flushApiEventQueue(true);
                         }
@@ -1109,21 +1110,6 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
         // consider the token as "expired" 60 seconds earlier, because the createdAt timestamp can
         // be off by several seconds
         return DateTimeUtils.getEpochSeconds() > mAuthToken.getCreatedAt() + 86400 - 60;
-    }
-
-    @Nullable
-    private static ApiErrorList parseApiErrors(Retrofit retrofit, Response<AuthToken> response) {
-        ResponseBody errorBody = response.errorBody();
-        ApiErrorList apiErrors = null;
-        try {
-            apiErrors = (ApiErrorList) retrofit.responseBodyConverter(
-                    ApiErrorList.class, new Annotation[0]).convert(errorBody);
-        } catch (IOException | ClassCastException e) {
-            Crashlytics.log(Log.ERROR, TAG, "Error while parsing login errors! "
-                    + "Response code = " + response.code());
-            Crashlytics.logException(e);
-        }
-        return apiErrors;
     }
 
     private List<Post> getPostsSorted() {

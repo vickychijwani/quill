@@ -71,6 +71,22 @@ public class NetworkUtils {
         return response.code() == HttpURLConnection.HTTP_NOT_MODIFIED;
     }
 
+    public static boolean isNotFound(@Nullable Throwable e) {
+        if (e == null || !(e instanceof HttpException)) {
+            return false;
+        }
+        HttpException httpEx = (HttpException) e;
+        return httpEx.code() == HttpURLConnection.HTTP_NOT_FOUND;
+    }
+
+    public static boolean isTooManyRequests(@Nullable Throwable e) {
+        if (e == null || !(e instanceof HttpException)) {
+            return false;
+        }
+        HttpException httpEx = (HttpException) e;
+        return httpEx.code() == 429;  // too many requests
+    }
+
     public static boolean isUnrecoverableError(@Nullable Response response) {
         if (response == null) {
             return false;
