@@ -1,4 +1,4 @@
-[![](https://dl.dropboxusercontent.com/u/3037831/quill-github/feature-graphic.png)][playstore]
+[![](http://i.imgur.com/iuTrwv9.png)][playstore]
 
 <img src="screenshots/demo.gif" width="320" align="right" hspace="20">
 
