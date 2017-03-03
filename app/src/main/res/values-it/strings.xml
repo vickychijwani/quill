@@ -12,7 +12,7 @@
     <string name="error_invalid_password">La password è troppo breve.</string>
     <string name="error_field_required">Questo campo è richiesto.</string>
 
-    <string name="logout">Logout</string>
+    <string name="logout">Esci</string>
     <string name="status_published">Pubblicato %s</string>
     <string name="status_draft">Bozza</string>
     <string name="send_feedback">Invia feedback…</string>
@@ -20,20 +20,20 @@
     <string name="preview">Anteprima</string>
     <string name="edit">Modifica</string>
     <string name="publish">Pubblica</string>
-    <string name="update_post">Aggiorna post</string>
+    <string name="update_post">Aggiorna articolo</string>
     <string name="delete_draft">Elimina bozza</string>
     <string name="alert_delete_draft_title">Eliminare questa bozza?</string>
     <string name="alert_delete_yes">Elimina</string>
     <string name="alert_delete_no">Mantieni</string>
-    <string name="post_deleted">Post eliminato</string>
+    <string name="post_deleted">Articolo eliminato</string>
     <string name="alert_save_yes">Si, aggiorna</string>
     <string name="alert_save_no">Non adesso</string>
-    <string name="view_homepage">Vedi homepage</string>
-    <string name="view_post_on_blog">Vedi post sul blog</string>
-    <string name="post_settings">Impostazioni post</string>
+    <string name="view_homepage">Mostra homepage</string>
+    <string name="view_post_on_blog">Mostra articolo sul blog</string>
+    <string name="post_settings">Impostazioni articolo</string>
 
     <string name="save_scenario_unknown">Salvato</string>
-    <string name="save_scenario_publish_draft">Post pubblicato!</string>
+    <string name="save_scenario_publish_draft">Articolo pubblicato!</string>
     <string name="save_scenario_auto_save_scheduled_or_published_post">Cambiamenti salvati sul dispositivo</string>
     <string name="post_tags_hint">Aggiungi alcuni tag…</string>
     <string name="post_tags_format_hint">Usa le virgole per separare i tag</string>
@@ -57,12 +57,12 @@
 Prova di nuovo.</string>
     <string name="login_ssl_unsupported">"Il tuo blog non supporta  https:// (SSL). Prova a cambiarlo in  http://."</string>
     <string name="discard">Scarta</string>
-    <string name="save_post_progress">Salvataggio post…</string>
-    <string name="save_post_failed">Impossibile salvare il post</string>
-    <string name="save_post_view">Vedi sul blog</string>
+    <string name="save_post_progress">Salvataggio articolo…</string>
+    <string name="save_post_failed">Impossibile salvare l\'articolo</string>
+    <string name="save_post_view">Mostra sul blog</string>
     <string name="save_post_timeout">Salvato sul dispositivo</string>
 
-    <string name="save_scenario_explicitly_update_scheduled_or_published_post">Post aggiornato</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">Articolo aggiornato</string>
     <string name="save_scenario_auto_save_draft">Bozza salvata</string>
     <string name="save_scenario_explicitly_save_draft">Bozza salvata</string>
 
@@ -99,7 +99,7 @@ Prova di nuovo.</string>
     <string name="refresh">Aggiorna</string>
     <string name="share">Condividi</string>
     <string name="loading">Caricamento…</string>
-    <string name="cdesc_post_image">Immagine post</string>
+    <string name="cdesc_post_image">Immagine articolo</string>
 
 <string name="login_unexpected_error">Errore inaspettato durante il collegamento. Prova di nuovo.</string>
     <string name="password_changed">Hai cambiato la tua password? È impossibile collegarsi con questa password.</string>
@@ -135,7 +135,7 @@ Prova di nuovo.</string>
 
     <string name="fork_on_github">Forka su Github</string>
     <string name="email_developer">Email allo sviluppatore</string>
-    <string name="email_subject">%s - Feedback</string>
+    <string name="email_subject">%s - feedback</string>
 
     <string name="about_icon_credits">Icona d\'avvio \"Feather\" da <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
 
