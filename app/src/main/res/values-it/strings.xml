@@ -1,2 +1,143 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<?xml version='1.0' encoding='UTF-8'?>
+<resources xmlns:tools="http://schemas.android.com/tools"><string name="login_heading1">Entra nel tuo</string>
+    <string name="login_heading2">blog</string>
+
+    <string name="prompt_blog_url">Indirizzo blog (blog.esempio.com)</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Entra</string>
+
+    <string name="error_invalid_url">Questo URL non è valido.</string>
+    <string name="error_invalid_email">Questo indirizzo email non è valido.</string>
+    <string name="error_invalid_password">La password è troppo breve.</string>
+    <string name="error_field_required">Questo campo è richiesto.</string>
+
+    <string name="logout">Logout</string>
+    <string name="status_published">Pubblicato %s</string>
+    <string name="status_draft">Bozza</string>
+    <string name="send_feedback">Invia feedback…</string>
+
+    <string name="preview">Anteprima</string>
+    <string name="edit">Modifica</string>
+    <string name="publish">Pubblica</string>
+    <string name="update_post">Aggiorna post</string>
+    <string name="delete_draft">Elimina bozza</string>
+    <string name="alert_delete_draft_title">Eliminare questa bozza?</string>
+    <string name="alert_delete_yes">Elimina</string>
+    <string name="alert_delete_no">Mantieni</string>
+    <string name="post_deleted">Post eliminato</string>
+    <string name="alert_save_yes">Si, aggiorna</string>
+    <string name="alert_save_no">Non adesso</string>
+    <string name="view_homepage">Vedi homepage</string>
+    <string name="view_post_on_blog">Vedi post sul blog</string>
+    <string name="post_settings">Impostazioni post</string>
+
+    <string name="save_scenario_unknown">Salvato</string>
+    <string name="save_scenario_publish_draft">Post pubblicato!</string>
+    <string name="save_scenario_auto_save_scheduled_or_published_post">Cambiamenti salvati sul dispositivo</string>
+    <string name="post_tags_hint">Aggiungi alcuni tag…</string>
+    <string name="post_tags_format_hint">Usa le virgole per separare i tag</string>
+    <string name="format_bold">Grassetto</string>
+    <string name="format_italic">Corsivo</string>
+    <string name="insert_image_url">Inserisci URL</string>
+    <string name="image_url">URL immagine</string>
+    <string name="insert_image_upload">Carica immagine</string>
+    <string name="uploading">Caricamento…</string>
+    <string name="image_upload_failed">Impossible caricare l\'immagine</string>
+    <string name="remove_image">Rimuovi questa immagine</string>
+    <string name="accept">Accetta</string>
+    <string name="draft">Bozza</string>
+    <string name="published">Pubblicato</string>
+    <string name="scheduled">Pianificato</string>
+
+    <string name="user_image">Immagine utente</string>
+    <string name="insert">Inserisci</string>
+    <string name="no_such_blog">Non c\'è nessun amministratore di Ghost su %s/ghost.</string>
+    <string name="login_connection_error">Impossible connettersi a %s/ghost.
+Prova di nuovo.</string>
+    <string name="login_ssl_unsupported">"Il tuo blog non supporta  https:// (SSL). Prova a cambiarlo in  http://."</string>
+    <string name="discard">Scarta</string>
+    <string name="save_post_progress">Salvataggio post…</string>
+    <string name="save_post_failed">Impossibile salvare il post</string>
+    <string name="save_post_view">Vedi sul blog</string>
+    <string name="save_post_timeout">Salvato sul dispositivo</string>
+
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">Post aggiornato</string>
+    <string name="save_scenario_auto_save_draft">Bozza salvata</string>
+    <string name="save_scenario_explicitly_save_draft">Bozza salvata</string>
+
+    <string name="post_body_hint">Scrivi qualcosa qui…</string>
+    <string name="format_link">Inserisci link</string>
+    <string name="format_image">Inserisci immagine</string>
+
+    <string name="insert_image">Inserisci immagine</string>
+    <string name="conflict_choice_use_device_copy">Carica copia da dispositivo</string>
+    <string name="conflict_choice_use_server_copy">Scarica copia da server</string>
+    <string name="about_action">Info su…</string>
+    <string name="about">Info</string>
+
+    <string name="version">Versione</string>
+    <string name="version_unknown">Sconosciuto</string>
+    <string name="open_source_libs">Librerie Open Source</string>
+
+    <string name="category_developer">Sviluppatore</string>
+    <string name="follow_on_twitter">Segui su Twitter</string>
+    <string name="visit_website">Visita sito web</string>
+
+    <string name="category_support_development">Supporta lo sviluppo</string>
+    <string name="report_bugs">Segnala bug</string>
+    <string name="report_bugs_subtitle">Segnala bug o proponi nuove caratteristiche</string>
+    <string name="play_store">Vota su Play Store</string>
+    <string name="play_store_subtitle">Grazie per il tuo supporto!</string>
+    <string name="email_developer_subtitle">Contatta direttamente lo sviluppatore</string>
+    <string name="no_internet_connection">Nessuna connessione a internet</string>
+    <string name="network_timeout">Time out connessione</string>
+    <string name="refresh_failed">Impossibile aggiornare i dati</string>
+
+    <string name="done">Fatto</string>
+    <string name="save">Salva</string>
+    <string name="refresh">Aggiorna</string>
+    <string name="share">Condividi</string>
+    <string name="loading">Caricamento…</string>
+    <string name="cdesc_post_image">Immagine post</string>
+
+<string name="login_unexpected_error">Errore inaspettato durante il collegamento. Prova di nuovo.</string>
+    <string name="password_changed">Hai cambiato la tua password? È impossibile collegarsi con questa password.</string>
+    <string name="unsynced_changes_msg">Perderai tutti i cambiamenti non sincronizzati se esci adesso</string>
+    <string name="dont_logout">Non uscire</string>
+
+    <string name="status_offline_changes">Salvato sul dispositivo, in attesa di andare online…</string>
+    <string name="status_published_auto_saved">Cambiamenti salvati automaticamente, non pubblicati ancora</string>
+    <string name="status_scheduled">Pianificate - %s</string>
+    <string name="status_marked_for_deletion">Contrassegnato per l\'eliminazione, in attesa di andare online…</string>
+    <string name="status_marked_for_deletion_open_error">Questo articolo è stato contrassegnato per essere eliminato, e non può essere aperto</string>
+    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate">%1$s correntemente carica solo gli ultimi %2$d articoli dal tuo blog. Se ti piacerebbe vedere supportata la possibilità di caricare gli articoli più vecchi, &lt;a href=%3$s&gt;vota questa caratteristica su Github&lt;/a&gt; ed aiutami a dare le varie priorità da sviluppare.</string>
+    <string name="unpublish">Non pubblicare</string>
+    <string name="alert_publish">Pubblicare bozza?</string>
+    <string name="alert_unpublish">Non pubblicare articolo?</string>
+    <string name="alert_delete_draft_msg">Non sarà possibile annullare questa operazione!</string>
+    <string name="alert_save_msg">Aggiornare l\'articolo con le modifiche?</string>
+    <string name="discard_changes">Annulla modifiche</string>
+    <string name="alert_discard_changes_title">Annullare TUTTE le modifiche fatte da quando hai aperto questo articolo?</string>
+    <string name="alert_discard_changes_msg">Non puoi tornare indietro!</string>
+    <string name="save_scenario_unpublish_published_post">Articolo non pubblicato</string>
+    <string name="post_title_hint">Dai un titolo al tuo articolo…</string>
+    <string name="post_image_hint">Aggiungi immagine articolo</string>
+    <string name="post_image_load_error">Errore durante il caricamento dell’immagine dell\'articolo</string>
+    <string name="post_feature_hint">Metti in primo piano questo articolo</string>
+
+    <string name="enable_permission_tip">Tocca Permessi e abilita il permesso di archiviazione</string>
+
+    <string name="conflict_explanation"><b>L\'articolo <i>%s</i> ha un conflitto.</b>"  è stato aggiornato sul server prima che la copia presente sul tuo dispositivo venisse caricata. Quale versione dell\'articolo vuoi mantenere?"</string>
+    <string name="conflict_last_update_at">Ultimo aggiornamento alle %s</string>
+    <string name="conflict_post_preview_title">La copia sottostante dell\'articolo verrà mantenuta:</string>
+    <string name="conflict_post_preview_status">Stato articolo: <b>%s</b></string>
+
+    <string name="fork_on_github">Forka su Github</string>
+    <string name="email_developer">Email allo sviluppatore</string>
+    <string name="email_subject">%s - Feedback</string>
+
+    <string name="about_icon_credits">Icona d\'avvio \"Feather\" da <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
+
+    <string name="intent_no_apps">Non ci sono applicazioni in grado di gestire questa azione</string>
+    </resources>
