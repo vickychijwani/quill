@@ -31,8 +31,10 @@ import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.model.DatabaseMigration;
 import me.vickychijwani.spectre.network.NetworkService;
 import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
+import me.vickychijwani.spectre.util.CrashReportingTree;
 import okhttp3.OkHttpClient;
 import retrofit2.Response;
+import timber.log.Timber;
 
 public class SpectreApplication extends Application {
 
@@ -55,8 +57,15 @@ public class SpectreApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
         Fabric.with(this, new Crashlytics(), new Answers());
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new Timber.DebugTree());
+        } else {
+            Timber.plant(new CrashReportingTree());
+        }
         Crashlytics.log(Log.DEBUG, TAG, "APP LAUNCHED");
+
         BusProvider.getBus().register(this);
         sInstance = this;
 

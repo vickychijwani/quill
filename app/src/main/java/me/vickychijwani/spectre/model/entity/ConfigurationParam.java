@@ -14,6 +14,13 @@ public class ConfigurationParam implements RealmModel {
     @Required
     private String value;
 
+    public ConfigurationParam() {}
+
+    public ConfigurationParam(String key, String value) {
+        this.key = key;
+        this.value = value;
+    }
+
     public String getKey() {
         return key;
     }

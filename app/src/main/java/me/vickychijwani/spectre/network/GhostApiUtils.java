@@ -29,6 +29,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import timber.log.Timber;
 
 public final class GhostApiUtils {
 
@@ -101,9 +102,9 @@ public final class GhostApiUtils {
             apiErrors = (ApiErrorList) retrofit.responseBodyConverter(
                     ApiErrorList.class, new Annotation[0]).convert(errorBody);
         } catch (IOException | ClassCastException e) {
-            Crashlytics.log(Log.ERROR, TAG, "Error while parsing login errors! "
-                    + "Response code = " + exception.response().code());
-            Crashlytics.logException(e);
+            Timber.e("Error while parsing login errors! Response code = "
+                    + exception.response().code());
+            Timber.e(e);
         }
         return apiErrors;
     }

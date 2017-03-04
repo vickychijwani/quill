@@ -24,7 +24,6 @@ import me.vickychijwani.spectre.model.entity.Setting;
 import me.vickychijwani.spectre.model.entity.User;
 import me.vickychijwani.spectre.network.entity.ApiErrorList;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
-import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.network.entity.PostList;
 import me.vickychijwani.spectre.network.entity.PostStubList;
 import me.vickychijwani.spectre.network.entity.RefreshReqBody;
@@ -345,11 +344,8 @@ public final class GhostApiTest {
     @Test
     public void test_getConfiguration() {
         doWithAuthToken(token -> {
-            Response<ConfigurationList> response = execute(API.getConfiguration());
-            List<ConfigurationParam> config = response.body().configuration;
+            List<ConfigurationParam> config = execute(API.getConfiguration()).configuration;
 
-            assertThat(response.code(), is(HTTP_OK));
-            assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
             assertThat(config, notNullValue());
             // is file storage enabled? if not, images etc can't be uploaded
             assertThat(config, hasItem(allOf(
@@ -417,13 +413,7 @@ public final class GhostApiTest {
 
     @Nullable
     private static String getClientSecret() {
-        ConfigurationList config = execute(API.getConfiguration()).body();
-        for (ConfigurationParam param : config.configuration) {
-            if ("clientSecret".equals(param.getKey())) {
-                return param.getValue();
-            }
-        }
-        throw new NullPointerException("Client secret is null!");
+        return execute(API.getConfiguration()).getClientSecret();
     }
 
     @NonNull

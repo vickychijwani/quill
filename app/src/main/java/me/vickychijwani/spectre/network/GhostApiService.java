@@ -15,7 +15,6 @@ import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import okhttp3.MultipartBody;
 import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
@@ -77,9 +76,8 @@ public interface GhostApiService {
     Call<SettingsList> getSettings(@Header("Authorization") String authHeader,
                                    @Header("If-None-Match") String etag);
 
-    // not Single<ConfigurationList> because we need access to response headers (E-Tag)
     @GET("configuration/")
-    Observable<Response<ConfigurationList>> getConfiguration();
+    Observable<ConfigurationList> getConfiguration();
 
     @GET("configuration/about/")
     Call<JsonObject> getVersion(@Header("Authorization") String authHeader);

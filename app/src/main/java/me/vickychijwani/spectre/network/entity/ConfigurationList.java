@@ -34,4 +34,8 @@ public class ConfigurationList {
         return null;
     }
 
+    public String getClientSecret() {
+        return get("clientSecret");
+    }
+
 }

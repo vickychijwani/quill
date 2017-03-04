@@ -156,7 +156,7 @@ public class PasswordAuthFragment extends BaseFragment implements
     }
 
     @Override
-    public void onBlogUrlError(LoginOrchestrator.UrlErrorType errorType, @NonNull Throwable error,
+    public void onBlogUrlError(LoginOrchestrator.ErrorType errorType, @NonNull Throwable error,
                                @NonNull String blogUrl) {
         // no-op
     }
@@ -183,6 +183,24 @@ public class PasswordAuthFragment extends BaseFragment implements
     @Override
     public void onGhostV0Error() {
         // no-op
+    }
+
+    @Override
+    public void onNetworkError(LoginOrchestrator.ErrorType errorType, @NonNull Throwable error) {
+        switch (errorType) {
+            case ERR_CONNECTION:
+                showEmailError(getString(R.string.login_connection_error));
+                break;
+            case ERR_USER_NETWORK:
+                showEmailError(getString(R.string.no_such_blog));
+                break;
+            case ERR_SSL:
+                showEmailError(getString(R.string.login_ssl_unsupported));
+                break;
+            case ERR_UNKNOWN:
+                showEmailError(getString(R.string.login_unexpected_error));
+                break;
+        }
     }
 
     @Override

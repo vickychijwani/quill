@@ -1,4 +1,4 @@
-package me.vickychijwani.spectre.hamcrest;
+package me.vickychijwani.spectre.testing;
 
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
@@ -8,7 +8,7 @@ import org.hamcrest.TypeSafeMatcher;
 /**
  * Custom Hamcrest matcher that matches 2 URLs ignoring ONLY trailing slashes. This can't handle
  * stuff like port 80/443 being the default for HTTP/HTTPS, or query params being unordered, or even
- * URLs being case-insensitive
+ * URLs being case-insensitive.
  */
 public class UrlMatches extends TypeSafeMatcher<String> {
 

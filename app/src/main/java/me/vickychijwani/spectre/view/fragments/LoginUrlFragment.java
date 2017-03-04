@@ -117,7 +117,7 @@ public class LoginUrlFragment extends BaseFragment implements
     }
 
     @Override
-    public void onBlogUrlError(LoginOrchestrator.UrlErrorType errorType, @NonNull Throwable error,
+    public void onBlogUrlError(LoginOrchestrator.ErrorType errorType, @NonNull Throwable error,
                                @NonNull String blogUrl) {
         stopWaiting();
         String errorStr;
@@ -150,6 +150,11 @@ public class LoginUrlFragment extends BaseFragment implements
     @Override
     public void onGhostV0Error() {
         // no-op
+    }
+
+    @Override
+    public void onNetworkError(LoginOrchestrator.ErrorType errorType, @NonNull Throwable error) {
+        // no-op, already handled in onBlogUrlError
     }
 
     @Override

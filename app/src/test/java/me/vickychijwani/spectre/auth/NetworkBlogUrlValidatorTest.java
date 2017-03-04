@@ -7,12 +7,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.X509TrustManager;
-
-import io.reactivex.Single;
 import me.vickychijwani.spectre.error.UrlNotFoundException;
-import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
+import me.vickychijwani.spectre.testing.Helpers;
 import me.vickychijwani.spectre.util.functions.Func1;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -20,12 +16,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import okhttp3.internal.tls.SslClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 
-import static me.vickychijwani.spectre.hamcrest.UrlMatches.urlMatches;
+import static me.vickychijwani.spectre.testing.Helpers.execute;
+import static me.vickychijwani.spectre.testing.UrlMatches.urlMatches;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
@@ -36,10 +31,8 @@ import static org.junit.Assert.assertThat;
  * PURPOSE: testing blog URL validation
  */
 
-public class BlogUrlValidatorTest {
+public class NetworkBlogUrlValidatorTest {
 
-    private static final SSLSocketFactory LOCALHOST_SOCKET_FACTORY = SslClient.localhost().socketFactory;
-    private static final X509TrustManager LOCALHOST_TRUST_MANAGER = SslClient.localhost().trustManager;
     private static final String HTTP = "http://";
     private static final String HTTPS = "https://";
 
@@ -63,35 +56,31 @@ public class BlogUrlValidatorTest {
     @Test
     public void checkGhostBlog_simpleHttps() throws IOException, NoSuchAlgorithmException {
         String blogUrl = HTTPS + server.getHostName() + ":" + server.getPort();
-        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
+        server.useHttps(Helpers.LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
-        OkHttpClient httpClient = getProdHttpClient();
+        OkHttpClient httpClient = Helpers.getProdHttpClient();
 
-        assertThat(
-                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
-                is(blogUrl));
+        assertThat(checkGhostBlog(blogUrl, httpClient), is(blogUrl));
     }
 
     @Test
     public void checkGhostBlog_simpleHttp() throws IOException, NoSuchAlgorithmException {
         String blogUrl = HTTP + server.getHostName() + ":" + server.getPort();
         server.enqueue(new MockResponse());
-        OkHttpClient httpClient = getProdHttpClient();
+        OkHttpClient httpClient = Helpers.getProdHttpClient();
 
-        assertThat(
-                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
-                is(blogUrl));
+        assertThat(checkGhostBlog(blogUrl, httpClient), is(blogUrl));
     }
 
     @Test
     public void checkGhostBlog_404() throws IOException {
         String blogUrl = HTTPS + server.getHostName() + ":" + server.getPort() + "/THIS_DOESNT_EXIST";
-        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
+        server.useHttps(Helpers.LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse().setResponseCode(404));
-        OkHttpClient httpClient = getProdHttpClient();
+        OkHttpClient httpClient = Helpers.getProdHttpClient();
 
         try {
-            execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient));
+            checkGhostBlog(blogUrl, httpClient);
             // fail the test if no exception is thrown
             assertThat("Test did not throw exception as expected!", false, is(true));
         } catch (Exception e) {
@@ -102,12 +91,11 @@ public class BlogUrlValidatorTest {
     @Test
     public void checkGhostBlog_trailingSlash() throws IOException {
         String blogUrl = HTTPS + server.getHostName() + ":" + server.getPort() + "/";
-        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
+        server.useHttps(Helpers.LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
-        OkHttpClient httpClient = getProdHttpClient();
+        OkHttpClient httpClient = Helpers.getProdHttpClient();
 
-        assertThat(
-                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
+        assertThat(checkGhostBlog(blogUrl, httpClient),
                 isOneOf(blogUrl, blogUrl.replaceFirst("/$", "")));
     }
 
@@ -117,9 +105,9 @@ public class BlogUrlValidatorTest {
 
         String httpUrl = HTTP + server.getHostName() + ":" + server.getPort();
         String httpsUrl = toHttps.call(HttpUrl.parse(httpUrl)).toString();
-        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
+        server.useHttps(Helpers.LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
-        OkHttpClient httpClient = getProdHttpClient();
+        OkHttpClient httpClient = Helpers.getProdHttpClient();
         httpClient = httpClient.newBuilder().addInterceptor(chain -> {
             if (chain.request().isHttps()) {
                 throw new IllegalStateException("This test is supposed to make a vanilla HTTP request!");
@@ -134,29 +122,25 @@ public class BlogUrlValidatorTest {
                     .build();
         }).build();
 
-        assertThat(
-                execute(BlogUrlValidator.checkGhostBlog(httpUrl, httpClient)),
-                urlMatches(httpsUrl));
+        assertThat(checkGhostBlog(httpUrl, httpClient), urlMatches(httpsUrl));
     }
 
     @Test
     public void checkGhostBlog_underSubFolder() throws IOException {
         String blogUrl = HTTPS + server.getHostName() + ":" + server.getPort() + "/blog";
-        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
+        server.useHttps(Helpers.LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
-        OkHttpClient httpClient = getProdHttpClient();
+        OkHttpClient httpClient = Helpers.getProdHttpClient();
 
-        assertThat(
-                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
-                is(blogUrl));
+        assertThat(checkGhostBlog(blogUrl, httpClient), is(blogUrl));
     }
 
     @Test
     public void checkGhostBlog_underSubDomain() throws IOException {
         String blogUrl = HTTPS + "blog." + server.getHostName() + ":" + server.getPort();
-        server.useHttps(LOCALHOST_SOCKET_FACTORY, false);
+        server.useHttps(Helpers.LOCALHOST_SOCKET_FACTORY, false);
         server.enqueue(new MockResponse());
-        OkHttpClient httpClient = getProdHttpClient();
+        OkHttpClient httpClient = Helpers.getProdHttpClient();
         httpClient = httpClient.newBuilder().addInterceptor(chain -> {
             //noinspection CodeBlock2Expr
             return new Response.Builder()
@@ -167,27 +151,13 @@ public class BlogUrlValidatorTest {
                     .build();
         }).build();
 
-        assertThat(
-                execute(BlogUrlValidator.checkGhostBlog(blogUrl, httpClient)),
-                is(blogUrl));
+        assertThat(checkGhostBlog(blogUrl, httpClient), is(blogUrl));
     }
 
 
-    // helpers
-    private OkHttpClient getProdHttpClient() {
-        OkHttpClient httpClient = new ProductionHttpClientFactory().create(null);
-
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        return httpClient.newBuilder()
-                .sslSocketFactory(LOCALHOST_SOCKET_FACTORY, LOCALHOST_TRUST_MANAGER)
-                .addInterceptor(loggingInterceptor)
-                .build();
-    }
-
-    private static <T> T execute(Single<T> single) {
-        return single.blockingGet();
+    // helper methods
+    private static String checkGhostBlog(String blogUrl, OkHttpClient httpClient) {
+        return execute(NetworkBlogUrlValidator.checkGhostBlog(blogUrl, httpClient));
     }
 
 }

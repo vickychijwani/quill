@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.util.Pair;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
@@ -14,11 +13,11 @@ import me.vickychijwani.spectre.auth.GhostAuth;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.Listenable;
+import me.vickychijwani.spectre.util.Pair;
 import me.vickychijwani.spectre.view.fragments.GenericFragment;
 import me.vickychijwani.spectre.view.fragments.GhostAuthFragment;
 import me.vickychijwani.spectre.view.fragments.LoginUrlFragment;
 import me.vickychijwani.spectre.view.fragments.PasswordAuthFragment;
-import okhttp3.OkHttpClient;
 
 public class LoginActivity extends BaseActivity implements
         LoginOrchestrator.CredentialSource,
@@ -38,10 +37,9 @@ public class LoginActivity extends BaseActivity implements
         super.onCreate(savedInstanceState);
         setLayout(R.layout.activity_login);
 
-        OkHttpClient httpClient = SpectreApplication.getInstance().getOkHttpClient();
         LoginOrchestrator.HACKListener hackListener = SpectreApplication.getInstance().getHACKListener();
         if (mLoginOrchestrator == null) {
-            mLoginOrchestrator = new LoginOrchestrator(httpClient, this, hackListener);
+            mLoginOrchestrator = LoginOrchestrator.create(this, hackListener);
         }
 
         // TODO MEMLEAK the fragment might already exist
@@ -127,7 +125,7 @@ public class LoginActivity extends BaseActivity implements
     public void onStartWaiting() {}
 
     @Override
-    public void onBlogUrlError(LoginOrchestrator.UrlErrorType errorType, @NonNull Throwable error, @NonNull String blogUrl) {}
+    public void onBlogUrlError(LoginOrchestrator.ErrorType errorType, @NonNull Throwable error, @NonNull String blogUrl) {}
 
     @Override
     public void onApiError(String error, boolean isEmailError) {
@@ -142,6 +140,11 @@ public class LoginActivity extends BaseActivity implements
                 .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override
+    public void onNetworkError(LoginOrchestrator.ErrorType errorType, @NonNull Throwable error) {
+        // no-op
     }
 
     @Override
