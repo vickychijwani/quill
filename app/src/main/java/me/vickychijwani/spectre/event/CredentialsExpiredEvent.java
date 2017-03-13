@@ -1,5 +1,5 @@
 package me.vickychijwani.spectre.event;
 
-public class PasswordChangedEvent {
+public class CredentialsExpiredEvent {
 
 }

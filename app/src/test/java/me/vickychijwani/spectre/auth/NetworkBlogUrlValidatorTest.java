@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * TYPE: unit tests (independent of server and android)
@@ -81,8 +82,7 @@ public class NetworkBlogUrlValidatorTest {
 
         try {
             checkGhostBlog(blogUrl, httpClient);
-            // fail the test if no exception is thrown
-            assertThat("Test did not throw exception as expected!", false, is(true));
+            fail("Test did not throw exception as expected!");
         } catch (Exception e) {
             assertThat(e, instanceOf(UrlNotFoundException.class));
         }

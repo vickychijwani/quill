@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="prompt_blog_url">Adresse du blog</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Mot de passe</string>
@@ -14,7 +14,6 @@
     <string name="login_connection_error">Connexion impossible à %s/Ghost. Veuillez essayer à nouveau.</string>
     <string name="login_ssl_unsupported">Votre blog ne supporte pas le https:// (SSL)</string>
     <string name="logout">Déconnexion</string>
-    <string name="password_changed">Votre mot de passe a t\'il changé? Connexion impossible avec ce mot de passe.</string>
     <string name="unsynced_changes_msg">Vous perdrez toutes les modifications non synchronisés si vous vous déconnectez maintenant</string>
     <string name="dont_logout">Rester connecté</string>
 

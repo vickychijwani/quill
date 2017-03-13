@@ -24,6 +24,15 @@ public class ConfigurationList {
         return configurationList;
     }
 
+    public boolean has(@NonNull String key) {
+        for (ConfigurationParam param : configuration) {
+            if (key.equals(param.getKey())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Nullable
     public String get(@NonNull String key) {
         for (ConfigurationParam param : configuration) {

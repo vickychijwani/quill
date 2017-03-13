@@ -16,8 +16,9 @@ public class UserPrefs extends Prefs<UserPrefs.Key> {
     public static class Key extends BaseKey {
 
         public static final Key BLOG_URL = new Key("blog_url", String.class, "");
-        public static final Key USERNAME = new Key("username", String.class, "");
+        public static final Key EMAIL = new Key("email", String.class, "");
         public static final Key PASSWORD = new Key("password", String.class, "");
+        public static final Key AUTH_CODE = new Key("auth_code", String.class, "");
         public static final Key PERMALINK_FORMAT = new Key("permalink_format", String.class, "/:slug/");
 
         /* package */ <T> Key(String str, Class<T> type, T defaultValue) {

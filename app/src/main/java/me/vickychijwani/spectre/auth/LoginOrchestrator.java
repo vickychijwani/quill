@@ -15,24 +15,21 @@ import io.reactivex.schedulers.Schedulers;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.error.LoginFailedException;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
+import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.model.entity.AuthToken;
-import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.network.ApiProvider;
 import me.vickychijwani.spectre.network.ApiProviderFactory;
 import me.vickychijwani.spectre.network.GhostApiService;
 import me.vickychijwani.spectre.network.GhostApiUtils;
 import me.vickychijwani.spectre.network.entity.ApiError;
 import me.vickychijwani.spectre.network.entity.ApiErrorList;
-import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.util.Listenable;
 import me.vickychijwani.spectre.util.NetworkUtils;
-import me.vickychijwani.spectre.util.Pair;
 import me.vickychijwani.spectre.util.functions.Action1;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import retrofit2.HttpException;
-import retrofit2.Retrofit;
 import timber.log.Timber;
 
 import static me.vickychijwani.spectre.event.BusProvider.getBus;
@@ -54,27 +51,32 @@ public class LoginOrchestrator implements
     private final BlogUrlValidator mBlogUrlValidator;
     private final ApiProviderFactory mApiProviderFactory;
     private final CredentialSource mCredentialSource;
+    private final AuthStore mAuthStore;
     private final HACKListener mHACKListener;
 
     // object state
     private final Set<Listener> mListeners;
     private Disposable mLoginFlowDisposable = Disposables.empty();
-    private ApiProvider mApiProvider = null;
     private String mValidBlogUrl = null;
+    private ApiProvider mApiProvider = null;
+    private AuthService mAuthService = null;
 
     public static LoginOrchestrator create(@NonNull CredentialSource credentialSource,
                                            @NonNull HACKListener hackListener) {
         OkHttpClient httpClient = SpectreApplication.getInstance().getOkHttpClient();
         return new LoginOrchestrator(new NetworkBlogUrlValidator(httpClient),
-                new ProductionApiProviderFactory(httpClient), credentialSource, hackListener);
+                new ProductionApiProviderFactory(httpClient), credentialSource,
+                new AuthStore(), hackListener);
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     LoginOrchestrator(BlogUrlValidator blogUrlValidator, ApiProviderFactory apiProviderFactory,
-                      CredentialSource credentialSource, HACKListener hackListener) {
+                      CredentialSource credentialSource, AuthStore authStore,
+                      HACKListener hackListener) {
         mBlogUrlValidator = blogUrlValidator;
         mApiProviderFactory = apiProviderFactory;
         mCredentialSource = credentialSource;
+        mAuthStore = authStore;
         mHACKListener = hackListener;
         mListeners = new HashSet<>();
         reset();
@@ -82,8 +84,23 @@ public class LoginOrchestrator implements
 
     public void reset() {
         mLoginFlowDisposable.dispose();
-        mApiProvider = null;
-        mValidBlogUrl = null;
+        setState(null);
+    }
+
+    private void setState(@Nullable String blogUrl) {
+        if (blogUrl != null) {
+            Timber.i("VALID BLOG URL: " + blogUrl);
+            mValidBlogUrl = blogUrl;
+            mApiProvider = mApiProviderFactory.create(blogUrl);
+            mAuthService = AuthService.createWithGivenCredentials(mApiProvider.getGhostApi(),
+                    mCredentialSource);
+            // FIXME FIXME FIXME
+            mHACKListener.setApiService(mApiProvider.getGhostApi());
+        } else {
+            mValidBlogUrl = null;
+            mApiProvider = null;
+            mAuthService = null;
+        }
     }
 
     public void registerOnEventBus() {
@@ -117,13 +134,7 @@ public class LoginOrchestrator implements
                 .validate(blogUrl)
                     .subscribeOn(Schedulers.io())
                     .observeOn(Schedulers.io())
-                .doOnNext(validBlogUrl -> {
-                    Timber.i("VALID BLOG URL: " + validBlogUrl);
-                    mValidBlogUrl = validBlogUrl;
-                    mApiProvider = mApiProviderFactory.create(validBlogUrl);
-                    // FIXME FIXME FIXME
-                    mHACKListener.setApiService(mApiProvider.getGhostApi(), mApiProvider.getRetrofit());
-                })
+                .doOnNext(this::setState)
                 .flatMap(url -> mApiProvider.getGhostApi().getConfiguration())
                 .flatMap(config -> this.getAuthToken(mApiProvider.getGhostApi(), config))
                     .observeOn(AndroidSchedulers.mainThread())
@@ -134,52 +145,36 @@ public class LoginOrchestrator implements
             throws HttpException {
         // NOTE: this could have been part of the main login flow but I wanted the retry() to only
         // apply to this part of the stream, hence a separate observable
-        return this
+        return mAuthService
                 .getAuthReqBody(config)
                     .subscribeOn(AndroidSchedulers.mainThread())
                     .observeOn(Schedulers.io())
+                .doOnNext(mAuthStore::saveCredentials)
                 .flatMap(api::getAuthToken)
                     .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::handleError)
-                .retry(20);     // don't retry infinitely, as a safety mechanism for tests
-    }
-
-    private Observable<AuthReqBody> getAuthReqBody(ConfigurationList config) {
-        String clientSecret = config.getClientSecret();
-        if (authTypeIsGhostAuth(config)) {
-            Timber.i("Using Ghost auth strategy for login");
-            final GhostAuth.Params params = extractGhostAuthParams(config);
-            return getGhostAuthReqBody(params, clientSecret, params.redirectUri);
-        } else {
-            Timber.i("Using password auth strategy for login");
-            return getPasswordAuthReqBody(extractPasswordAuthParams(config), clientSecret);
-        }
-    }
-
-    private Observable<AuthReqBody> getGhostAuthReqBody(GhostAuth.Params params, String clientSecret,
-                                                        String redirectUri) {
-        return mCredentialSource.getGhostAuthCode(params)
-                .map(authCode -> AuthReqBody.fromAuthCode(clientSecret, authCode, redirectUri));
-    }
-
-    private Observable<AuthReqBody> getPasswordAuthReqBody(PasswordAuthParams params, String clientSecret) {
-        return mCredentialSource.getEmailAndPassword(params)
-                .map(cred -> AuthReqBody.fromPassword(clientSecret, cred.first, cred.second));
+                .doOnError(e -> mAuthStore.deleteCredentials())
+                // if auth fails, ask for credentials again and retry
+                // don't retry infinitely, as a safety mechanism for tests
+                .retry(20);
     }
 
     private void handleAuthToken(AuthToken authToken) {
         // FIXME FIXME FIXME FIXME
+        mAuthStore.setLoggedIn(true);
         mHACKListener.onNewAuthToken(authToken);
         forEachListener(l -> l.onLoginDone(mValidBlogUrl));
-        getBus().post(new LoginDoneEvent(mValidBlogUrl,
-                // FIXME wasInitiatedbyUser should be FALSE if we are re-authenticating automatically
-                true));
+        getBus().post(new LoginDoneEvent(mValidBlogUrl));
     }
 
     private void handleError(Throwable e) {
+        // NOTE this could be null if the error occurred *during* URL validation
+        String blogUrl = mValidBlogUrl;
+
         if (e instanceof NetworkBlogUrlValidator.UrlValidationException) {
             NetworkBlogUrlValidator.UrlValidationException urlEx = ((NetworkBlogUrlValidator.UrlValidationException) e);
-            handleUrlValidationError(urlEx.getCause(), urlEx.getUrl());
+            blogUrl = urlEx.getUrl();
+            handleUrlValidationError(urlEx.getCause(), blogUrl);
         }
 
         else if (e instanceof HttpException) {
@@ -207,6 +202,8 @@ public class LoginOrchestrator implements
             Timber.e(new LoginFailedException(e));
             forEachListener(l -> l.onNetworkError(getErrorType(e), e));
         }
+
+        getBus().post(new LoginErrorEvent(blogUrl));
     }
 
     public void handleUrlValidationError(Throwable error, String blogUrl) {
@@ -217,46 +214,6 @@ public class LoginOrchestrator implements
 
 
     // helper methods
-    private static GhostAuth.Params extractGhostAuthParams(ConfigurationList config) {
-        String authUrl = config.get("ghostAuthUrl");
-        String ghostAuthId = config.get("ghostAuthId");
-        String redirectUri = extractRedirectUri(config);
-        if (authUrl == null || ghostAuthId == null || redirectUri == null) {
-            throw new NullPointerException("A required parameter is null! values = "
-                    + authUrl + ", " + ghostAuthId + ", " + redirectUri);
-        }
-        return new GhostAuth.Params(authUrl, ghostAuthId, redirectUri);
-    }
-
-    private static PasswordAuthParams extractPasswordAuthParams(ConfigurationList config) {
-        String clientSecret = config.get("clientSecret");
-        if (clientSecret == null) {
-            throw new NullPointerException("A required parameter is null! values = "
-                    + clientSecret);
-        }
-        return new PasswordAuthParams(clientSecret);
-    }
-
-    @Nullable
-    private static String extractRedirectUri(ConfigurationList config) {
-        for (ConfigurationParam param : config.configuration) {
-            if ("blogUrl".equals(param.getKey()) && param.getValue() != null) {
-                String blogUrl = param.getValue();
-                return NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/");
-            }
-        }
-        return null;
-    }
-
-    private static boolean authTypeIsGhostAuth(ConfigurationList config) {
-        for (ConfigurationParam param : config.configuration) {
-            if ("ghostAuthUrl".equals(param.getKey())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private static ErrorType getErrorType(Throwable error) {
         ErrorType errorType = ErrorType.ERR_UNKNOWN;
         if (NetworkUtils.isUserNetworkError(error)) {
@@ -276,24 +233,10 @@ public class LoginOrchestrator implements
     }
 
 
-
-    public static class PasswordAuthParams {
-        public final String clientSecret;
-
-        public PasswordAuthParams(String clientSecret) {
-            this.clientSecret = clientSecret;
-        }
-    }
-
     // FIXME this is basically a giant hack needed while I refactor NetworkService.java
     public interface HACKListener {
-        void setApiService(GhostApiService api, Retrofit retrofit);
+        void setApiService(GhostApiService api);
         void onNewAuthToken(AuthToken authToken);
-    }
-
-    public interface CredentialSource {
-        Observable<String> getGhostAuthCode(GhostAuth.Params params);
-        Observable<Pair<String, String>> getEmailAndPassword(PasswordAuthParams params);
     }
 
     public interface Listener {

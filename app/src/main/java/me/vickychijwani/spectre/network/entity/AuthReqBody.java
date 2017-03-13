@@ -19,28 +19,29 @@ public class AuthReqBody {
     public final String redirectUri;
 
     // non-null if grantType == "password"
-    public final String username;
+    @SerializedName("username")
+    public final String email;
     public final String password;
 
     private AuthReqBody(String grantType, String clientId, String clientSecret,
                         String authorizationCode, String provider, String redirectUri,
-                        String username, String password) {
+                        String email, String password) {
         this.grantType = grantType;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.authorizationCode = authorizationCode;
         this.provider = provider;
         this.redirectUri = redirectUri;
-        this.username = username;
+        this.email = email;
         this.password = password;
     }
 
-    public static AuthReqBody fromPassword(@NonNull String clientSecret, @NonNull String username,
+    public static AuthReqBody fromPassword(@NonNull String clientSecret, @NonNull String email,
                                            @NonNull String password) {
         return new AuthReqBody(
                 "password", "ghost-admin", clientSecret,
                 null, null, null,
-                username, password);
+                email, password);
     }
 
     public static AuthReqBody fromAuthCode(@NonNull String clientSecret, @NonNull String authCode,
@@ -49,6 +50,10 @@ public class AuthReqBody {
                 "authorization_code", "ghost-admin", clientSecret,
                 authCode, "ghost-oauth2", redirectUri,
                 null, null);
+    }
+
+    public boolean isGrantTypePassword() {
+        return "password".equals(grantType);
     }
 
 }

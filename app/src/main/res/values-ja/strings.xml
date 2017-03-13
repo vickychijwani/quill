@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="prompt_blog_url">ブログのアドレス</string>
     <string name="prompt_email">メールアドレス</string>
     <string name="prompt_password">パスワード</string>
@@ -14,7 +14,6 @@
     <string name="login_connection_error">%s/ghost に接続できませんでした。もう一度やり直してください。</string>
     <string name="login_ssl_unsupported">あなたのブログは https:// (SSL) をサポートしていません</string>
     <string name="logout">ログアウト</string>
-    <string name="password_changed">パスワードを変更しましたか? そのパスワードでログインできませんでした。</string>
     <string name="unsynced_changes_msg">今ログアウトすると、未同期の変更がすべて失われます</string>
     <string name="dont_logout">ログアウトしない</string>
 

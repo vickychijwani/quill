@@ -111,8 +111,8 @@ public class DatabaseMigration implements RealmMigration {
             app.setOldRealmSchemaVersion(3);
 
             // clear logged in state
-            AppState.getInstance(app).clear(AppState.Key.LOGGED_IN);
-            UserPrefs.getInstance(app).clear(UserPrefs.Key.USERNAME);
+            AppState.getInstance(app).setBoolean(AppState.Key.LOGGED_IN, false);
+            UserPrefs.getInstance(app).clear(UserPrefs.Key.EMAIL);
             UserPrefs.getInstance(app).clear(UserPrefs.Key.PASSWORD);
             UserPrefs.getInstance(app).clear(UserPrefs.Key.PERMALINK_FORMAT);
 

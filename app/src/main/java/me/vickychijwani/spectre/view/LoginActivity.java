@@ -9,6 +9,7 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.auth.CredentialSource;
 import me.vickychijwani.spectre.auth.GhostAuth;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
 import me.vickychijwani.spectre.pref.UserPrefs;
@@ -20,7 +21,7 @@ import me.vickychijwani.spectre.view.fragments.LoginUrlFragment;
 import me.vickychijwani.spectre.view.fragments.PasswordAuthFragment;
 
 public class LoginActivity extends BaseActivity implements
-        LoginOrchestrator.CredentialSource,
+        CredentialSource,
         LoginOrchestrator.Listener
 {
 
@@ -104,7 +105,7 @@ public class LoginActivity extends BaseActivity implements
     }
 
     @Override
-    public Observable<Pair<String, String>> getEmailAndPassword(LoginOrchestrator.PasswordAuthParams __) {
+    public Observable<Pair<String, String>> getEmailAndPassword() {
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
         if (!(currentFragment instanceof PasswordAuthFragment)) {
             PasswordAuthFragment newFragment = PasswordAuthFragment.newInstance();

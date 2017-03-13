@@ -53,6 +53,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * TYPE: integration-style (requires running Ghost server)
@@ -130,8 +131,7 @@ public final class GhostApiTest {
         AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, "wrong@email.com", TEST_PWD);
         try {
             execute(API.getAuthToken(credentials));
-            // fail the test if no exception is thrown
-            assertThat("Test did not throw exception as expected!", false, is(true));
+            fail("Test did not throw exception as expected!");
         } catch (Exception e) {
             assertThat(e.getCause(), instanceOf(HttpException.class));
             HttpException httpEx = (HttpException) e.getCause();
@@ -150,8 +150,7 @@ public final class GhostApiTest {
         AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, TEST_USER, "wrongpassword");
         try {
             execute(API.getAuthToken(credentials));
-            // fail the test if no exception is thrown
-            assertThat("Test did not throw exception as expected!", false, is(true));
+            fail("Test did not throw exception as expected!");
         } catch (Exception e) {
             assertThat(e.getCause(), instanceOf(HttpException.class));
             HttpException httpEx = (HttpException) e.getCause();
@@ -170,10 +169,8 @@ public final class GhostApiTest {
             String clientSecret = getClientSecret();
             RefreshReqBody credentials = new RefreshReqBody(expiredToken.getRefreshToken(),
                     clientSecret);
-            Response<AuthToken> response = execute(API.refreshAuthToken(credentials));
-            AuthToken refreshedToken = response.body();
+            AuthToken refreshedToken = execute(API.refreshAuthToken(credentials));
 
-            assertThat(response.code(), is(HTTP_OK));
             assertThat(refreshedToken.getTokenType(), is("Bearer"));
             assertThat(refreshedToken.getAccessToken(), notNullValue());
             assertThat(refreshedToken.getRefreshToken(), isEmptyOrNullString());

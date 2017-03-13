@@ -32,8 +32,9 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
+import me.vickychijwani.spectre.auth.AuthService;
+import me.vickychijwani.spectre.auth.AuthStore;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
-import me.vickychijwani.spectre.error.ExpiredTokenUsedException;
 import me.vickychijwani.spectre.error.PostConflictFoundException;
 import me.vickychijwani.spectre.error.TokenRevocationFailedException;
 import me.vickychijwani.spectre.event.ApiCallEvent;
@@ -53,12 +54,8 @@ import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
-import me.vickychijwani.spectre.event.LoginDoneEvent;
-import me.vickychijwani.spectre.event.LoginErrorEvent;
-import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.LogoutStatusEvent;
-import me.vickychijwani.spectre.event.PasswordChangedEvent;
 import me.vickychijwani.spectre.event.PostConflictFoundEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostDeletedEvent;
@@ -79,15 +76,11 @@ import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Setting;
 import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.model.entity.User;
-import me.vickychijwani.spectre.network.entity.ApiErrorList;
-import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.PostList;
 import me.vickychijwani.spectre.network.entity.PostStubList;
-import me.vickychijwani.spectre.network.entity.RefreshReqBody;
 import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
-import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
@@ -102,11 +95,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.HttpException;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
-public class NetworkService implements LoginOrchestrator.HACKListener {
+public class NetworkService implements
+        LoginOrchestrator.HACKListener,
+        AuthService.Listener
+{
 
     private static final String TAG = "NetworkService";
 
@@ -117,23 +111,23 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
     private String mBlogUrl = null;
+    private AuthService mAuthService = null;
 
-    private boolean mbAuthRequestOnGoing = false;
     private boolean mbSyncOnGoing = false;
     private ApiFailure mRefreshError = null;
     private final ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
     private final ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
-    private Retrofit mRetrofit;
 
     public void start(Context context, OkHttpClient httpClient) {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
         getBus().register(this);
         mRealm = Realm.getDefaultInstance();
-        if (AppState.getInstance(context).getBoolean(AppState.Key.LOGGED_IN)) {
-            mAuthToken = mRealm.where(AuthToken.class).findFirst();
+        if (new AuthStore().isLoggedIn()) {
+            mAuthToken = new AuthToken(mRealm.where(AuthToken.class).findFirst());
             mBlogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
-            mRetrofit = GhostApiUtils.getRetrofit(mBlogUrl, httpClient);
-            mApi = mRetrofit.create(GhostApiService.class);
+            GhostApiService api = GhostApiUtils.getRetrofit(mBlogUrl, httpClient)
+                    .create(GhostApiService.class);
+            setApiService(api);
         }
     }
 
@@ -146,67 +140,26 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
 
     // TODO temporary crutch while I refactor this huge class
     @Override
-    public void setApiService(GhostApiService api, Retrofit retrofit) {
+    public void setApiService(GhostApiService api) {
         mApi = api;
-        mRetrofit = retrofit;
+        if (mAuthService != null) {
+            mAuthService.unlisten(this);
+        }
+        mAuthService = AuthService.createWithStoredCredentials(api);
+        mAuthService.listen(this);
     }
 
     @Override
     public void onNewAuthToken(AuthToken authToken) {
         Log.d(TAG, "Got new access token = " + authToken.getAccessToken());
         authToken.setCreatedAt(DateTimeUtils.getEpochSeconds());
-        mAuthToken = createOrUpdateModel(authToken);
-        AppState.getInstance(SpectreApplication.getInstance())
-                .setBoolean(AppState.Key.LOGGED_IN, true);
+        mAuthToken = new AuthToken(createOrUpdateModel(authToken));
         flushApiEventQueue(false);
     }
 
-    @Subscribe
-    public void onLoginStartEvent(final LoginStartEvent event) {
-        if (mbAuthRequestOnGoing) return;
-        mbAuthRequestOnGoing = true;
-        mBlogUrl = event.blogUrl;
-        // FIXME FIXME
-//        mApi = buildApiService(mBlogUrl);
-        GhostApiUtils.doWithClientSecret(mApi, mBlogUrl, clientSecret -> {
-            doLogin(event, clientSecret);
-        });
-    }
-
-    private void doLogin(@NonNull LoginStartEvent event, @Nullable String clientSecret) {
-        AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, event.username, event.password);
-        mApi.getAuthTokenV0(credentials).enqueue(new Callback<AuthToken>() {
-            @Override
-            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
-                mbAuthRequestOnGoing = false;
-                if (response.isSuccessful()) {
-                    AuthToken authToken = response.body();
-                    onNewAuthToken(authToken);
-                    getBus().post(new LoginDoneEvent(event.blogUrl, event.initiatedByUser));
-                } else {
-                    // if this request was not initiated by the user and the response is 401 Unauthorized,
-                    // it means the password changed - ask for the password again
-                    if (!event.initiatedByUser && NetworkUtils.isUnauthorized(response)) {
-                        clearSavedPassword();
-                        getBus().post(new PasswordChangedEvent());
-                    } else {
-                        ApiFailure<AuthToken> apiFailure = new ApiFailure<>(response);
-                        ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(mRetrofit,
-                                new HttpException(response));
-                        getBus().post(new LoginErrorEvent<>(apiFailure, apiErrors, event.blogUrl, event.initiatedByUser));
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AuthToken> call, Throwable error) {
-                // error in transport layer, or lower
-                mbAuthRequestOnGoing = false;
-                ApiFailure<AuthToken> apiFailure = new ApiFailure<>(error);
-                getBus().post(new LoginErrorEvent<>(apiFailure, null, event.blogUrl, event.initiatedByUser));
-                flushApiEventQueue(true);
-            }
-        });
+    @Override
+    public void onUnrecoverableFailure() {
+        flushApiEventQueue(true);
     }
 
     @Subscribe
@@ -262,8 +215,6 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
             }
         }
 
-        if (! validateAccessToken(event)) return;
-
         mApi.getVersion(mAuthToken.getAuthHeader()).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
@@ -302,7 +253,6 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
             // else no users found in db, force a network call!
         }
 
-        if (! validateAccessToken(event)) return;
         mApi.getCurrentUser(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_CURRENT_USER)).enqueue(new Callback<UserList>() {
             @Override
             public void onResponse(Call<UserList> call, Response<UserList> response) {
@@ -359,7 +309,6 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
             // no settings found in db, force a network call!
         }
 
-        if (! validateAccessToken(event)) return;
         mApi.getSettings(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_BLOG_SETTINGS)).enqueue(new Callback<SettingsList>() {
             @Override
             public void onResponse(Call<SettingsList> call, Response<SettingsList> response) {
@@ -414,7 +363,6 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
             }
         }
 
-        if (! validateAccessToken(event)) return;
         mApi.getPosts(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_ALL_POSTS), POSTS_FETCH_LIMIT).enqueue(new Callback<PostList>() {
             @Override
             public void onResponse(Call<PostList> call, Response<PostList> response) {
@@ -807,7 +755,6 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
     @SuppressLint("DefaultLocale")
     @Subscribe
     public void onFileUploadEvent(FileUploadEvent event) {
-        if (! validateAccessToken(event)) return;
         Crashlytics.log(Log.DEBUG, TAG, "[onFileUploadEvent] uploading file");
 
         InputStream inputStream = event.inputStream;
@@ -901,14 +848,13 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
         mRealm.close();
         Realm.deleteRealm(mRealm.getConfiguration());
         mRealm = Realm.getDefaultInstance();
-        AppState.getInstance(SpectreApplication.getInstance())
-                .setBoolean(AppState.Key.LOGGED_IN, false);
+        new AuthStore().deleteCredentials();
         // reset state, to be sure
         mAuthToken = null;
         mBlogUrl = null;
+        mAuthService = null;
         mApiEventQueue.clear();
         mRefreshEventsQueue.clear();
-        mbAuthRequestOnGoing = false;
         mbSyncOnGoing = false;
         mRefreshError = null;
         getBus().post(new LogoutStatusEvent(true, false));
@@ -943,74 +889,11 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
         });
     }
 
-    private boolean validateAccessToken(@NonNull ApiCallEvent event) {
-        boolean valid = ! hasAccessTokenExpired();
-        if (! valid) {
-            refreshAccessToken(event);
-        }
-        return valid;
-    }
-
     private void refreshAccessToken(@Nullable final ApiCallEvent eventToDefer) {
         if (eventToDefer != null) {
             mApiEventQueue.addLast(eventToDefer);
         }
-        if (mbAuthRequestOnGoing) return;
-
-        // FIXME this is way overkill - the bandwidth savings are miniscule
-        // FIXME after Ghost 1.0, even more so, as token expiry times are increasing 100x
-        // don't waste bandwidth by trying to use an expired refresh token
-        if (hasRefreshTokenExpired()) {
-            postLoginStartEvent();
-            return;
-        }
-
-        mbAuthRequestOnGoing = true;
-        GhostApiUtils.doWithClientSecret(mApi, mBlogUrl, clientSecret -> {
-            final RefreshReqBody credentials = new RefreshReqBody(mAuthToken.getRefreshToken(),
-                    clientSecret);
-            mApi.refreshAuthToken(credentials).enqueue(new Callback<AuthToken>() {
-                @Override
-                public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
-                    mbAuthRequestOnGoing = false;
-                    if (response.isSuccessful()) {
-                        // since this is a *refreshed* auth token, there is no refresh token in it,
-                        // so add it manually
-                        AuthToken authToken = response.body();
-                        authToken.setRefreshToken(credentials.refreshToken);
-                        onNewAuthToken(authToken);
-                    } else {
-                        // if the response is 401 Unauthorized, we can recover from it by logging in
-                        // anew; this should only happen if the refresh token is manually revoked or
-                        // the expiration time is changed inside Ghost (#92)
-                        if (NetworkUtils.isUnauthorized(response)) {
-                            try {
-                                String responseStr = response.errorBody().string();
-                                Crashlytics.logException(new ExpiredTokenUsedException(responseStr));
-                            } catch (IOException e) {
-                                Log.e(TAG, Log.getStackTraceString(e));
-                            }
-                            postLoginStartEvent();
-                        } else {
-                            ApiFailure<AuthToken> apiFailure = new ApiFailure<>(response);
-                            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(mRetrofit,
-                                    new HttpException(response));
-                            getBus().post(new LoginErrorEvent<>(apiFailure, apiErrors, null, false));
-                            flushApiEventQueue(true);
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<AuthToken> call, Throwable error) {
-                    // error in transport layer, or lower
-                    mbAuthRequestOnGoing = false;
-                    ApiFailure<AuthToken> apiFailure = new ApiFailure<>(error);
-                    getBus().post(new LoginErrorEvent<>(apiFailure, null, null, false));
-                    flushApiEventQueue(true);
-                }
-            });
-        });
+        mAuthService.refreshToken(mAuthToken);
     }
 
     private static void revokeToken(GhostApiService api, String authHeader,
@@ -1075,13 +958,6 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
         }
     }
 
-    private void clearSavedPassword() {
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        prefs.clear(UserPrefs.Key.PASSWORD);
-        AppState appState = AppState.getInstance(SpectreApplication.getInstance());
-        appState.clear(AppState.Key.LOGGED_IN);
-    }
-
     private void savePermalinkFormat(List<Setting> settings) {
         for (Setting setting : settings) {
             if ("permalinks".equals(setting.getKey())) {
@@ -1089,27 +965,6 @@ public class NetworkService implements LoginOrchestrator.HACKListener {
                         .setString(UserPrefs.Key.PERMALINK_FORMAT, setting.getValue());
             }
         }
-    }
-
-    private void postLoginStartEvent() {
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
-        String username = prefs.getString(UserPrefs.Key.USERNAME);
-        String password = prefs.getString(UserPrefs.Key.PASSWORD);
-        getBus().post(new LoginStartEvent(blogUrl, username, password, false));
-    }
-
-    private boolean hasAccessTokenExpired() {
-        // consider the token as "expired" 60 seconds earlier, because the createdAt timestamp can
-        // be off by several seconds
-        return DateTimeUtils.getEpochSeconds() > mAuthToken.getCreatedAt() +
-                mAuthToken.getExpiresIn() - 60;
-    }
-
-    private boolean hasRefreshTokenExpired() {
-        // consider the token as "expired" 60 seconds earlier, because the createdAt timestamp can
-        // be off by several seconds
-        return DateTimeUtils.getEpochSeconds() > mAuthToken.getCreatedAt() + 86400 - 60;
     }
 
     private List<Post> getPostsSorted() {

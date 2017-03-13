@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="prompt_blog_url">博客地址</string>
     <string name="prompt_email">邮箱</string>
     <string name="prompt_password">密码</string>
@@ -14,7 +14,6 @@
     <string name="login_connection_error">无法连接到 %s/ghost。请重试。</string>
     <string name="login_ssl_unsupported">您的博客不支持 https:// (SSL)</string>
     <string name="logout">注销</string>
-    <string name="password_changed">我们无法使用这个密码登录你的博客。</string>
     <string name="unsynced_changes_msg">所有未储存的更改会在注销后丢失</string>
     <string name="dont_logout">暂不注销</string>
 

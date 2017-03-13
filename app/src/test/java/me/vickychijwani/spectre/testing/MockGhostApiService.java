@@ -56,7 +56,8 @@ public class MockGhostApiService implements GhostApiService {
 
     @Override
     public Observable<AuthToken> getAuthToken(@Body AuthReqBody credentials) {
-        if (mUseGhostAuth || credentials.password.equals("password")) {
+        if ((mUseGhostAuth && credentials.authorizationCode.equals("auth-code"))
+                || (!mUseGhostAuth && credentials.password.equals("password"))) {
             AuthToken token = new AuthToken();
             token.setAccessToken("access-token");
             token.setRefreshToken("refresh-token");
@@ -66,10 +67,11 @@ public class MockGhostApiService implements GhostApiService {
                     .returningResponse(token)
                     .getAuthToken(credentials);
         } else {
+            // wrong Ghost auth code or password
             // Mock Retrofit doesn't set the correct request URL, it sets just http://localhost
             String tokenUrl = "http://localhost/authentication/token/";
             ResponseBody body = ResponseBody.create(MediaType.parse("application/json"),
-                    "{\"errors\":[{\"message\":\"Wrong password\",\"errorType\":\"UnauthorizedError\"}]}");
+                    "{\"errors\":[{\"message\":\"Wrong credentials\",\"errorType\":\"UnauthorizedError\"}]}");
             final okhttp3.Response rawResponse = new okhttp3.Response.Builder()
                     .protocol(Protocol.HTTP_1_1)
                     .request(new Request.Builder().url(tokenUrl).build())
@@ -84,8 +86,25 @@ public class MockGhostApiService implements GhostApiService {
     }
 
     @Override
-    public Call<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials) {
-        return null;
+    public Observable<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials) {
+        if (credentials.refreshToken.equals("refresh-token")) {
+            AuthToken token = new AuthToken();
+            token.setAccessToken("refreshed-access-token");
+            // token.setRefreshToken("refresh-token");      // refreshed tokens don't have a new refresh token
+            token.setCreatedAt(System.currentTimeMillis());
+            token.setExpiresIn(60 * 1000);
+            return mDelegate
+                    .returningResponse(token)
+                    .refreshAuthToken(credentials);
+        } else {
+            // expired / invalid refresh token
+            ResponseBody body = ResponseBody.create(MediaType.parse("application/json"),
+                    "{\"errors\":[{\"message\":\"Expired or invalid refresh token\",\"errorType\":\"UnauthorizedError\"}]}");
+            Response<Object> res = Response.error(401, body);
+            return mDelegate
+                    .returning(Calls.response(res))
+                    .refreshAuthToken(credentials);
+        }
     }
 
     @Override

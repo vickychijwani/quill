@@ -2,9 +2,7 @@ package me.vickychijwani.spectre.analytics;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.crashlytics.android.answers.LoginEvent;
@@ -17,6 +15,7 @@ import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
 import me.vickychijwani.spectre.event.LogoutStatusEvent;
+import timber.log.Timber;
 
 public class AnalyticsService {
 
@@ -39,21 +38,15 @@ public class AnalyticsService {
 
     @Subscribe
     public void onLoginDoneEvent(LoginDoneEvent event) {
-        if (event.wasInitiatedByUser) {
-            String blogType = getBlogTypeFromUrl(event.blogUrl);
-            logLogin(blogType, true);
+        logLogin(event.blogUrl, true);
 
-            // user just logged in, now's a good time to check this
-            getBus().post(new LoadGhostVersionEvent(true));
-        }
+        // user just logged in, now's a good time to check this
+        getBus().post(new LoadGhostVersionEvent(true));
     }
 
     @Subscribe
     public void onLoginErrorEvent(LoginErrorEvent event) {
-        if (event.wasInitiatedByUser) {
-            String blogType = getBlogTypeFromUrl(event.blogUrl);
-            logLogin(blogType, false);
-        }
+        logLogin(event.blogUrl, false);
     }
 
     @Subscribe
@@ -65,41 +58,34 @@ public class AnalyticsService {
         if (ghostVersion == null) {
             ghostVersion = "Unknown";
         }
-        Crashlytics.log(Log.INFO, TAG, "GHOST VERSION = " + ghostVersion);
+        Timber.i("GHOST VERSION = " + ghostVersion);
         Answers.getInstance().logCustom(new CustomEvent("Ghost Version")
                 .putCustomAttribute("version", ghostVersion));
     }
 
-    private static void logLogin(String blogType, boolean success) {
+    private static void logLogin(@Nullable String blogUrl, boolean success) {
+        if (blogUrl == null) {
+            blogUrl = "Unknown";
+        }
         String successStr = success ? "SUCCEEDED" : "FAILED";
-        Crashlytics.log(Log.INFO, TAG, "LOGIN " + successStr + ", blog type = " + blogType);
+        Timber.i("LOGIN " + successStr + ", BLOG URL = " + blogUrl);
         Answers.getInstance().logLogin(new LoginEvent()
-                .putMethod(blogType)
+                .putCustomAttribute("URL", blogUrl)
                 .putSuccess(success));
     }
 
     @Subscribe
     public void onLogoutStatusEvent(LogoutStatusEvent logoutEvent) {
         if (logoutEvent.succeeded) {
-            Crashlytics.log(Log.INFO, TAG, "LOGOUT SUCCEEDED");
+            Timber.i("LOGOUT SUCCEEDED");
             Answers.getInstance().logCustom(new CustomEvent("Logout"));
         }
     }
 
     public static void logDbSchemaVersion(@NonNull String dbSchemaVersion) {
-        Crashlytics.log(Log.INFO, TAG, "DB SCHEMA VERSION = " + dbSchemaVersion);
+        Timber.i("DB SCHEMA VERSION = " + dbSchemaVersion);
         Answers.getInstance().logCustom(new CustomEvent("DB Schema Version")
                 .putCustomAttribute("version", dbSchemaVersion));
-    }
-
-    private String getBlogTypeFromUrl(@Nullable String blogUrl) {
-        if (blogUrl == null) {
-            return "Unknown";
-        } else if (blogUrl.matches("^.*\\.ghost.io(/.*)?$")) {
-            return "Ghost Pro";
-        } else {
-            return "Self-hosted";
-        }
     }
 
 
@@ -168,7 +154,7 @@ public class AnalyticsService {
             // FIXME this is a huge hack, also Fabric only shows 10 of these per day
             postStatsEvent.putCustomAttribute("URL", postUrl);
         }
-        Crashlytics.log(Log.INFO, TAG, "POST ACTION: " + postAction);
+        Timber.i("POST ACTION: " + postAction);
         Answers.getInstance().logCustom(postStatsEvent);
     }
 

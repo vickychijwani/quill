@@ -40,7 +40,7 @@ public interface GhostApiService {
     Observable<AuthToken> getAuthToken(@Body AuthReqBody credentials);
 
     @POST("authentication/token/")
-    Call<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials);
+    Observable<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials);
 
     @POST("authentication/revoke/")
     Call<JsonElement> revokeAuthToken(@Header("Authorization") String authHeader,

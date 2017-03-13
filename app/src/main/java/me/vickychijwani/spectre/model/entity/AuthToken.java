@@ -40,6 +40,17 @@ public class AuthToken implements RealmModel {
         this.setCreatedAt(other.getCreatedAt());
     }
 
+    @Override
+    public String toString() {
+        return "AuthToken{" +
+                "tokenType='" + tokenType + '\'' +
+                ", accessToken='" + accessToken + '\'' +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", expiresIn=" + expiresIn +
+                ", createdAt=" + createdAt +
+                '}';
+    }
+
     // accessors
     public String getTokenType() {
         return tokenType;
