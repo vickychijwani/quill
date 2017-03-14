@@ -51,6 +51,8 @@ If you face any issues setting this up, please let me know by [filing a new issu
 - [@svenkapudija](https://github.com/svenkapudija) (Croatian translation)
 - [@yffengdong](https://hosted.weblate.org/user/yffengdong/) (Chinese zh-CN translation)
 - [@guillaumevidal](https://github.com/guillaumevidal) (French translation)
+- [@fastbyte01](https://hosted.weblate.org/user/fastbyte01/) (Italian translation)
+- [@cristears](https://hosted.weblate.org/user/cristears/) (Korean translation)
 
 
 [playstore]: https://play.google.com/store/apps/details?id=me.vickychijwani.spectre
