@@ -25,7 +25,6 @@ import me.vickychijwani.spectre.network.entity.ConfigurationList;
         try {
             JsonArray configJsons = element.getAsJsonObject().getAsJsonArray("configuration");
             // { "configuration": [{
-            //     "fileStorage": true,
             //     "blogTitle": "My Blog",
             //     "routeKeywords": { ... },
             //     ...

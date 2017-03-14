@@ -85,8 +85,6 @@ public class PostListActivity extends BaseActivity {
     private Runnable mRefreshDataRunnable;
     private Runnable mRefreshTimeoutRunnable;
 
-    private boolean mFileStorageEnabled = true;
-
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;    // in milliseconds
 
     // NOTE: very large timeout is needed for cases like initial sync on a blog with 100s of posts
@@ -147,7 +145,6 @@ public class PostListActivity extends BaseActivity {
             }
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
             intent.putExtra(BundleKeys.POST, post);
-            intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
             intent.putExtra(BundleKeys.START_EDITING, false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 Bundle activityOptions = ActivityOptions.makeScaleUpAnimation(v, 0, 0,
@@ -416,7 +413,6 @@ public class PostListActivity extends BaseActivity {
     public void onPostCreatedEvent(PostCreatedEvent event) {
         Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
         intent.putExtra(BundleKeys.POST, event.newPost);
-        intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
         intent.putExtra(BundleKeys.START_EDITING, true);
         startActivityForResult(intent, REQUEST_CODE_VIEW_POST);
 

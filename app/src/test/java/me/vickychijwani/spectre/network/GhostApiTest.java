@@ -43,7 +43,6 @@ import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
@@ -344,10 +343,6 @@ public final class GhostApiTest {
             List<ConfigurationParam> config = execute(API.getConfiguration()).configuration;
 
             assertThat(config, notNullValue());
-            // is file storage enabled? if not, images etc can't be uploaded
-            assertThat(config, hasItem(allOf(
-                    hasProperty("key", is("fileStorage")),
-                    hasProperty("value", anyOf(is("true"), is("false"))))));
         });
     }
 

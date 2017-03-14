@@ -35,17 +35,14 @@ class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
     private static final String[]   TAB_TITLES = new String[TAB_COUNT];
 
     private Post mPost;
-    private final boolean mFileStorageEnabled;
     private final OnFragmentsInitializedListener mFragmentsInitializedListener;
 
     public PostViewFragmentPagerAdapter(Context context, FragmentManager fm,
-                                        Post post, boolean fileStorageEnabled,
-                                        OnFragmentsInitializedListener listener) {
+                                        Post post, OnFragmentsInitializedListener listener) {
         super(fm);
         TAB_TITLES[TAB_POSITION_PREVIEW] = context.getString(R.string.preview);
         TAB_TITLES[TAB_POSITION_EDIT] = context.getString(R.string.edit);
         mPost = post;
-        mFileStorageEnabled = fileStorageEnabled;
         mFragmentsInitializedListener = listener;
     }
 
@@ -84,7 +81,7 @@ class PostViewFragmentPagerAdapter extends FragmentPagerAdapter {
             case TAB_POSITION_PREVIEW:
                 return PostViewFragment.newInstance(mPost);
             case TAB_POSITION_EDIT:
-                return PostEditFragment.newInstance(mPost, mFileStorageEnabled);
+                return PostEditFragment.newInstance(mPost);
             default:
                 throw new IllegalArgumentException("No fragment exists at position " + position);
         }

@@ -97,7 +97,6 @@ public class PostViewActivity extends BaseActivity implements
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mSaveTimeoutRunnable;
     private String mBlogUrl;
-    private boolean mbFileStorageEnabled = false;
     private PostSettingsChangedListener mPostSettingsChangedListener;
 
     @Override
@@ -187,9 +186,8 @@ public class PostViewActivity extends BaseActivity implements
             // hide the formatting toolbar in the preview
             mFormattingToolbarManager.hide();
         }
-        mbFileStorageEnabled = bundle.getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
         mViewPager.setAdapter(new PostViewFragmentPagerAdapter(this, getSupportFragmentManager(),
-                mPost, mbFileStorageEnabled, this));
+                mPost, this));
         mViewPager.removeOnPageChangeListener(this);
         mViewPager.addOnPageChangeListener(this);
         mViewPager.setCurrentItem(startingTabPosition);
@@ -205,7 +203,6 @@ public class PostViewActivity extends BaseActivity implements
         // if the post is replaced (e.g., right after new post creation) followed by an
         // orientation change, make sure we have the updated post after being re-created
         outState.putParcelable(BundleKeys.POST, mPost);
-        outState.putBoolean(BundleKeys.FILE_STORAGE_ENABLED, mbFileStorageEnabled);
         outState.putBoolean(BundleKeys.START_EDITING,
                 mViewPager.getCurrentItem() == PostViewFragmentPagerAdapter.TAB_POSITION_EDIT);
     }
@@ -448,11 +445,7 @@ public class PostViewActivity extends BaseActivity implements
     public void onClick(View view) {
         if (view.getId() == R.id.post_image_edit_layout) {
             PopupMenu popupMenu = new PopupMenu(this, mPostImageLayoutManager.getRootLayout());
-            if (mbFileStorageEnabled) {
-                popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
-            } else {
-                popupMenu.inflate(R.menu.insert_image_file_storage_disabled);
-            }
+            popupMenu.inflate(R.menu.insert_image);
             if (TextUtils.isEmpty(mPost.getImage())) {
                 MenuItem removeImageItem = popupMenu.getMenu().findItem(R.id.action_image_remove);
                 removeImageItem.setVisible(false);

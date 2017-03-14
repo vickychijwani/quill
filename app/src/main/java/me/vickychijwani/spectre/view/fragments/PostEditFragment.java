@@ -120,16 +120,14 @@ public class PostEditFragment extends BaseFragment implements
     private Disposable mUploadDisposable = null;
     private ProgressDialog mUploadProgress = null;
     private EditTextSelectionState mMarkdownEditSelectionState;
-    private boolean mbFileStorageEnabled = true;
     private Action1<String> mImageUploadDoneAction = null;
 
 
     @SuppressWarnings("unused")
-    public static PostEditFragment newInstance(@NonNull Post post, boolean fileStorageEnabled) {
+    public static PostEditFragment newInstance(@NonNull Post post) {
         PostEditFragment fragment = new PostEditFragment();
         Bundle args = new Bundle();
         args.putParcelable(BundleKeys.POST, post);
-        args.putBoolean(BundleKeys.FILE_STORAGE_ENABLED, fileStorageEnabled);
         fragment.setArguments(args);
         return fragment;
     }
@@ -148,8 +146,6 @@ public class PostEditFragment extends BaseFragment implements
         if (savedInstanceState != null) {
             args.putAll(savedInstanceState);        // overrides, for things that could've changed, and for new things like custom UI state
         }
-        mbFileStorageEnabled = args.getBoolean(BundleKeys.FILE_STORAGE_ENABLED,
-                mbFileStorageEnabled);
         mPostEditViewCursorPos = args.getInt(EDITOR_CURSOR_POS, -1);
         if (args.containsKey(BundleKeys.POST_EDITED)) {
             mPostChangedInMemory = args.getBoolean(BundleKeys.POST_EDITED);
@@ -249,11 +245,7 @@ public class PostEditFragment extends BaseFragment implements
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (mbFileStorageEnabled) {
-            inflater.inflate(R.menu.post_edit_file_storage_enabled, menu);
-        } else {
-            inflater.inflate(R.menu.post_edit_file_storage_disabled, menu);
-        }
+        inflater.inflate(R.menu.post_edit, menu);
     }
 
     @Override
@@ -334,11 +326,7 @@ public class PostEditFragment extends BaseFragment implements
     @Override
     public void onFormatImageClicked(View v) {
         PopupMenu popupMenu = new PopupMenu(mActivity, v);
-        if (mbFileStorageEnabled) {
-            popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
-        } else {
-            popupMenu.inflate(R.menu.insert_image_file_storage_disabled);
-        }
+        popupMenu.inflate(R.menu.insert_image);
         // hide the "Remove This Image" option
         MenuItem removeImageItem = popupMenu.getMenu().findItem(R.id.action_image_remove);
         if (removeImageItem != null) {
