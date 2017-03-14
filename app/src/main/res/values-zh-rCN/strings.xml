@@ -139,4 +139,6 @@
     <string name="published">已发布</string>
     <string name="scheduled">计划中</string>
 
+    <string name="enable_permission_tip">点击以启用储存权限</string>
+
     </resources>
