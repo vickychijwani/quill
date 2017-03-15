@@ -127,6 +127,7 @@ public final class GhostApiTest {
     @Test
     public void test_getAuthToken_wrongEmail() {
         String clientSecret = getClientSecret();
+        assertThat(clientSecret, notNullValue());
         AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, "wrong@email.com", TEST_PWD);
         try {
             execute(API.getAuthToken(credentials));
@@ -146,6 +147,7 @@ public final class GhostApiTest {
     @Test
     public void test_getAuthToken_wrongPassword() {
         String clientSecret = getClientSecret();
+        assertThat(clientSecret, notNullValue());
         AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, TEST_USER, "wrongpassword");
         try {
             execute(API.getAuthToken(credentials));
@@ -175,32 +177,29 @@ public final class GhostApiTest {
             assertThat(refreshedToken.getRefreshToken(), isEmptyOrNullString());
             assertThat(refreshedToken.getExpiresIn(), is(2628000));
 
-            RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
-                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, refreshedToken.getRefreshToken(), clientSecret),
-                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, refreshedToken.getAccessToken(), clientSecret)
-            };
-            for (RevokeReqBody reqBody : revokeReqs) {
-                execute(API.revokeAuthToken(refreshedToken.getAuthHeader(), reqBody));
-            }
+            // revoke only the access token, the refresh token is null anyway
+            RevokeReqBody reqBody = RevokeReqBody.fromAccessToken(refreshedToken.getAccessToken(),
+                    clientSecret);
+            execute(API.revokeAuthToken(refreshedToken.getAuthHeader(), reqBody));
         });
     }
 
     @Test
     public void test_revokeAuthToken() {
         String clientSecret = getClientSecret();
+        assertThat(clientSecret, notNullValue());
         AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, TEST_USER, TEST_PWD);
         AuthToken token = execute(API.getAuthToken(credentials));
 
+        // revoke refresh token BEFORE access token, because the access token is needed for revocation!
         RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
-                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, token.getRefreshToken(), clientSecret),
-                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, token.getAccessToken(), clientSecret)
+                RevokeReqBody.fromRefreshToken(token.getRefreshToken(), clientSecret),
+                RevokeReqBody.fromAccessToken(token.getAccessToken(), clientSecret),
         };
         for (RevokeReqBody reqBody : revokeReqs) {
-            Response<JsonElement> response = execute(API.revokeAuthToken(token.getAuthHeader(), reqBody));
-            JsonElement jsonResponse = response.body();
-            JsonObject jsonObj = jsonResponse.getAsJsonObject();
+            JsonElement response = execute(API.revokeAuthToken(token.getAuthHeader(), reqBody));
+            JsonObject jsonObj = response.getAsJsonObject();
 
-            assertThat(response.code(), is(HTTP_OK));
             assertThat(jsonObj.has("error"), is(false));
             assertThat(jsonObj.get("token").getAsString(), is(reqBody.token));
         }
@@ -369,14 +368,16 @@ public final class GhostApiTest {
     // private helpers
     private static void doWithAuthToken(Action1<AuthToken> callback) {
         String clientSecret = getClientSecret();
+        assertThat(clientSecret, notNullValue());
         AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, TEST_USER, TEST_PWD);
         AuthToken token = execute(API.getAuthToken(credentials));
         try {
             callback.call(token);
         } finally {
+            // revoke refresh token BEFORE access token, because the access token is needed for revocation!
             RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
-                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, token.getRefreshToken(), clientSecret),
-                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, token.getAccessToken(), clientSecret)
+                    RevokeReqBody.fromRefreshToken(token.getRefreshToken(), clientSecret),
+                    RevokeReqBody.fromAccessToken(token.getAccessToken(), clientSecret),
             };
             for (RevokeReqBody reqBody : revokeReqs) {
                 execute(API.revokeAuthToken(token.getAuthHeader(), reqBody));

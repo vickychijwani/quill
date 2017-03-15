@@ -25,16 +25,8 @@ import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
-import retrofit2.http.Url;
 
 public interface GhostApiService {
-
-    // auth
-    @GET
-    Call<String> getLoginPage(@Url String url);
-
-    @POST("authentication/token/")
-    Call<AuthToken> getAuthTokenV0(@Body AuthReqBody credentials);
 
     @POST("authentication/token/")
     Observable<AuthToken> getAuthToken(@Body AuthReqBody credentials);
@@ -43,8 +35,8 @@ public interface GhostApiService {
     Observable<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials);
 
     @POST("authentication/revoke/")
-    Call<JsonElement> revokeAuthToken(@Header("Authorization") String authHeader,
-                                      @Body RevokeReqBody revoke);
+    Observable<JsonElement> revokeAuthToken(@Header("Authorization") String authHeader,
+                                            @Body RevokeReqBody revoke);
 
     // users
     @GET("users/me/?include=roles&status=all")

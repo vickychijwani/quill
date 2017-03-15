@@ -29,7 +29,6 @@ import retrofit2.http.Header;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
-import retrofit2.http.Url;
 import retrofit2.mock.BehaviorDelegate;
 import retrofit2.mock.Calls;
 
@@ -42,16 +41,6 @@ public class MockGhostApiService implements GhostApiService {
                                boolean useGhostAuth) {
         mDelegate = delegate;
         mUseGhostAuth = useGhostAuth;
-    }
-
-    @Override
-    public Call<String> getLoginPage(@Url String url) {
-        return null;
-    }
-
-    @Override
-    public Call<AuthToken> getAuthTokenV0(@Body AuthReqBody credentials) {
-        return null;
     }
 
     @Override
@@ -108,7 +97,7 @@ public class MockGhostApiService implements GhostApiService {
     }
 
     @Override
-    public Call<JsonElement> revokeAuthToken(@Header("Authorization") String authHeader, @Body RevokeReqBody revoke) {
+    public Observable<JsonElement> revokeAuthToken(@Header("Authorization") String authHeader, @Body RevokeReqBody revoke) {
         return null;
     }
 

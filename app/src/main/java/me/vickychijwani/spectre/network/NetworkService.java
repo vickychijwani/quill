@@ -36,7 +36,6 @@ import me.vickychijwani.spectre.auth.AuthService;
 import me.vickychijwani.spectre.auth.AuthStore;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
 import me.vickychijwani.spectre.error.PostConflictFoundException;
-import me.vickychijwani.spectre.error.TokenRevocationFailedException;
 import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
@@ -78,7 +77,6 @@ import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.model.entity.User;
 import me.vickychijwani.spectre.network.entity.PostList;
 import me.vickychijwani.spectre.network.entity.PostStubList;
-import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import me.vickychijwani.spectre.pref.UserPrefs;
@@ -841,8 +839,8 @@ public class NetworkService implements
             }
         }
 
-        // copy auth token before closing the Realm
-        final AuthToken tokenToRevoke = new AuthToken(mAuthToken);
+        // revoke access and refresh tokens in the background
+        mAuthService.revokeToken(mAuthToken);
 
         // clear all persisted blog data to avoid primary key conflicts
         mRealm.close();
@@ -858,20 +856,6 @@ public class NetworkService implements
         mbSyncOnGoing = false;
         mRefreshError = null;
         getBus().post(new LogoutStatusEvent(true, false));
-
-        // revoke access and refresh tokens in the background
-        GhostApiService apiToRevokeOn = mApi;
-        GhostApiUtils.doWithClientSecret(apiToRevokeOn, event.blogUrl, clientSecret -> {
-            RevokeReqBody refreshTokenRevokeReqBody = new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH,
-                    tokenToRevoke.getRefreshToken(), clientSecret);
-            RevokeReqBody accessTokenRevokeReqBody = new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS,
-                    tokenToRevoke.getAccessToken(), clientSecret);
-            String authHeader = tokenToRevoke.getAuthHeader();
-            // revoke access token *last*, because access token is needed for revocation
-            revokeToken(apiToRevokeOn, authHeader, refreshTokenRevokeReqBody, () -> {
-                revokeToken(apiToRevokeOn, authHeader, accessTokenRevokeReqBody, () -> {});
-            });
-        });
     }
 
 
@@ -894,35 +878,6 @@ public class NetworkService implements
             mApiEventQueue.addLast(eventToDefer);
         }
         mAuthService.refreshToken(mAuthToken);
-    }
-
-    private static void revokeToken(GhostApiService api, String authHeader,
-                                    RevokeReqBody reqBody, Runnable onComplete) {
-        final Call<JsonElement> call = api.revokeAuthToken(authHeader, reqBody);
-        call.enqueue(new Callback<JsonElement>() {
-            @Override
-            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
-                if (response.isSuccessful()) {
-                    JsonElement jsonResponse = response.body();
-                    JsonObject jsonObj = jsonResponse.getAsJsonObject();
-                    if (jsonObj.has("error")) {
-                        Crashlytics.logException(new TokenRevocationFailedException(
-                                reqBody.tokenTypeHint, jsonObj.get("error").getAsString()));
-                    }
-                } else {
-                    Crashlytics.logException(new TokenRevocationFailedException(
-                            reqBody.tokenTypeHint, "<this shouldn't happen>"));
-                }
-                onComplete.run();
-            }
-
-            @Override
-            public void onFailure(Call<JsonElement> call, Throwable error) {
-                Crashlytics.logException(new TokenRevocationFailedException(
-                        reqBody.tokenTypeHint, error));
-                onComplete.run();
-            }
-        });
     }
 
     private void flushApiEventQueue(boolean loadCachedData) {

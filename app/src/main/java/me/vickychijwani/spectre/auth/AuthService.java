@@ -4,15 +4,23 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
+import me.vickychijwani.spectre.error.TokenRevocationFailedException;
 import me.vickychijwani.spectre.event.CredentialsExpiredEvent;
 import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.network.GhostApiService;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.network.entity.RefreshReqBody;
+import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.util.Listenable;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import timber.log.Timber;
@@ -74,6 +82,16 @@ public class AuthService implements Listenable<AuthService.Listener> {
                 .subscribe(this::handleAuthToken, this::handleRefreshError);
     }
 
+    public void revokeToken(AuthToken token) {
+        mApi.getConfiguration()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                .map(ConfigurationList::getClientSecret)
+                .flatMap(clientSecret -> revokeToken(token, clientSecret))
+                .doOnError(Timber::e)
+                .subscribe();
+    }
+
 
 
     private void login() {
@@ -120,6 +138,33 @@ public class AuthService implements Listenable<AuthService.Listener> {
             // deliberately missing mListener != null check, to avoid suppressing errors
             mListener.onUnrecoverableFailure();
         }
+    }
+
+    private Observable<JsonElement> revokeToken(AuthToken token, String clientSecret) {
+        // this complexity exists because the access token must be revoked AFTER the refresh token
+        // why? because the access token is needed for both revocations!
+        Subject<JsonElement> responses = PublishSubject.create();
+        RevokeReqBody refreshReqBody = RevokeReqBody.fromRefreshToken(
+                token.getRefreshToken(), clientSecret);
+        revokeSingleToken(token.getAuthHeader(), refreshReqBody, responses)
+                .doOnComplete(() -> {
+                    RevokeReqBody accessReqBody = RevokeReqBody.fromAccessToken(
+                            token.getAccessToken(), clientSecret);
+                    revokeSingleToken(token.getAuthHeader(), accessReqBody, responses)
+                            .subscribe();
+                })
+                .subscribe();
+        return responses;
+    }
+
+    private Observable<JsonElement> revokeSingleToken(String authHeader, RevokeReqBody reqBody,
+                                                      Observer<JsonElement> observer) {
+        return mApi.revokeAuthToken(authHeader, reqBody)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                .map(res -> checkRevocationResponse(res, reqBody.tokenTypeHint))
+                .doOnNext(observer::onNext)
+                .doOnError(e -> wrapInTokenRevocationFailedException(e, reqBody.tokenTypeHint));
     }
 
 
@@ -170,6 +215,23 @@ public class AuthService implements Listenable<AuthService.Listener> {
     private static boolean authTypeIsGhostAuth(ConfigurationList config) {
         return config.has("ghostAuthUrl");
     }
+
+    private static JsonElement checkRevocationResponse(JsonElement jsonResponse, String tokenType) {
+        JsonObject jsonObj = jsonResponse.getAsJsonObject();
+        if (jsonObj.has("error")) {
+            final String message = jsonObj.get("error").getAsString();
+            throw new TokenRevocationFailedException(tokenType, message);
+        }
+        return jsonResponse;
+    }
+
+    private static Throwable wrapInTokenRevocationFailedException(Throwable e, String tokenType) {
+        if (! (e instanceof TokenRevocationFailedException)) {
+            return new TokenRevocationFailedException(tokenType, e);
+        }
+        return e;
+    }
+
 
     public interface Listener {
 
