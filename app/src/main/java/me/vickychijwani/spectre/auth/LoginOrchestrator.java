@@ -35,7 +35,7 @@ import timber.log.Timber;
 import static me.vickychijwani.spectre.event.BusProvider.getBus;
 
 /**
- * Orchestrates the entire login process from start to finish. Follows the Facade design pattern.
+ * Orchestrates the entire login process from start to finish.
  */
 public class LoginOrchestrator implements
         Listenable<LoginOrchestrator.Listener>
@@ -124,7 +124,8 @@ public class LoginOrchestrator implements
     public void start(@NonNull String inputBlogUrl) {
         reset();
         forEachListener(Listener::onStartWaiting);
-        mLoginFlowDisposable = kickOffLoginFlow(inputBlogUrl);
+        String normalizedBlogUrl = normalizeBlogUrl(inputBlogUrl);
+        mLoginFlowDisposable = kickOffLoginFlow(normalizedBlogUrl);
     }
 
     // the entire login flow is specified here, from start to finish
@@ -230,6 +231,12 @@ public class LoginOrchestrator implements
         for (Listener listener : mListeners) {
             action.call(listener);
         }
+    }
+
+    // this function is in LoginOrchestrator because it is only useful when taking in user input
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    static String normalizeBlogUrl(String inputBlogUrl) {
+        return inputBlogUrl.trim().replaceFirst("^(.*)/ghost/?$", "$1");
     }
 
 

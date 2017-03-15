@@ -7,6 +7,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
+import java.util.Arrays;
+
 import io.reactivex.Observable;
 import me.vickychijwani.spectre.auth.LoginOrchestrator.HACKListener;
 import me.vickychijwani.spectre.auth.LoginOrchestrator.Listener;
@@ -28,6 +30,7 @@ import retrofit2.mock.MockRetrofit;
 import retrofit2.mock.NetworkBehavior;
 
 import static me.vickychijwani.spectre.event.BusProvider.getBus;
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
@@ -167,6 +170,15 @@ public class LoginOrchestratorTest {
         // atLeastOnce() because the operation gets retried automatically
         verify(spy, atLeastOnce()).onLoginErrorEvent(any());
         getBus().unregister(spy);
+    }
+
+    @Test
+    public void normalizeBlogUrl_shouldTrimWhitespaceAndTrailingGhostPath() {
+        assertThat(Arrays.asList(
+                LoginOrchestrator.normalizeBlogUrl("  https://my-blog.com         "),
+                LoginOrchestrator.normalizeBlogUrl("  https://my-blog.com/ghost   "),
+                LoginOrchestrator.normalizeBlogUrl("  https://my-blog.com/ghost/  ")
+        ), everyItem(is("https://my-blog.com")));
     }
 
 

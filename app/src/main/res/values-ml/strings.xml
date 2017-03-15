@@ -7,7 +7,6 @@
     <string name="action_sign_in">പ്രവേശിക്കുക</string>
 
     <string name="error_invalid_email">ഈ ഇ-മെയിൽ വിലാസം അസാധുവാണ്</string>
-    <string name="error_invalid_password">ഈ രഹസ്യ വാക്ക് തീരെ ചെറുതാണ്</string>
     <string name="error_field_required">നിർബന്ധമായും പൂരിപ്പിക്കുക</string>
 
     <string name="no_such_blog">%s/ghost വിലാസത്തിൽ ഒരു Ghost അഡ്മിൻ ലഭ്യമല്ല</string>

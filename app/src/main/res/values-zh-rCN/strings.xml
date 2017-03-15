@@ -6,7 +6,6 @@
     <string name="action_sign_in">登录</string>
 
     <string name="error_invalid_email">此电子邮件地址无效</string>
-    <string name="error_invalid_password">密码过短</string>
     <string name="error_field_required">此字段不能为空</string>
 
     <string name="no_such_blog">在 %s/ghost 中找不到ghost博客管理页面</string>

@@ -28,7 +28,6 @@
             android:layout_marginEnd="@dimen/padding_large"
             android:text="@string/prompt_blog_url"
             android:textAppearance="@style/TextAppearance.Small"
-            android:textColor="@color/text_primary_inverted"
             />
 
         <TextView
@@ -70,8 +69,6 @@
             android:maxLines="1"
             android:includeFontPadding="false"
             android:textAppearance="@style/TextAppearance.Large"
-            android:textColor="@color/text_primary_inverted"
-            android:textColorHint="@color/text_primary_inverted_dim"
             tools:ignore="HardcodedText">
 
             <requestFocus />

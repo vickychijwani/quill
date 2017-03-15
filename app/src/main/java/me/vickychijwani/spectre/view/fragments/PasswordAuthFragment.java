@@ -127,13 +127,9 @@ public class PasswordAuthFragment extends BaseFragment implements
             showEmailError(null);
         }
 
-        // check for a valid password
+        // check for a non-empty password
         if (TextUtils.isEmpty(password)) {
             showPasswordError(getString(R.string.error_field_required));
-            focusView = mPasswordView;
-            hasError = true;
-        } else if (! isPasswordValid(password)) {
-            showPasswordError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             hasError = true;
         } else {
@@ -250,10 +246,6 @@ public class PasswordAuthFragment extends BaseFragment implements
 
     private static boolean isEmailValid(String email) {
         return Patterns.EMAIL_ADDRESS.matcher(email).matches();
-    }
-
-    private static boolean isPasswordValid(String password) {
-        return password.length() >= 8;
     }
 
 }

@@ -6,7 +6,6 @@
     <string name="action_sign_in">サインイン</string>
 
     <string name="error_invalid_email">このメールアドレスは無効です</string>
-    <string name="error_invalid_password">このパスワードは短すぎます</string>
     <string name="error_field_required">このフィールドは必須です</string>
 
     <string name="no_such_blog">%s/ghost に Ghost admin がありません</string>

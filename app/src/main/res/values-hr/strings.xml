@@ -6,7 +6,6 @@
     <string name="action_sign_in">Prijavi se</string>
 
     <string name="error_invalid_email">Ova email adresa je neispravna</string>
-    <string name="error_invalid_password">Ova lozinka je prekratka</string>
     <string name="error_field_required">Ovo polje je obavezno</string>
 
     <string name="no_such_blog">Ne postoji Ghost administrator na %s/ghost</string>

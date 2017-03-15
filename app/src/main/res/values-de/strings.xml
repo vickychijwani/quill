@@ -8,7 +8,6 @@
     <string name="action_sign_in">Anmelden</string>
 
     <string name="error_invalid_email">Diese Emailadresse ist ungültig</string>
-    <string name="error_invalid_password">Dieses Passwort ist zu kurz</string>
     <string name="error_field_required">Bitte fülle dieses Feld aus</string>
 
     <string name="no_such_blog">Es konnte kein Ghost Admin-Panel in %s/ghost gefunden werden</string>

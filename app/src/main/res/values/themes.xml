@@ -20,6 +20,11 @@
 
     <style name="LoginTheme" parent="AppTheme">
         <item name="android:buttonStyle">@style/MyBigButton</item>
+        <item name="android:textColor">@color/text_primary_inverted</item>
+        <item name="android:textColorPrimary">@color/text_primary_inverted</item>
+        <item name="android:textColorSecondary">@color/text_secondary_inverted</item>
+        <item name="android:textColorPrimaryInverse">@color/text_primary</item>
+        <item name="android:textColorSecondaryInverse">@color/text_secondary</item>
         <item name="android:textColorHint">@color/text_primary_inverted_dim</item>
         <item name="textColorError">@color/login_error</item>
     </style>

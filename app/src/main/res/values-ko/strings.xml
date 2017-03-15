@@ -4,7 +4,6 @@
     <string name="prompt_password">비밀번호</string>
     <string name="error_invalid_url">입력한 URL이 올바르지 않습니다.</string>
     <string name="error_invalid_email">입력한 이메일 주소가 올바르지 않습니다.</string>
-    <string name="error_invalid_password">입력한 비밀번호가 너무 짧습니다.</string>
     <string name="no_such_blog">%s/ghost에는 관리자가 존재하지 않습니다.</string>
     <string name="login_unexpected_error">로그인 과정에서 예기치 않은 오류가 발생하였습니다. 다시 시도해주세요.</string>
     <string name="login_connection_error">%s/ghost에 연결할 수 없습니다. 다시 시도해주세요.</string>

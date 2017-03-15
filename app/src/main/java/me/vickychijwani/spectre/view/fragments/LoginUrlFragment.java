@@ -102,7 +102,7 @@ public class LoginUrlFragment extends BaseFragment implements
             return;
         }
 
-        String blogUrl = mBlogUrlView.getText().toString().trim().replaceFirst("^(.*)/ghost/?$", "$1");
+        String blogUrl = mBlogUrlView.getText().toString();
         if (TextUtils.isEmpty(blogUrl)) {
             mBlogUrlErrorView.setText(R.string.error_field_required);
             return;

@@ -8,7 +8,6 @@
     <string name="action_sign_in">Iniciar sesión</string>
 
     <string name="error_invalid_email">La dirección de email es inválida</string>
-    <string name="error_invalid_password">La contraseña es demasiado corta</string>
     <string name="error_field_required">Este campos es obligatorio</string>
 
     <string name="no_such_blog">No se encuentra el panel de administración de Ghost en %s/ghost</string>

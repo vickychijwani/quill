@@ -9,7 +9,6 @@
 
     <string name="error_invalid_url">Questo URL non è valido.</string>
     <string name="error_invalid_email">Questo indirizzo email non è valido.</string>
-    <string name="error_invalid_password">La password è troppo breve.</string>
     <string name="error_field_required">Questo campo è richiesto.</string>
 
     <string name="logout">Esci</string>

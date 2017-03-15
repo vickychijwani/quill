@@ -6,7 +6,6 @@
     <string name="action_sign_in">Connexion</string>
 
     <string name="error_invalid_email">Adresse mail invalide</string>
-    <string name="error_invalid_password">Mot de passe trop court</string>
     <string name="error_field_required">Champ requis</string>
 
     <string name="no_such_blog">Pas d\'administration Ghost à l\'adresse %s/ghost</string>
