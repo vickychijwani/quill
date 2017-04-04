@@ -24,7 +24,14 @@ yarn add --no-lockfile ghost@$VERSION
 
 # copy config files
 cp tests/ghost-defaults.json $CONFIG_DIR/defaults.json
-cp tests/ghost-$AUTH_TYPE-auth-config.json $CONFIG_DIR/env/config.development.json
+if [[ "$AUTH_TYPE" = "password" ]]; then
+    # not needed for password auth, it's the default
+    #cp tests/ghost-$AUTH_TYPE-auth-config.json $CONFIG_DIR/env/config.development.json
+    : # null command to prevent syntax error because of empty if followed by else
+else
+    echo "Ghost Auth support is not implemented in this script!"
+    exit 2
+fi
 
 # init database
 pushd $GHOST_DIR
