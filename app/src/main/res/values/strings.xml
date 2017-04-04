@@ -1,32 +1,31 @@
-<?xml version='1.0' encoding='UTF-8'?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- login -->
-    <string name="login_heading1">লগিন করুন</string>
-    <string name="login_heading2">ব্লগ</string>
+    <string name="login_heading1">Sign in to your</string>
+    <string name="login_heading2">blog</string>
 
-    <string name="prompt_blog_url">ব্লগের ঠিকানা (blog.example.com)</string>
-    <string name="prompt_email">ইমেইল</string>
-    <string name="prompt_password">পাসওয়ার্ড</string>
-    <string name="action_sign_in">সাইন ইন</string>
+    <string name="prompt_blog_url">Blog address (blog.example.com)</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
 
-    <string name="error_invalid_url">URL সঠিক নয়</string>
-    <string name="error_invalid_email">ইমেইল সঠিক নয়</string>
-    <string name="error_invalid_password">পাসওয়ার্ড সঠিক নয়</string>
-    <string name="error_field_required">এটা পূরণ করা বাধ্যতামূলক</string>
+    <string name="error_invalid_url">This URL is invalid.</string>
+    <string name="error_invalid_email">This email address is invalid.</string>
+    <string name="error_invalid_password">This password is too short.</string>
+    <string name="error_field_required">This field is required.</string>
 
-    <string name="no_such_blog">%s/ghost এখানে কোন এডমিন পাওয়া যায়নি</string>
-    <string name="login_unexpected_error">অপ্রত্যাশিত error. আবার চেষ্টা করুন</string>
-    <string name="login_connection_error">%s/ghost এ কানেক্ট করা যাচ্ছে না. আবার চেষ্টা করুন.</string>
-    <string name="login_ssl_unsupported">আপনার ব্লগ https:// (SSL) সাপোর্ট করছে না. দয়া করে লিঙ্ক চেঞ্জ করে http:// করুন.</string>
-    <string name="logout">লগ-আউট</string>
-    <string name="password_changed">আপনি কি পাসওয়ার্ড চেঞ্জ করেছেন? বর্তমান পাসওয়ার্ড কাজ করছে না.</string>
-    <string name="unsynced_changes_msg">আপনি সবকিছু হারাবেন এখন লগ-আউট করলে.</string>
-    <string name="dont_logout">লগ-আউট করবনা</string>
+    <string name="no_such_blog">There is no Ghost admin at %s/ghost.</string>
+    <string name="login_unexpected_error">Unexpected error during sign in. Please try again.</string>
+    <string name="login_connection_error">Could not connect to %s/ghost. Please try again.</string>
+    <string name="login_ssl_unsupported">Your blog does not support https:// (SSL). Try changing it to http://.</string>
+    <string name="logout">Logout</string>
+    <string name="password_changed">Has your password changed? Couldn\'t login with that password.</string>
+    <string name="unsynced_changes_msg">You will lose all unsynced changes if you log out now</string>
+    <string name="dont_logout">Don\'t logout</string>
 
     <!-- posts -->
-    <string name="status_published">প্রকাশিত হয়েছে %s</string>
-    <string name="status_draft">ড্রাফট</string>
+    <string name="status_published">Published %s</string>
+    <string name="status_draft">Draft</string>
     <string name="status_scheduled">Scheduled - %s</string>
     <string name="status_offline_changes">Saved on device, waiting to go online…</string>
     <string name="status_published_auto_saved">Changes auto-saved, not published yet</string>
