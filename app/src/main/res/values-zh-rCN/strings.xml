@@ -127,7 +127,7 @@
     <string name="report_bugs">报告错误</string>
     <string name="post_feature_hint">高亮文章</string>
 
-    <string name="conflict_explanation"><b>文章 <i>％s</i> 有冲突。</b> 在您上传设备副本之前，它已在服务器上更新。您希望保留哪个版本的文章？</string>
+    <string name="conflict_explanation"><b>文章 <i>%s</i> 有冲突。</b> 在您上传设备副本之前，它已在服务器上更新。您希望保留哪个版本的文章？</string>
     <string name="conflict_choice_use_device_copy">上传设备副本</string>
     <string name="conflict_choice_use_server_copy">下载服务器副本</string>
     <string name="conflict_last_update_at">最后更新在 %s</string>
