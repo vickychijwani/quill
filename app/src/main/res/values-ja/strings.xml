@@ -14,15 +14,15 @@
     <string name="error_field_required">このフィールドは必須です。</string>
 
     <string name="no_such_blog">%s/ghost に Ghost admin がありません。</string>
-    <string name="login_unexpected_error">サインイン中に予期しないエラー。もう一度やり直してください。</string>
+    <string name="login_unexpected_error">サインイン中に予期しないエラーが発生しました。もう一度やり直してください。</string>
     <string name="login_connection_error">%s/ghost に接続できませんでした。もう一度やり直してください。</string>
     <string name="login_ssl_unsupported">あなたのブログは https:// (SSL) をサポートしていません。http:// に変更してみてください。</string>
     <string name="logout">ログアウト</string>
-    <string name="password_changed">パスワードを変更しましたか? そのパスワードでログインできませんでした。</string>
+    <string name="password_changed">パスワードを変更していますか? そのパスワードでログインできませんでした。</string>
     <string name="unsynced_changes_msg">今ログアウトすると、未同期の変更がすべて失われます</string>
     <string name="dont_logout">ログアウトしない</string>
 
-    <string name="status_published">公開済 %s</string>
+    <string name="status_published">%s 公開済</string>
     <string name="status_draft">ドラフト</string>
     <string name="status_scheduled">スケジュール済 - %s</string>
     <string name="status_offline_changes">デバイスに保存しました。オンラインへの待機中…</string>
