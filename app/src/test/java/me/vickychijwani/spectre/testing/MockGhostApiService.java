@@ -60,7 +60,7 @@ public class MockGhostApiService implements GhostApiService {
             // Mock Retrofit doesn't set the correct request URL, it sets just http://localhost
             String tokenUrl = "http://localhost/authentication/token/";
             ResponseBody body = ResponseBody.create(MediaType.parse("application/json"),
-                    "{\"errors\":[{\"message\":\"Wrong credentials\",\"errorType\":\"UnauthorizedError\"}]}");
+                    "{\"errors\":[{\"message\":\"Your password is incorrect.\",\"context\":\"Your password is incorrect.\",\"errorType\":\"ValidationError\"}]}");
             final okhttp3.Response rawResponse = new okhttp3.Response.Builder()
                     .protocol(Protocol.HTTP_1_1)
                     .request(new Request.Builder().url(tokenUrl).build())

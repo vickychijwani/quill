@@ -44,19 +44,19 @@ public interface GhostApiService {
                                   @Header("If-None-Match") String etag);
 
     // posts
-    @POST("posts/?include=tags")
+    @POST("posts/?include=tags&formats=mobiledoc,html")
     Call<PostList> createPost(@Header("Authorization") String authHeader,
                               @Body PostStubList posts);
 
     // FIXME (issue #81) only allowing N posts right now to avoid too much data transfer
-    @GET("posts/?status=all&staticPages=all&include=tags")
+    @GET("posts/?status=all&staticPages=all&include=tags&formats=mobiledoc,html")
     Call<PostList> getPosts(@Header("Authorization") String authHeader,
                             @Header("If-None-Match") String etag, @Query("limit") int numPosts);
 
-    @GET("posts/{id}/?status=all&include=tags")
+    @GET("posts/{id}/?status=all&include=tags&formats=mobiledoc,html")
     Call<PostList> getPost(@Header("Authorization") String authHeader, @Path("id") String id);
 
-    @PUT("posts/{id}/?include=tags")
+    @PUT("posts/{id}/?include=tags&formats=mobiledoc,html")
     Call<PostList> updatePost(@Header("Authorization") String authHeader,
                               @Path("id") String id, @Body PostStubList posts);
 

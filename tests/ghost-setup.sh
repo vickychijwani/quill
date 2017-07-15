@@ -2,25 +2,41 @@
 
 set -euxo pipefail
 
-USAGE="Usage: $0 <ghost-version> <auth-type: ghost|password>"
-if [[ "$#" -lt 2 ]]; then
+USAGE="Usage: $0 <ghost-dir> <ghost-version> <auth-type: ghost|password>"
+if [[ "$#" -lt 3 ]]; then
     echo "$USAGE"
     exit 1
 fi
 
-VERSION=$1
-AUTH_TYPE=$2
+GHOST_DIR="$1"
+VERSION="$2"
+AUTH_TYPE="$3"
 if ! [[ "$AUTH_TYPE" = "ghost" ]] && ! [[ "$AUTH_TYPE" = "password" ]]; then
     echo "$USAGE"
     exit 1
 fi
 
-GHOST_DIR=./node_modules/ghost
 CONFIG_DIR=$GHOST_DIR/core/server/config
 
 # install Ghost
+# the old "install from npm" flow doesn't work with Ghost 1.x currently, it may work later
 #npm install ghost@$VERSION
-yarn add --no-lockfile ghost@$VERSION
+#yarn add --no-lockfile ghost@$VERSION
+git clone https://github.com/tryghost/ghost.git $GHOST_DIR
+pushd $GHOST_DIR
+    git checkout $VERSION
+    git submodule update --init --recursive
+
+    # install Ghost deps
+    yarn global add knex-migrator ember-cli grunt-cli
+    yarn install
+
+    # build client files
+    grunt build
+
+    # initialize database
+    knex-migrator init
+popd
 
 # copy config files
 cp tests/ghost-defaults.json $CONFIG_DIR/defaults.json
@@ -32,8 +48,3 @@ else
     echo "Ghost Auth support is not implemented in this script!"
     exit 2
 fi
-
-# init database
-pushd $GHOST_DIR
-    ../knex-migrator/bin/knex-migrator init
-popd

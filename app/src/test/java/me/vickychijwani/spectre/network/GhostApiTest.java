@@ -85,11 +85,14 @@ public final class GhostApiTest {
         RETROFIT = GhostApiUtils.getRetrofit(BLOG_URL, httpClient);
         API = RETROFIT.create(GhostApiService.class);
 
-        // delete the default "Welcome to Ghost" post, if it exists
         doWithAuthToken(token -> {
             PostList posts = execute(API.getPosts(token.getAuthHeader(), "", 100)).body();
-            if (posts.posts.size() > 1) {
-                throw new IllegalStateException("Not deleting existing posts since there are more than 1!");
+            // A default Ghost install has these many posts initially. If there are more than this,
+            // abort. This is to avoid messing up a production blog (like my own) by mistake.
+            final int DEFAULT_POST_COUNT = 7;
+            if (!posts.posts.isEmpty() && posts.posts.size() != DEFAULT_POST_COUNT) {
+                throw new IllegalStateException("Aborting! Expected " + DEFAULT_POST_COUNT +
+                        " posts, found " + posts.posts.size());
             }
             for (Post post : posts.posts) {
                 execute(API.deletePost(token.getAuthHeader(), post.getId()));
@@ -158,7 +161,7 @@ public final class GhostApiTest {
             ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, httpEx);
             assertThat(apiErrors, notNullValue());
             assertThat(apiErrors.errors.size(), is(1));
-            assertThat(apiErrors.errors.get(0).errorType, is("UnauthorizedError"));
+            assertThat(apiErrors.errors.get(0).errorType, is("ValidationError"));
             assertThat(apiErrors.errors.get(0).message, notNullValue());
             assertThat(apiErrors.errors.get(0).message, not(""));
         }
@@ -239,7 +242,8 @@ public final class GhostApiTest {
                 assertThat(createdPost.getSlug(), is(SLUGIFY.slugify(expectedPost.getTitle())));
                 assertThat(createdPost.getStatus(), is(expectedPost.getStatus()));
                 assertThat(createdPost.getMarkdown(), is(expectedPost.getMarkdown()));
-                assertThat(createdPost.getHtml(), is("<p>" + expectedPost.getMarkdown() + "</p>"));
+                assertThat(createdPost.getHtml(), is("<div class=\"kg-card-markdown\"><p>"
+                        + expectedPost.getMarkdown() + "</p>\n</div>"));
                 assertThat(createdPost.getTags(), is(expectedPost.getTags()));
                 assertThat(createdPost.isFeatured(), is(false));
             });

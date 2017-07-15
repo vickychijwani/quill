@@ -56,6 +56,8 @@ public class Post implements RealmModel, Parcelable {
     @Required
     private String markdown = "";
 
+    private String mobiledoc = "";
+
     private String html = "";
 
     private RealmList<Tag> tags;
@@ -100,6 +102,7 @@ public class Post implements RealmModel, Parcelable {
         this.setSlug(post.getSlug());
         this.setStatus(post.getStatus());
         this.setMarkdown(post.getMarkdown());
+        this.setMobiledoc(post.getMobiledoc());
         this.setHtml(post.getHtml());
 
         List<Tag> realmTags = post.getTags();
@@ -153,6 +156,8 @@ public class Post implements RealmModel, Parcelable {
             return false;
         if (getMarkdown() != null ? !getMarkdown().equals(post.getMarkdown()) : post.getMarkdown() != null)
             return false;
+        if (getMobiledoc() != null ? !getMobiledoc().equals(post.getMobiledoc()) : post.getMobiledoc() != null)
+            return false;
         if (getHtml() != null ? !getHtml().equals(post.getHtml()) : post.getHtml() != null)
             return false;
         if (getTags() != null ? !getTags().equals(post.getTags()) : post.getTags() != null)
@@ -200,6 +205,7 @@ public class Post implements RealmModel, Parcelable {
         dest.writeString(this.slug);
         dest.writeString(this.status);
         dest.writeString(this.markdown);
+        dest.writeString(this.mobiledoc);
         dest.writeString(this.html);
         dest.writeList(this.tags);
         dest.writeString(this.featureImage);
@@ -227,6 +233,7 @@ public class Post implements RealmModel, Parcelable {
         //noinspection WrongConstant
         this.status = in.readString();
         this.markdown = in.readString();
+        this.mobiledoc = in.readString();
         this.html = in.readString();
         this.tags = new RealmList<>();
         in.readList(this.tags, Tag.class.getClassLoader());
@@ -313,6 +320,14 @@ public class Post implements RealmModel, Parcelable {
 
     public void setMarkdown(String markdown) {
         this.markdown = markdown;
+    }
+
+    public String getMobiledoc() {
+        return mobiledoc;
+    }
+
+    public void setMobiledoc(String mobiledoc) {
+        this.mobiledoc = mobiledoc;
     }
 
     public String getHtml() {

@@ -3,9 +3,11 @@ machine:
     TARGET_SDK_VERSION: 25
     TOOLS_VERSION: 25.2.4
     BUILD_TOOLS_VERSION: 25.0.2
-    GHOST_VERSION: 1.0.0-beta.1
+    GHOST_DIR: ghost
+    GHOST_VERSION: 1.0.0-rc.1
   java:
     version: oraclejdk8
+  # recommended Node version from https://docs.ghost.org/docs/supported-node-versions
   node:
     version: 6.9
 
@@ -19,13 +21,13 @@ dependencies:
     - /usr/local/android-sdk-linux/build-tools/$BUILD_TOOLS_VERSION
     - $HOME/.cache/yarn
   override:
-    - ./tests/ghost-setup.sh $GHOST_VERSION password
+    - ./tests/ghost-setup.sh $GHOST_DIR $GHOST_VERSION password
 
 # actual build and test
 # can't build/test release because Fabric API keys are not available in CI
 test:
   pre:
-    - node ./node_modules/ghost/index.js:
+    - node $GHOST_DIR/index.js:
         background: true
     - sleep 10
     - curl -vvvv -d 'setup[0][name]=User' -d 'setup[0][email]=user@example.com' -d 'setup[0][password]=ghosttest' -d 'setup[0][blogTitle]=My Blog' http://localhost:2368/ghost/api/v0.1/authentication/setup/

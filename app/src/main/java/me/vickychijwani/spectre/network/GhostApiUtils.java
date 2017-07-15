@@ -6,6 +6,8 @@ import android.support.annotation.Nullable;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -33,6 +35,7 @@ public final class GhostApiUtils {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class, new DateDeserializer())
                 .registerTypeAdapter(ConfigurationList.class, new ConfigurationListDeserializer())
+                .registerTypeAdapterFactory(new PostTypeAdapterFactory())
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .setExclusionStrategies(new RealmExclusionStrategy(), new AnnotationExclusionStrategy())
                 .create();
@@ -64,6 +67,31 @@ public final class GhostApiUtils {
             Timber.e(e);
         }
         return apiErrors;
+    }
+
+    public static String markdownToMobiledoc(String markdown) {
+        return String.format("{" +
+                "  \"version\": \"0.3.1\"," +
+                "  \"markups\": []," +
+                "  \"atoms\": []," +
+                "  \"cards\": [" +
+                "    [\"card-markdown\", {" +
+                "      \"cardName\": \"card-markdown\"," +
+                "      \"markdown\": \"%1$s\"" +
+                "    }]" +
+                "  ]," +
+                "  \"sections\": [[10, 0]]" +
+                "}", markdown);
+    }
+
+    public static String mobiledocToMarkdown(String mobiledoc) {
+        JsonParser jsonParser = new JsonParser();
+        JsonObject mobiledocJson = jsonParser.parse(mobiledoc).getAsJsonObject();
+        return mobiledocJson
+                .get("cards").getAsJsonArray()
+                .get(0).getAsJsonArray()
+                .get(1).getAsJsonObject()
+                .get("markdown").getAsString();
     }
 
 }
