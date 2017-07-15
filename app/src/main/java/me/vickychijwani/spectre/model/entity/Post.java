@@ -60,7 +60,7 @@ public class Post implements RealmModel, Parcelable {
 
     private RealmList<Tag> tags;
 
-    private String image = null;
+    private String featureImage = null;
     private boolean featured = false;
     private boolean page = false;
 
@@ -109,7 +109,7 @@ public class Post implements RealmModel, Parcelable {
         }
         this.setTags(unmanagedTags);
 
-        this.setImage(post.getImage());
+        this.setFeatureImage(post.getFeatureImage());
         this.setFeatured(post.isFeatured());
         this.setPage(post.isPage());
         this.setLanguage(post.getLanguage());
@@ -157,7 +157,7 @@ public class Post implements RealmModel, Parcelable {
             return false;
         if (getTags() != null ? !getTags().equals(post.getTags()) : post.getTags() != null)
             return false;
-        if (getImage() != null ? !getImage().equals(post.getImage()) : post.getImage() != null)
+        if (getFeatureImage() != null ? !getFeatureImage().equals(post.getFeatureImage()) : post.getFeatureImage() != null)
             return false;
         if (getLanguage() != null ? !getLanguage().equals(post.getLanguage()) : post.getLanguage() != null)
             return false;
@@ -202,7 +202,7 @@ public class Post implements RealmModel, Parcelable {
         dest.writeString(this.markdown);
         dest.writeString(this.html);
         dest.writeList(this.tags);
-        dest.writeString(this.image);
+        dest.writeString(this.featureImage);
         dest.writeByte(this.featured ? (byte) 1 : (byte) 0);
         dest.writeByte(this.page ? (byte) 1 : (byte) 0);
         dest.writeString(this.language);
@@ -230,7 +230,7 @@ public class Post implements RealmModel, Parcelable {
         this.html = in.readString();
         this.tags = new RealmList<>();
         in.readList(this.tags, Tag.class.getClassLoader());
-        this.image = in.readString();
+        this.featureImage = in.readString();
         this.featured = in.readByte() != 0;
         this.page = in.readByte() != 0;
         this.language = in.readString();
@@ -331,12 +331,12 @@ public class Post implements RealmModel, Parcelable {
         this.tags = tags;
     }
 
-    public String getImage() {
-        return image;
+    public String getFeatureImage() {
+        return featureImage;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setFeatureImage(String featureImage) {
+        this.featureImage = featureImage;
     }
 
     public boolean isFeatured() {

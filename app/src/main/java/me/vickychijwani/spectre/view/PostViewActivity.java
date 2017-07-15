@@ -410,7 +410,7 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     private void updatePostSettings() {
-        String imageUrl = mPost.getImage();
+        String imageUrl = mPost.getFeatureImage();
         if (!TextUtils.isEmpty(imageUrl)) {
             mPostImageLayoutManager.setViewState(PostImageLayoutManager.ViewState.PROGRESS_BAR);
             imageUrl = NetworkUtils.makeAbsoluteUrl(mBlogUrl, imageUrl);
@@ -446,7 +446,7 @@ public class PostViewActivity extends BaseActivity implements
         if (view.getId() == R.id.post_image_edit_layout) {
             PopupMenu popupMenu = new PopupMenu(this, mPostImageLayoutManager.getRootLayout());
             popupMenu.inflate(R.menu.insert_image);
-            if (TextUtils.isEmpty(mPost.getImage())) {
+            if (TextUtils.isEmpty(mPost.getFeatureImage())) {
                 MenuItem removeImageItem = popupMenu.getMenu().findItem(R.id.action_image_remove);
                 removeImageItem.setVisible(false);
             }

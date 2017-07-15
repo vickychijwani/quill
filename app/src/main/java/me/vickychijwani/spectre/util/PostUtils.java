@@ -84,9 +84,9 @@ public class PostUtils {
 
     @SuppressWarnings({"RedundantIfStatement", "OverlyComplexMethod"})
     public static boolean isDirty(@NonNull Post original, @NonNull Post current) {
-        boolean bothImagesNull = (original.getImage() == null && current.getImage() == null);
-        boolean oneImageNull = (original.getImage() != null && current.getImage() == null)
-                || (original.getImage() == null && current.getImage() != null);
+        boolean bothImagesNull = (original.getFeatureImage() == null && current.getFeatureImage() == null);
+        boolean oneImageNull = (original.getFeatureImage() != null && current.getFeatureImage() == null)
+                || (original.getFeatureImage() == null && current.getFeatureImage() != null);
 
         if (! original.getTitle().equals(current.getTitle()))
             return true;
@@ -96,7 +96,7 @@ public class PostUtils {
             return true;
         if (! original.getMarkdown().equals(current.getMarkdown()))
             return true;
-        if (!bothImagesNull && (oneImageNull || !original.getImage().equals(current.getImage())))
+        if (!bothImagesNull && (oneImageNull || !original.getFeatureImage().equals(current.getFeatureImage())))
             return true;
         if (original.getTags().size() != current.getTags().size())
             return true;

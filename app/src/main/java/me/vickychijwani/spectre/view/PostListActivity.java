@@ -306,12 +306,12 @@ public class PostListActivity extends BaseActivity {
 
     @Subscribe
     public void onUserLoadedEvent(UserLoadedEvent event) {
-        if (event.user.getImage() != null) {
-            if (event.user.getImage().isEmpty()) {
+        if (event.user.getProfileImage() != null) {
+            if (event.user.getProfileImage().isEmpty()) {
                 return;
             }
             String blogUrl = getBlogUrl();
-            String imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, event.user.getImage());
+            String imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, event.user.getProfileImage());
             getPicasso()
                     .load(imageUrl)
                     .transform(new BorderedCircleTransformation())

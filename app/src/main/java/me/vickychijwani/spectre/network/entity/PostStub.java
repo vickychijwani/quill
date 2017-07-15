@@ -17,7 +17,7 @@ public final class PostStub {
     public final String status;
     public final String markdown;
     public final List<TagStub> tags;
-    public final String image;
+    public final String featureImage;
     public final boolean featured;
 
     public PostStub(@NonNull Post post) {
@@ -29,7 +29,7 @@ public final class PostStub {
         for (Tag tag : post.getTags()) {
             this.tags.add(new TagStub(tag));
         }
-        this.image = post.getImage();
+        this.featureImage = post.getFeatureImage();
         this.featured = post.isFeatured();
     }
 

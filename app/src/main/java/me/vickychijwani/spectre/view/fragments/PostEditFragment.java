@@ -540,7 +540,7 @@ public class PostEditFragment extends BaseFragment implements
     }
 
     public boolean saveAutomaticallyWithImage(@NonNull String imageUrl) {
-        mPost.setImage(imageUrl);
+        mPost.setFeatureImage(imageUrl);
         return saveAutomatically();
     }
 

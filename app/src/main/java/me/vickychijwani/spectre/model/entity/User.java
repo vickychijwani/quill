@@ -22,7 +22,7 @@ public class User implements RealmModel {
     @Required
     private String email;
 
-    private String image;
+    private String profileImage;
     private String bio;
 
     private RealmList<Role> roles;
@@ -60,12 +60,12 @@ public class User implements RealmModel {
         this.email = email;
     }
 
-    public String getImage() {
-        return image;
+    public String getProfileImage() {
+        return profileImage;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 
     public String getBio() {

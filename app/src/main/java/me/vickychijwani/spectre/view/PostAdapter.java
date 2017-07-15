@@ -150,8 +150,8 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private void bindPost(PostViewHolder viewHolder, Post post) {
         viewHolder.title.setText(post.getTitle());
-        if (! TextUtils.isEmpty(post.getImage())) {
-            String imageUrl = NetworkUtils.makeAbsoluteUrl(mBlogUrl, post.getImage());
+        if (! TextUtils.isEmpty(post.getFeatureImage())) {
+            String imageUrl = NetworkUtils.makeAbsoluteUrl(mBlogUrl, post.getFeatureImage());
             viewHolder.image.setVisibility(View.VISIBLE);
             mPicasso.load(imageUrl)
                     .fit().centerCrop()
