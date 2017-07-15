@@ -21,6 +21,7 @@ import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Role;
 import me.vickychijwani.spectre.model.entity.Setting;
+import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.model.entity.User;
 import me.vickychijwani.spectre.network.entity.ApiErrorList;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
@@ -46,6 +47,7 @@ import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
@@ -303,6 +305,29 @@ public final class GhostApiTest {
                 assertThat(response.code(), is(HTTP_OK));
                 assertThat(post.getTitle(), is(expected.getTitle()));
                 assertThat(post.getMarkdown(), is(expected.getMarkdown()));
+            });
+        });
+    }
+
+    @Test
+    public void test_updatePost() {
+        doWithAuthToken(token -> {
+            createRandomPost(token, (newPost, __, created) -> {
+                Post updatedPost = new Post(newPost);
+                Tag updatedTag = new Tag("updated-tag");
+                updatedPost.setMarkdown("updated **markdown**");
+                updatedPost.setTags(new RealmList<>(updatedTag));
+                PostStubList postStubs = PostStubList.from(updatedPost);
+
+                Response<PostList> response = execute(API.updatePost(token.getAuthHeader(),
+                        created.getId(), postStubs));
+                Post post = response.body().posts.get(0);
+
+                assertThat(response.code(), is(HTTP_OK));
+                assertThat(post.getTitle(), is(updatedPost.getTitle()));
+                assertThat(post.getMarkdown(), is(updatedPost.getMarkdown()));
+                assertThat(post.getTags(), hasSize(1));
+                assertThat(post.getTags().get(0).getName(), is(updatedTag.getName()));
             });
         });
     }
