@@ -47,7 +47,7 @@ public class LoginActivity extends BaseActivity implements
         LoginUrlFragment urlFragment = LoginUrlFragment.newInstance();
         getSupportFragmentManager()
                 .beginTransaction()
-                .add(R.id.fragment_container, urlFragment)
+                .replace(R.id.fragment_container, urlFragment)
                 .commit();
     }
 
