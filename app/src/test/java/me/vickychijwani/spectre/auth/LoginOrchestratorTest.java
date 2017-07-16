@@ -46,7 +46,9 @@ import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 /**
  * TYPE: unit tests
- * PURPOSE: testing overall logic flow for login process
+ * PURPOSE: testing overall logic flow for login process. This does NOT include logic for refreshing
+ * an expired token, etc - only the initial user login flow is covered. The refresh logic is tested
+ * in {@link AuthServiceTest}.
  */
 
 public class LoginOrchestratorTest {
@@ -56,13 +58,13 @@ public class LoginOrchestratorTest {
     @ClassRule public static TestRule eventBusRule = new EventBusRule();
 
     private CredentialSource credSource;
-    private AuthStore authStore;
+    private CredentialSink credSink;
     private Listener listener;
 
     @Before
     public void setupMocks() {
         credSource = mock(CredentialSource.class);
-        authStore = mock(AuthStore.class);
+        credSink = mock(CredentialSink.class);
         listener = mock(Listener.class);
     }
 
@@ -70,7 +72,7 @@ public class LoginOrchestratorTest {
     // tests
     @Test
     public void ghostAuth_success() {
-        LoginOrchestrator orchestrator = makeOrchestrator(credSource, authStore, true);
+        LoginOrchestrator orchestrator = makeOrchestrator(credSource, credSink, true);
         when(credSource.getGhostAuthCode(any())).thenReturn(Observable.just("auth-code"));
         orchestrator.listen(listener);
 
@@ -78,16 +80,16 @@ public class LoginOrchestratorTest {
 
         verify(listener).onStartWaiting();
         verify(credSource).getGhostAuthCode(any());
-        verify(authStore).saveCredentials(any());
-        verify(authStore, never()).deleteCredentials();
-        verify(authStore).setLoggedIn(true);
+        verify(credSink).saveCredentials(any());
+        verify(credSink, never()).deleteCredentials();
+        verify(credSink).setLoggedIn(true);
         verify(listener).onLoginDone(argThat(is("http://blog.com")));
     }
 
     @Test
     public void ghostAuth_networkFailure() {
         NetworkBehavior failingNetworkBehavior = Helpers.getFailingNetworkBehaviour();
-        LoginOrchestrator orchestrator = makeOrchestrator(credSource, authStore, true, failingNetworkBehavior);
+        LoginOrchestrator orchestrator = makeOrchestrator(credSource, credSink, true, failingNetworkBehavior);
         when(credSource.getGhostAuthCode(any())).thenReturn(Observable.just("auth-code"));
         orchestrator.listen(listener);
 
@@ -98,7 +100,7 @@ public class LoginOrchestratorTest {
 
     @Test
     public void passwordAuth_success() {
-        LoginOrchestrator orchestrator = makeOrchestrator(credSource, authStore, false);
+        LoginOrchestrator orchestrator = makeOrchestrator(credSource, credSink, false);
         when(credSource.getEmailAndPassword())
                 .thenReturn(Observable.just(new Pair<>("email", "password")));
         orchestrator.listen(listener);
@@ -107,15 +109,15 @@ public class LoginOrchestratorTest {
 
         verify(listener).onStartWaiting();
         verify(credSource).getEmailAndPassword();
-        verify(authStore).saveCredentials(any());
-        verify(authStore, never()).deleteCredentials();
-        verify(authStore).setLoggedIn(true);
+        verify(credSink).saveCredentials(any());
+        verify(credSink, never()).deleteCredentials();
+        verify(credSink).setLoggedIn(true);
         verify(listener).onLoginDone(argThat(is("http://blog.com")));
     }
 
     @Test
     public void passwordAuth_wrongPassword() {
-        LoginOrchestrator orchestrator = makeOrchestrator(credSource, authStore, false);
+        LoginOrchestrator orchestrator = makeOrchestrator(credSource, credSink, false);
         orchestrator.listen(listener);
         // simulate entering the wrong password once, followed by the right password
         final boolean[] retrying = {false}, retried = {false};
@@ -133,9 +135,9 @@ public class LoginOrchestratorTest {
 
         verify(listener).onStartWaiting();
         verify(credSource).getEmailAndPassword();
-        verify(authStore, times(2)).saveCredentials(any());
-        verify(authStore).deleteCredentials();
-        verify(authStore).setLoggedIn(true);
+        verify(credSink, times(2)).saveCredentials(any());
+        verify(credSink).deleteCredentials();
+        verify(credSink).setLoggedIn(true);
         verify(listener).onLoginDone(argThat(is("http://blog.com")));
         // this throws an NPE for no apparent reason - wtf? hence the ugly "retried" flag
         //verify(listener).onApiError(any(), any());
@@ -146,7 +148,7 @@ public class LoginOrchestratorTest {
     public void loginSucceededEvent() {
         LoginStatusEventListener spy = spy(new LoginStatusEventListener());
         getBus().register(spy);
-        LoginOrchestrator orchestrator = makeOrchestrator(credSource, authStore, true);
+        LoginOrchestrator orchestrator = makeOrchestrator(credSource, credSink, true);
         when(credSource.getGhostAuthCode(any())).thenReturn(Observable.just("auth-code"));
         orchestrator.listen(listener);
 
@@ -161,7 +163,7 @@ public class LoginOrchestratorTest {
         LoginStatusEventListener spy = spy(new LoginStatusEventListener());
         getBus().register(spy);
 
-        LoginOrchestrator orchestrator = makeOrchestrator(credSource, authStore, true);
+        LoginOrchestrator orchestrator = makeOrchestrator(credSource, credSink, true);
         when(credSource.getGhostAuthCode(any())).thenReturn(Observable.just("wrong-auth-code"));
         orchestrator.listen(listener);
 
@@ -185,14 +187,14 @@ public class LoginOrchestratorTest {
 
     // helpers
     private static LoginOrchestrator makeOrchestrator(CredentialSource credSource,
-                                                      AuthStore authStore,
+                                                      CredentialSink credSink,
                                                       boolean useGhostAuth) {
-        return makeOrchestrator(credSource, authStore, useGhostAuth,
+        return makeOrchestrator(credSource, credSink, useGhostAuth,
                 Helpers.getIdealNetworkBehavior());
     }
 
     private static LoginOrchestrator makeOrchestrator(CredentialSource credSource,
-                                                      AuthStore authStore,
+                                                      CredentialSink credSink,
                                                       boolean useGhostAuth,
                                                       NetworkBehavior networkBehavior) {
         BlogUrlValidator blogUrlValidator = blogUrl -> Observable.just("http://" + blogUrl);
@@ -200,7 +202,7 @@ public class LoginOrchestratorTest {
         final MockApiProviderFactory apiProviderFactory = new MockApiProviderFactory(
                 useGhostAuth, networkBehavior);
         return new LoginOrchestrator(blogUrlValidator, apiProviderFactory, credSource,
-                authStore, hackListener);
+                credSink, hackListener);
     }
 
     private static class MockApiProviderFactory implements ApiProviderFactory {

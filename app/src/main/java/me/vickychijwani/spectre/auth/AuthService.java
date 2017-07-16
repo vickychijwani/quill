@@ -31,28 +31,28 @@ public class AuthService implements Listenable<AuthService.Listener> {
 
     private final GhostApiService mApi;
     private final CredentialSource mCredentialSource;
-    private final AuthStore mAuthStore;
+    private final CredentialSink mCredentialSink;
 
     // state
     private Listener mListener = null;
     private boolean mbRequestOngoing = false;
 
     public static AuthService createWithStoredCredentials(GhostApiService api) {
-        AuthStore authStore = new AuthStore();
-        return new AuthService(api, authStore, authStore);
+        AuthStore storedCredSourceAndSink = new AuthStore();
+        return new AuthService(api, storedCredSourceAndSink, storedCredSourceAndSink);
     }
 
     public static AuthService createWithGivenCredentials(GhostApiService api,
                                                          CredentialSource credSource) {
-        AuthStore authStore = new AuthStore();
-        return new AuthService(api, credSource, authStore);
+        CredentialSink credSink = new AuthStore();
+        return new AuthService(api, credSource, credSink);
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    AuthService(GhostApiService api, CredentialSource credSource, AuthStore authStore) {
+    AuthService(GhostApiService api, CredentialSource credSource, CredentialSink credSink) {
         mApi = api;
         mCredentialSource = credSource;
-        mAuthStore = authStore;
+        mCredentialSink = credSink;
     }
 
     @Override
@@ -93,8 +93,12 @@ public class AuthService implements Listenable<AuthService.Listener> {
     }
 
 
-
-    private void login() {
+    private void loginAgain() {
+        if (mCredentialSource != mCredentialSink) {
+            throw new UnsupportedOperationException("This method can only handle the case where " +
+                    "the credential source is the same as the sink, because it does not attempt " +
+                    "to save the credentials in case of a successful login.");
+        }
         if (mbRequestOngoing) {
             return;
         }
@@ -103,8 +107,8 @@ public class AuthService implements Listenable<AuthService.Listener> {
                     .subscribeOn(Schedulers.io())
                     .observeOn(Schedulers.io())
                 .flatMap(this::getAuthReqBody)
-                // no need to call mAuthStore::saveCredentials here since the credentials came from
-                // the AuthStore anyway
+                // no need to call mCredentialSink::saveCredentials here since the credentials came
+                // from the same object anyway (source == sink as per check above)
                 .flatMap(mApi::getAuthToken)
                     .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::handleAuthToken, this::handleLoginError);
@@ -112,7 +116,7 @@ public class AuthService implements Listenable<AuthService.Listener> {
 
     private void handleAuthToken(AuthToken token) {
         mbRequestOngoing = false;
-        mAuthStore.setLoggedIn(true);
+        mCredentialSink.setLoggedIn(true);
         // deliberately missing mListener != null check, to avoid suppressing errors
         mListener.onNewAuthToken(token);
     }
@@ -121,7 +125,7 @@ public class AuthService implements Listenable<AuthService.Listener> {
         mbRequestOngoing = false;
         if (NetworkUtils.isUnauthorized(e)) {
             // recover by generating a new auth token with known credentials
-            login();
+            loginAgain();
         } else {
             // deliberately missing mListener != null check, to avoid suppressing errors
             mListener.onUnrecoverableFailure();
@@ -132,7 +136,7 @@ public class AuthService implements Listenable<AuthService.Listener> {
         mbRequestOngoing = false;
         if (NetworkUtils.isUnauthorized(e)) {
             // password changed / auth code expired
-            mAuthStore.deleteCredentials();
+            mCredentialSink.deleteCredentials();
             getBus().post(new CredentialsExpiredEvent());
         } else {
             // deliberately missing mListener != null check, to avoid suppressing errors

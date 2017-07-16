@@ -7,26 +7,9 @@ import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.Pair;
 
-public class AuthStore implements CredentialSource {
+public class AuthStore implements CredentialSource, CredentialSink {
 
-    public void saveCredentials(AuthReqBody authReqBody) {
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        if (authReqBody.isGrantTypePassword()) {
-            prefs.setString(UserPrefs.Key.EMAIL, authReqBody.email);
-            prefs.setString(UserPrefs.Key.PASSWORD, authReqBody.password);
-        } else {
-            prefs.setString(UserPrefs.Key.AUTH_CODE, authReqBody.authorizationCode);
-        }
-    }
-
-    public void deleteCredentials() {
-        setLoggedIn(false);
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        prefs.clear(UserPrefs.Key.EMAIL);
-        prefs.clear(UserPrefs.Key.PASSWORD);
-        prefs.clear(UserPrefs.Key.AUTH_CODE);
-    }
-
+    // credential source
     @Override
     public Observable<String> getGhostAuthCode(GhostAuth.Params params) {
         UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
@@ -42,11 +25,34 @@ public class AuthStore implements CredentialSource {
         return Observable.just(new Pair<>(email, password));
     }
 
+    // credential sink
+    @Override
+    public void saveCredentials(AuthReqBody authReqBody) {
+        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
+        if (authReqBody.isGrantTypePassword()) {
+            prefs.setString(UserPrefs.Key.EMAIL, authReqBody.email);
+            prefs.setString(UserPrefs.Key.PASSWORD, authReqBody.password);
+        } else {
+            prefs.setString(UserPrefs.Key.AUTH_CODE, authReqBody.authorizationCode);
+        }
+    }
+
+    @Override
+    public void deleteCredentials() {
+        setLoggedIn(false);
+        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
+        prefs.clear(UserPrefs.Key.EMAIL);
+        prefs.clear(UserPrefs.Key.PASSWORD);
+        prefs.clear(UserPrefs.Key.AUTH_CODE);
+    }
+
+    @Override
     public boolean isLoggedIn() {
         AppState appState = AppState.getInstance(SpectreApplication.getInstance());
         return appState.getBoolean(AppState.Key.LOGGED_IN);
     }
 
+    @Override
     public void setLoggedIn(boolean isLoggedIn) {
         AppState appState = AppState.getInstance(SpectreApplication.getInstance());
         appState.setBoolean(AppState.Key.LOGGED_IN, isLoggedIn);

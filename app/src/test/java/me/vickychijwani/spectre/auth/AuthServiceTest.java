@@ -44,13 +44,15 @@ public class AuthServiceTest {
     @ClassRule public static TestRule eventBusRule = new EventBusRule();
 
     private CredentialSource credSource;
-    private AuthStore authStore;
+    private CredentialSink credSink;
     private Listener listener;
 
     @Before
     public void setupMocks() {
-        credSource = mock(CredentialSource.class);
-        authStore = mock(AuthStore.class);
+        // source must be == sink because of the limitation in AuthService#loginAgain
+        AuthStore credSourceAndSink = mock(AuthStore.class);
+        credSource = credSourceAndSink;
+        credSink = credSourceAndSink;
         listener = mock(Listener.class);
     }
 
@@ -60,7 +62,7 @@ public class AuthServiceTest {
     public void refreshToken_expiredAccessToken() {
         refreshToken("expired-access-token", "refresh-token", "auth-code");
 
-        verify(authStore).setLoggedIn(true);
+        verify(credSink).setLoggedIn(true);
         verify(listener).onNewAuthToken(argThat(hasProperty("accessToken", is("refreshed-access-token"))));
         verify(listener).onNewAuthToken(argThat(hasProperty("refreshToken", is("refresh-token"))));
     }
@@ -69,7 +71,7 @@ public class AuthServiceTest {
     public void refreshToken_expiredAccessAndRefreshToken() {
         refreshToken("expired-access-token", "expired-refresh-token", "auth-code");
 
-        verify(authStore).setLoggedIn(true);
+        verify(credSink).setLoggedIn(true);
         verify(listener).onNewAuthToken(argThat(hasProperty("accessToken", is("access-token"))));
         verify(listener).onNewAuthToken(argThat(hasProperty("refreshToken", is("refresh-token"))));
     }
@@ -81,7 +83,7 @@ public class AuthServiceTest {
 
         refreshToken("expired-access-token", "expired-refresh-token", "expired-auth-code");
 
-        verify(authStore).deleteCredentials();
+        verify(credSink).deleteCredentials();
         verify(spy).onCredentialsExpiredEvent(any());
         getBus().unregister(spy);
     }
@@ -100,7 +102,7 @@ public class AuthServiceTest {
         token.setAccessToken(accessToken);
         token.setRefreshToken(refreshToken);
 
-        AuthService authService = new AuthService(api, credSource, authStore);
+        AuthService authService = new AuthService(api, credSource, credSink);
         authService.listen(listener);
         authService.refreshToken(token);
     }

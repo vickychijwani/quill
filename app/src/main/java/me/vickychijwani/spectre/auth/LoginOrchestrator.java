@@ -51,7 +51,7 @@ public class LoginOrchestrator implements
     private final BlogUrlValidator mBlogUrlValidator;
     private final ApiProviderFactory mApiProviderFactory;
     private final CredentialSource mCredentialSource;
-    private final AuthStore mAuthStore;
+    private final CredentialSink mCredentialSink;
     private final HACKListener mHACKListener;
 
     // object state
@@ -64,19 +64,20 @@ public class LoginOrchestrator implements
     public static LoginOrchestrator create(@NonNull CredentialSource credentialSource,
                                            @NonNull HACKListener hackListener) {
         OkHttpClient httpClient = SpectreApplication.getInstance().getOkHttpClient();
+        final CredentialSink credentialSink = new AuthStore();
         return new LoginOrchestrator(new NetworkBlogUrlValidator(httpClient),
-                new ProductionApiProviderFactory(httpClient), credentialSource,
-                new AuthStore(), hackListener);
+                new ProductionApiProviderFactory(httpClient), credentialSource, credentialSink,
+                hackListener);
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     LoginOrchestrator(BlogUrlValidator blogUrlValidator, ApiProviderFactory apiProviderFactory,
-                      CredentialSource credentialSource, AuthStore authStore,
+                      CredentialSource credentialSource, CredentialSink credentialSink,
                       HACKListener hackListener) {
         mBlogUrlValidator = blogUrlValidator;
         mApiProviderFactory = apiProviderFactory;
         mCredentialSource = credentialSource;
-        mAuthStore = authStore;
+        mCredentialSink = credentialSink;
         mHACKListener = hackListener;
         mListeners = new HashSet<>();
         reset();
@@ -150,11 +151,11 @@ public class LoginOrchestrator implements
                 .getAuthReqBody(config)
                     .subscribeOn(AndroidSchedulers.mainThread())
                     .observeOn(Schedulers.io())
-                .doOnNext(mAuthStore::saveCredentials)
+                .doOnNext(mCredentialSink::saveCredentials)
                 .flatMap(api::getAuthToken)
                     .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::handleError)
-                .doOnError(e -> mAuthStore.deleteCredentials())
+                .doOnError(e -> mCredentialSink.deleteCredentials())
                 // if auth fails, ask for credentials again and retry
                 // don't retry infinitely, as a safety mechanism for tests
                 .retry(20);
@@ -162,7 +163,7 @@ public class LoginOrchestrator implements
 
     private void handleAuthToken(AuthToken authToken) {
         // FIXME FIXME FIXME FIXME
-        mAuthStore.setLoggedIn(true);
+        mCredentialSink.setLoggedIn(true);
         mHACKListener.onNewAuthToken(authToken);
         forEachListener(l -> l.onLoginDone(mValidBlogUrl));
         getBus().post(new LoginDoneEvent(mValidBlogUrl));
