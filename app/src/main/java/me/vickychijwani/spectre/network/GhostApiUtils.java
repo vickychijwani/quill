@@ -70,6 +70,22 @@ public final class GhostApiUtils {
     }
 
     public static String markdownToMobiledoc(String markdown) {
+        // Escape all control characters that are interpreted by Java strings so that they are
+        // serialized literally in JSON (e.g., the string "\n" instead of a real newline). The list
+        // of which chars to escape comes from these 2 places in Apache Commons code:
+        // https://github.com/apache/commons-lang/blob/1da8ccdbfe2faa3e6801fe44eaf3c336aab48bec/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java#L57-L66
+        // https://github.com/apache/commons-lang/blob/1da8ccdbfe2faa3e6801fe44eaf3c336aab48bec/src/main/java/org/apache/commons/lang3/text/translate/EntityArrays.java#L399-L405
+        String escapedMarkdown = markdown
+                // escape existing backslashes - this must happen before all the others to avoid
+                // escaping backslashes of characters escaped subsequently
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")      // replace " with \"
+                .replace("\b", "\\b")       // replace backspace with \b
+                .replace("\n", "\\n")       // replace new line with \n
+                .replace("\t", "\\t")       // replace tab with \t
+                .replace("\f", "\\f")       // replace form feed with \f
+                .replace("\r", "\\r")       // replace carriage return with \r
+                ;
         return String.format("{" +
                 "  \"version\": \"0.3.1\"," +
                 "  \"markups\": []," +
@@ -81,7 +97,7 @@ public final class GhostApiUtils {
                 "    }]" +
                 "  ]," +
                 "  \"sections\": [[10, 0]]" +
-                "}", markdown);
+                "}", escapedMarkdown);
     }
 
     public static String mobiledocToMarkdown(String mobiledoc) {
