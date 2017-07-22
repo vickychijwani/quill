@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.app.Fragment;
@@ -156,17 +155,11 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     protected void startBrowserActivity(String url) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-            builder.setToolbarColor(ContextCompat.getColor(this, R.color.primary));
-            builder.addDefaultShareMenuItem();
-            CustomTabsIntent customTabsIntent = builder.build();
-            customTabsIntent.launchUrl(this, Uri.parse(url));
-        } else {
-            Intent browserIntent = new Intent(this, BrowserActivity.class);
-            browserIntent.putExtra(BundleKeys.URL, url);
-            startActivity(browserIntent);
-        }
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        builder.setToolbarColor(ContextCompat.getColor(this, R.color.primary));
+        builder.addDefaultShareMenuItem();
+        CustomTabsIntent customTabsIntent = builder.build();
+        customTabsIntent.launchUrl(this, Uri.parse(url));
     }
 
     protected void openUrl(String url) {

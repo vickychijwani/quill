@@ -132,7 +132,7 @@
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">@dimen/text_size_xmedium</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
     <style name="TextAppearance.Inverse">
@@ -144,7 +144,7 @@
     </style>
 
     <style name="TextAppearance.Light">
-        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+        <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
     <style name="TextAppearance.XSmall">
@@ -193,7 +193,7 @@
     </style>
 
     <style name="TextAppearance.Medium.Light">
-        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+        <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
     <style name="TextAppearance.Medium.Light.Inverse">
@@ -210,7 +210,7 @@
     </style>
 
     <style name="TextAppearance.Large.Light">
-        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+        <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
     <style name="TextAppearance.Large.Light.Inverse">
@@ -218,12 +218,12 @@
     </style>
 
     <style name="TextAppearance.UltraLarge">
-        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-light</item>
+        <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:textSize">@dimen/text_size_ultralarge</item>
     </style>
 
     <style name="TextAppearance.HyperLarge">
-        <item name="android:fontFamily" tools:targetApi="jelly_bean">sans-serif-thin</item>
+        <item name="android:fontFamily">sans-serif-thin</item>
         <item name="android:textSize">@dimen/text_size_hyperlarge</item>
     </style>
 
