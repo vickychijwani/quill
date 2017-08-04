@@ -28,7 +28,7 @@ repositories {
 
 // don't lint for every build (run it manually when you want it to run)
 tasks.whenTaskAdded { task ->
-    if (task.name.equals('lint')) {
+    if (task.name == 'lint') {
         task.enabled = false
     }
 }
@@ -85,7 +85,7 @@ android {
 // Fabric / Crashlytics keys are mandatory for release builds
 task checkFabricPropertiesExists << {
     if (!file('fabric.properties').exists()) {
-        throw new GradleException('Missing fabric.properties file for Fabric / Crashlytics!')
+        throw new FileNotFoundException('Missing fabric.properties file for Fabric / Crashlytics!')
     }
 }
 
@@ -136,6 +136,7 @@ dependencies {
     compile "com.jakewharton.timber:timber:4.5.1"
 
     // debug
+    debugCompile "nl.littlerobots.rxlint:rxlint:+"
     debugCompile "com.squareup.leakcanary:leakcanary-android:1.5"
     debugCompile "com.jakewharton.scalpel:scalpel:1.1.2"
     debugCompile "io.palaima.debugdrawer:debugdrawer:0.7.0"

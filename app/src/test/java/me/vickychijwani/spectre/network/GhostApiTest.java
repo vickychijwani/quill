@@ -367,11 +367,10 @@ public final class GhostApiTest {
 
     @Test
     public void test_getConfiguration() {
-        doWithAuthToken(token -> {
-            List<ConfigurationParam> config = execute(API.getConfiguration()).configuration;
+        // NOTE: configuration (except the /configuration/about endpoint) can be queried without auth
+        List<ConfigurationParam> config = execute(API.getConfiguration()).configuration;
 
-            assertThat(config, notNullValue());
-        });
+        assertThat(config, notNullValue());
     }
 
     @Test
