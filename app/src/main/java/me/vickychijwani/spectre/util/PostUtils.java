@@ -18,11 +18,11 @@ import java.util.List;
 import java.util.TimeZone;
 
 import me.vickychijwani.spectre.R;
-import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.account.AccountManager;
+import me.vickychijwani.spectre.model.entity.BlogMetadata;
 import me.vickychijwani.spectre.model.entity.PendingAction;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
-import me.vickychijwani.spectre.pref.UserPrefs;
 
 public class PostUtils {
 
@@ -109,10 +109,10 @@ public class PostUtils {
 
     public static String getPostUrl(@Nullable Post post) {
         if (post == null) throw new IllegalArgumentException("post cannot be null!");
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
+        BlogMetadata blog = AccountManager.getActiveBlog();
+        String blogUrl = blog.getBlogUrl();
         if (post.isPublished()) {
-            String permalinkFormat = prefs.getString(UserPrefs.Key.PERMALINK_FORMAT);
+            String permalinkFormat = blog.getPermalinkFormat();
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             Date publishedAt = post.getPublishedAt();
             // FIXME temp if check for Crashlytics issue #110

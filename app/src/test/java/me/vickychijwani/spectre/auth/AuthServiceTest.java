@@ -43,6 +43,8 @@ public class AuthServiceTest {
     @ClassRule public static TestRule loggingRule = new LoggingRule();
     @ClassRule public static TestRule eventBusRule = new EventBusRule();
 
+    private static final String BLOG_URL = "https://blog.example.com";
+
     private CredentialSource credSource;
     private CredentialSink credSink;
     private Listener listener;
@@ -62,7 +64,7 @@ public class AuthServiceTest {
     public void refreshToken_expiredAccessToken() {
         refreshToken("expired-access-token", "refresh-token", "auth-code");
 
-        verify(credSink).setLoggedIn(true);
+        verify(credSink).setLoggedIn(BLOG_URL, true);
         verify(listener).onNewAuthToken(argThat(hasProperty("accessToken", is("refreshed-access-token"))));
         verify(listener).onNewAuthToken(argThat(hasProperty("refreshToken", is("refresh-token"))));
     }
@@ -71,7 +73,7 @@ public class AuthServiceTest {
     public void refreshToken_expiredAccessAndRefreshToken() {
         refreshToken("expired-access-token", "expired-refresh-token", "auth-code");
 
-        verify(credSink).setLoggedIn(true);
+        verify(credSink).setLoggedIn(BLOG_URL, true);
         verify(listener).onNewAuthToken(argThat(hasProperty("accessToken", is("access-token"))));
         verify(listener).onNewAuthToken(argThat(hasProperty("refreshToken", is("refresh-token"))));
     }
@@ -83,7 +85,7 @@ public class AuthServiceTest {
 
         refreshToken("expired-access-token", "expired-refresh-token", "expired-auth-code");
 
-        verify(credSink).deleteCredentials();
+        verify(credSink).deleteCredentials(BLOG_URL);
         verify(spy).onCredentialsExpiredEvent(any());
         getBus().unregister(spy);
     }
@@ -91,7 +93,7 @@ public class AuthServiceTest {
 
     // helpers
     private void refreshToken(String accessToken, String refreshToken, String authCode) {
-        Retrofit retrofit = GhostApiUtils.getRetrofit("http://blog.com", Helpers.getProdHttpClient());
+        Retrofit retrofit = GhostApiUtils.getRetrofit(BLOG_URL, Helpers.getProdHttpClient());
         MockRetrofit mockRetrofit = Helpers.getMockRetrofit(retrofit, Helpers.getIdealNetworkBehavior());
         BehaviorDelegate<GhostApiService> delegate = mockRetrofit.create(GhostApiService.class);
         GhostApiService api = new MockGhostApiService(delegate, true);
@@ -102,7 +104,7 @@ public class AuthServiceTest {
         token.setAccessToken(accessToken);
         token.setRefreshToken(refreshToken);
 
-        AuthService authService = new AuthService(api, credSource, credSink);
+        AuthService authService = new AuthService(BLOG_URL, api, credSource, credSink);
         authService.listen(listener);
         authService.refreshToken(token);
     }

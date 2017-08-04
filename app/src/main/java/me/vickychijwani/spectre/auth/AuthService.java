@@ -29,6 +29,7 @@ import static me.vickychijwani.spectre.event.BusProvider.getBus;
 
 public class AuthService implements Listenable<AuthService.Listener> {
 
+    private final String mBlogUrl;
     private final GhostApiService mApi;
     private final CredentialSource mCredentialSource;
     private final CredentialSink mCredentialSink;
@@ -37,19 +38,21 @@ public class AuthService implements Listenable<AuthService.Listener> {
     private Listener mListener = null;
     private boolean mbRequestOngoing = false;
 
-    public static AuthService createWithStoredCredentials(GhostApiService api) {
+    public static AuthService createWithStoredCredentials(String blogUrl, GhostApiService api) {
         AuthStore storedCredSourceAndSink = new AuthStore();
-        return new AuthService(api, storedCredSourceAndSink, storedCredSourceAndSink);
+        return new AuthService(blogUrl, api, storedCredSourceAndSink, storedCredSourceAndSink);
     }
 
-    public static AuthService createWithGivenCredentials(GhostApiService api,
+    public static AuthService createWithGivenCredentials(String blogUrl, GhostApiService api,
                                                          CredentialSource credSource) {
         CredentialSink credSink = new AuthStore();
-        return new AuthService(api, credSource, credSink);
+        return new AuthService(blogUrl, api, credSource, credSink);
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    AuthService(GhostApiService api, CredentialSource credSource, CredentialSink credSink) {
+    AuthService(String blogUrl, GhostApiService api,
+                CredentialSource credSource, CredentialSink credSink) {
+        mBlogUrl = blogUrl;
         mApi = api;
         mCredentialSource = credSource;
         mCredentialSink = credSink;
@@ -116,7 +119,7 @@ public class AuthService implements Listenable<AuthService.Listener> {
 
     private void handleAuthToken(AuthToken token) {
         mbRequestOngoing = false;
-        mCredentialSink.setLoggedIn(true);
+        mCredentialSink.setLoggedIn(mBlogUrl, true);
         // deliberately missing mListener != null check, to avoid suppressing errors
         mListener.onNewAuthToken(token);
     }
@@ -136,7 +139,7 @@ public class AuthService implements Listenable<AuthService.Listener> {
         mbRequestOngoing = false;
         if (NetworkUtils.isUnauthorized(e)) {
             // password changed / auth code expired
-            mCredentialSink.deleteCredentials();
+            mCredentialSink.deleteCredentials(mBlogUrl);
             getBus().post(new CredentialsExpiredEvent());
         } else {
             // deliberately missing mListener != null check, to avoid suppressing errors
@@ -177,26 +180,28 @@ public class AuthService implements Listenable<AuthService.Listener> {
         String clientSecret = config.getClientSecret();
         if (authTypeIsGhostAuth(config)) {
             Timber.i("Using Ghost auth strategy for login");
-            final GhostAuth.Params params = extractGhostAuthParams(config);
+            final GhostAuth.Params params = extractGhostAuthParams(mBlogUrl, config);
             return getGhostAuthReqBody(params, clientSecret, params.redirectUri);
         } else {
             Timber.i("Using password auth strategy for login");
-            return getPasswordAuthReqBody(clientSecret);
+            final PasswordAuth.Params params = new PasswordAuth.Params(mBlogUrl);
+            return getPasswordAuthReqBody(params, clientSecret);
         }
     }
 
-    private Observable<AuthReqBody> getGhostAuthReqBody(GhostAuth.Params params, String clientSecret,
-                                                        String redirectUri) {
+    private Observable<AuthReqBody> getGhostAuthReqBody(GhostAuth.Params params,
+                                                        String clientSecret, String redirectUri) {
         return mCredentialSource.getGhostAuthCode(params)
                 .map(authCode -> AuthReqBody.fromAuthCode(clientSecret, authCode, redirectUri));
     }
 
-    private Observable<AuthReqBody> getPasswordAuthReqBody(String clientSecret) {
-        return mCredentialSource.getEmailAndPassword()
+    private Observable<AuthReqBody> getPasswordAuthReqBody(PasswordAuth.Params params,
+                                                           String clientSecret) {
+        return mCredentialSource.getEmailAndPassword(params)
                 .map(cred -> AuthReqBody.fromPassword(clientSecret, cred.first, cred.second));
     }
 
-    private static GhostAuth.Params extractGhostAuthParams(ConfigurationList config) {
+    private static GhostAuth.Params extractGhostAuthParams(String blogUrl, ConfigurationList config) {
         String authUrl = config.get("ghostAuthUrl");
         String ghostAuthId = config.get("ghostAuthId");
         String redirectUri = extractRedirectUri(config);
@@ -204,7 +209,7 @@ public class AuthService implements Listenable<AuthService.Listener> {
             throw new NullPointerException("A required parameter is null! values = "
                     + authUrl + ", " + ghostAuthId + ", " + redirectUri);
         }
-        return new GhostAuth.Params(authUrl, ghostAuthId, redirectUri);
+        return new GhostAuth.Params(blogUrl, authUrl, ghostAuthId, redirectUri);
     }
 
     @Nullable

@@ -26,11 +26,13 @@ public final class GhostAuth {
 
     public static class Params {
 
+        public final String blogUrl;
         public final String authUrl;
         public final String ghostAuthId;
         public final String redirectUri;
 
-        Params(String authUrl, String ghostAuthId, String redirectUri) {
+        Params(String blogUrl, String authUrl, String ghostAuthId, String redirectUri) {
+            this.blogUrl = blogUrl;
             this.authUrl = authUrl;
             this.ghostAuthId = ghostAuthId;
             this.redirectUri = redirectUri;

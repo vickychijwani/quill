@@ -11,12 +11,10 @@ import me.vickychijwani.spectre.network.entity.AuthReqBody;
  */
 interface CredentialSink {
 
-    void saveCredentials(AuthReqBody authReqBody);
+    void saveCredentials(String blogUrl, AuthReqBody authReqBody);
 
-    void deleteCredentials();
+    void deleteCredentials(String blogUrl);
 
-    boolean isLoggedIn();
-
-    void setLoggedIn(boolean isLoggedIn);
+    void setLoggedIn(String blogUrl, boolean isLoggedIn);
 
 }

@@ -1,10 +1,9 @@
 package me.vickychijwani.spectre.auth;
 
 import io.reactivex.Observable;
-import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.account.AccountManager;
+import me.vickychijwani.spectre.model.entity.BlogMetadata;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
-import me.vickychijwani.spectre.pref.AppState;
-import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.Pair;
 
 public class AuthStore implements CredentialSource, CredentialSink {
@@ -12,50 +11,52 @@ public class AuthStore implements CredentialSource, CredentialSink {
     // credential source
     @Override
     public Observable<String> getGhostAuthCode(GhostAuth.Params params) {
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        String authCode = prefs.getString(UserPrefs.Key.AUTH_CODE);
-        return Observable.just(authCode);
+        BlogMetadata blog = AccountManager.getBlog(params.blogUrl);
+        return Observable.just(blog.getAuthCode());
     }
 
     @Override
-    public Observable<Pair<String, String>> getEmailAndPassword() {
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        String email = prefs.getString(UserPrefs.Key.EMAIL);
-        String password = prefs.getString(UserPrefs.Key.PASSWORD);
-        return Observable.just(new Pair<>(email, password));
+    public Observable<Pair<String, String>> getEmailAndPassword(PasswordAuth.Params params) {
+        BlogMetadata blog = AccountManager.getBlog(params.blogUrl);
+        return Observable.just(new Pair<>(blog.getEmail(), blog.getPassword()));
     }
 
     // credential sink
     @Override
-    public void saveCredentials(AuthReqBody authReqBody) {
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        if (authReqBody.isGrantTypePassword()) {
-            prefs.setString(UserPrefs.Key.EMAIL, authReqBody.email);
-            prefs.setString(UserPrefs.Key.PASSWORD, authReqBody.password);
+    public void saveCredentials(String blogUrl, AuthReqBody authReqBody) {
+        BlogMetadata blog;
+        if (AccountManager.hasBlog(blogUrl)) {
+            blog = AccountManager.getBlog(blogUrl);
         } else {
-            prefs.setString(UserPrefs.Key.AUTH_CODE, authReqBody.authorizationCode);
+            blog = new BlogMetadata();
+            blog.setBlogUrl(blogUrl);
+            blog.setLoggedIn(true);
         }
+
+        if (authReqBody.isGrantTypePassword()) {
+            blog.setEmail(authReqBody.email);
+            blog.setPassword(authReqBody.password);
+        } else {
+            blog.setAuthCode(authReqBody.authorizationCode);
+        }
+        AccountManager.addOrUpdateBlog(blog);
     }
 
     @Override
-    public void deleteCredentials() {
-        setLoggedIn(false);
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        prefs.clear(UserPrefs.Key.EMAIL);
-        prefs.clear(UserPrefs.Key.PASSWORD);
-        prefs.clear(UserPrefs.Key.AUTH_CODE);
+    public void deleteCredentials(String blogUrl) {
+        BlogMetadata blog = AccountManager.getBlog(blogUrl);
+        blog.setLoggedIn(false);
+        blog.setEmail(null);
+        blog.setPassword(null);
+        blog.setAuthCode(null);
+        AccountManager.addOrUpdateBlog(blog);
     }
 
     @Override
-    public boolean isLoggedIn() {
-        AppState appState = AppState.getInstance(SpectreApplication.getInstance());
-        return appState.getBoolean(AppState.Key.LOGGED_IN);
-    }
-
-    @Override
-    public void setLoggedIn(boolean isLoggedIn) {
-        AppState appState = AppState.getInstance(SpectreApplication.getInstance());
-        appState.setBoolean(AppState.Key.LOGGED_IN, isLoggedIn);
+    public void setLoggedIn(String blogUrl, boolean isLoggedIn) {
+        BlogMetadata blog = AccountManager.getBlog(blogUrl);
+        blog.setLoggedIn(isLoggedIn);
+        AccountManager.addOrUpdateBlog(blog);
     }
 
 }

@@ -78,7 +78,7 @@ public class SpectreApplication extends Application {
 
         NetworkService networkService = new NetworkService();
         mHACKListener = networkService;
-        networkService.start(this, mOkHttpClient);
+        networkService.start(mOkHttpClient);
 
         mAnalyticsService = new AnalyticsService(BusProvider.getBus());
         mAnalyticsService.start();

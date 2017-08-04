@@ -49,7 +49,7 @@ import butterknife.OnClick;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
-import me.vickychijwani.spectre.auth.AuthStore;
+import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.error.SyncException;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
@@ -64,7 +64,6 @@ import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Setting;
-import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.DeviceUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
@@ -108,7 +107,7 @@ public class PostListActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (! new AuthStore().isLoggedIn()) {
+        if (! AccountManager.hasActiveBlog()) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
@@ -133,7 +132,8 @@ public class PostListActivity extends BaseActivity {
         mColorPrimary = typedColorValue.data;
 
         // initialize post list UI
-        mPostAdapter = new PostAdapter(this, mPosts, getBlogUrl(), getPicasso(), v -> {
+        final String activeBlogUrl = AccountManager.getActiveBlogUrl();
+        mPostAdapter = new PostAdapter(this, mPosts, activeBlogUrl, getPicasso(), v -> {
             int pos = mPostList.getChildLayoutPosition(v);
             if (pos == RecyclerView.NO_POSITION) return;
             Post post = (Post) mPostAdapter.getItem(pos);
@@ -240,7 +240,7 @@ public class PostListActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_view_homepage:
-                startBrowserActivity(getBlogUrl());
+                startBrowserActivity(AccountManager.getActiveBlogUrl());
                 return true;
             case R.id.action_refresh:
                 refreshData(false);
@@ -253,7 +253,7 @@ public class PostListActivity extends BaseActivity {
                 startActivity(aboutIntent);
                 return true;
             case R.id.action_logout:
-                getBus().post(new LogoutEvent(getBlogUrl(), false));
+                getBus().post(new LogoutEvent(AccountManager.getActiveBlogUrl(), false));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -305,7 +305,7 @@ public class PostListActivity extends BaseActivity {
             if (event.user.getProfileImage().isEmpty()) {
                 return;
             }
-            String blogUrl = getBlogUrl();
+            String blogUrl = AccountManager.getActiveBlogUrl();
             String imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, event.user.getProfileImage());
             getPicasso()
                     .load(imageUrl)
@@ -427,7 +427,7 @@ public class PostListActivity extends BaseActivity {
                     })
                     .setNegativeButton(R.string.logout, (dialog, which) -> {
                         dialog.dismiss();
-                        getBus().post(new LogoutEvent(getBlogUrl(), true));
+                        getBus().post(new LogoutEvent(AccountManager.getActiveBlogUrl(), true));
                     })
                     .create();
             alertDialog.show();
@@ -475,10 +475,6 @@ public class PostListActivity extends BaseActivity {
         mSwipeRefreshLayout.setRefreshing(false);
         Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
         scheduleDataRefresh();
-    }
-
-    private String getBlogUrl() {
-        return UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
     }
 
 }

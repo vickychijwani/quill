@@ -18,8 +18,8 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
-import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.Listenable;
 import me.vickychijwani.spectre.util.NetworkUtils;
@@ -51,9 +51,11 @@ public class LoginUrlFragment extends BaseFragment implements
         View view = inflater.inflate(R.layout.fragment_login_url, container, false);
         ButterKnife.bind(this, view);
 
-        String blogUrl = UserPrefs.getInstance(getActivity()).getString(UserPrefs.Key.BLOG_URL);
-        mBlogUrlView.setText(blogUrl.replaceFirst("^https?://", ""));
-        mBlogUrlView.setSelection(mBlogUrlView.getText().length());
+        if (AccountManager.hasActiveBlog()) {
+            String blogUrl = AccountManager.getActiveBlogUrl();
+            mBlogUrlView.setText(blogUrl.replaceFirst("^https?://", ""));
+            mBlogUrlView.setSelection(mBlogUrlView.getText().length());
+        }
         mBlogUrlView.setOnEditorActionListener(this);
 
         return view;
@@ -158,7 +160,7 @@ public class LoginUrlFragment extends BaseFragment implements
     }
 
     @Override
-    public void onLoginDone(String blogUrl) {
+    public void onLoginDone() {
         // no-op
     }
 

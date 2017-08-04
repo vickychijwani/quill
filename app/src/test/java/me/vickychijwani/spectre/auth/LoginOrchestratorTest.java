@@ -39,7 +39,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
@@ -56,6 +55,9 @@ public class LoginOrchestratorTest {
     @ClassRule public static TestRule rxSchedulersRule = new RxSchedulersRule();
     @ClassRule public static TestRule loggingRule = new LoggingRule();
     @ClassRule public static TestRule eventBusRule = new EventBusRule();
+
+    private static final String BLOG_URL_WITHOUT_PROTOCOL = "blog.example.com";
+    private static final String BLOG_URL = "http://" + BLOG_URL_WITHOUT_PROTOCOL;
 
     private CredentialSource credSource;
     private CredentialSink credSink;
@@ -76,14 +78,13 @@ public class LoginOrchestratorTest {
         when(credSource.getGhostAuthCode(any())).thenReturn(Observable.just("auth-code"));
         orchestrator.listen(listener);
 
-        orchestrator.start("blog.com");
+        orchestrator.start(BLOG_URL_WITHOUT_PROTOCOL);
 
         verify(listener).onStartWaiting();
         verify(credSource).getGhostAuthCode(any());
-        verify(credSink).saveCredentials(any());
-        verify(credSink, never()).deleteCredentials();
-        verify(credSink).setLoggedIn(true);
-        verify(listener).onLoginDone(argThat(is("http://blog.com")));
+        verify(credSink).saveCredentials(argThat(is(BLOG_URL)), any());
+        verify(credSink, never()).deleteCredentials(BLOG_URL);
+        verify(listener).onLoginDone();
     }
 
     @Test
@@ -93,7 +94,7 @@ public class LoginOrchestratorTest {
         when(credSource.getGhostAuthCode(any())).thenReturn(Observable.just("auth-code"));
         orchestrator.listen(listener);
 
-        orchestrator.start("blog.com");
+        orchestrator.start(BLOG_URL_WITHOUT_PROTOCOL);
 
         verify(listener).onNetworkError(any(), argThat(sameInstance(failingNetworkBehavior.failureException())));
     }
@@ -101,18 +102,17 @@ public class LoginOrchestratorTest {
     @Test
     public void passwordAuth_success() {
         LoginOrchestrator orchestrator = makeOrchestrator(credSource, credSink, false);
-        when(credSource.getEmailAndPassword())
+        when(credSource.getEmailAndPassword(any()))
                 .thenReturn(Observable.just(new Pair<>("email", "password")));
         orchestrator.listen(listener);
 
-        orchestrator.start("blog.com");
+        orchestrator.start(BLOG_URL_WITHOUT_PROTOCOL);
 
         verify(listener).onStartWaiting();
-        verify(credSource).getEmailAndPassword();
-        verify(credSink).saveCredentials(any());
-        verify(credSink, never()).deleteCredentials();
-        verify(credSink).setLoggedIn(true);
-        verify(listener).onLoginDone(argThat(is("http://blog.com")));
+        verify(credSource).getEmailAndPassword(any());
+        verify(credSink).saveCredentials(argThat(is(BLOG_URL)), any());
+        verify(credSink, never()).deleteCredentials(BLOG_URL);
+        verify(listener).onLoginDone();
     }
 
     @Test
@@ -121,7 +121,7 @@ public class LoginOrchestratorTest {
         orchestrator.listen(listener);
         // simulate entering the wrong password once, followed by the right password
         final boolean[] retrying = {false}, retried = {false};
-        when(credSource.getEmailAndPassword()).thenReturn(Observable.fromCallable(() -> {
+        when(credSource.getEmailAndPassword(any())).thenReturn(Observable.fromCallable(() -> {
             if (!retrying[0]) {
                 retrying[0] = true;
                 return new Pair<>("email", "wrong-password");
@@ -131,14 +131,13 @@ public class LoginOrchestratorTest {
             }
         }));
 
-        orchestrator.start("blog.com");
+        orchestrator.start(BLOG_URL_WITHOUT_PROTOCOL);
 
         verify(listener).onStartWaiting();
-        verify(credSource).getEmailAndPassword();
-        verify(credSink, times(2)).saveCredentials(any());
-        verify(credSink).deleteCredentials();
-        verify(credSink).setLoggedIn(true);
-        verify(listener).onLoginDone(argThat(is("http://blog.com")));
+        verify(credSource).getEmailAndPassword(any());
+        verify(credSink).saveCredentials(argThat(is(BLOG_URL)), any());
+        verify(credSink, never()).deleteCredentials(BLOG_URL);
+        verify(listener).onLoginDone();
         // this throws an NPE for no apparent reason - wtf? hence the ugly "retried" flag
         //verify(listener).onApiError(any(), any());
         assertThat(retried[0], is(true));
@@ -152,7 +151,7 @@ public class LoginOrchestratorTest {
         when(credSource.getGhostAuthCode(any())).thenReturn(Observable.just("auth-code"));
         orchestrator.listen(listener);
 
-        orchestrator.start("blog.com");
+        orchestrator.start(BLOG_URL_WITHOUT_PROTOCOL);
 
         verify(spy).onLoginDoneEvent(any());
         getBus().unregister(spy);
@@ -167,7 +166,7 @@ public class LoginOrchestratorTest {
         when(credSource.getGhostAuthCode(any())).thenReturn(Observable.just("wrong-auth-code"));
         orchestrator.listen(listener);
 
-        orchestrator.start("blog.com");
+        orchestrator.start(BLOG_URL_WITHOUT_PROTOCOL);
 
         // atLeastOnce() because the operation gets retried automatically
         verify(spy, atLeastOnce()).onLoginErrorEvent(any());

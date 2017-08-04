@@ -14,6 +14,6 @@ public interface CredentialSource {
 
     Observable<String> getGhostAuthCode(GhostAuth.Params params);
 
-    Observable<Pair<String, String>> getEmailAndPassword();
+    Observable<Pair<String, String>> getEmailAndPassword(PasswordAuth.Params params);
 
 }

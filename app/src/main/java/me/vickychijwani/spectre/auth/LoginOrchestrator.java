@@ -23,6 +23,7 @@ import me.vickychijwani.spectre.network.GhostApiService;
 import me.vickychijwani.spectre.network.GhostApiUtils;
 import me.vickychijwani.spectre.network.entity.ApiError;
 import me.vickychijwani.spectre.network.entity.ApiErrorList;
+import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.util.Listenable;
 import me.vickychijwani.spectre.util.NetworkUtils;
@@ -60,6 +61,7 @@ public class LoginOrchestrator implements
     private String mValidBlogUrl = null;
     private ApiProvider mApiProvider = null;
     private AuthService mAuthService = null;
+    private AuthReqBody mCandidateCredentials = null;
 
     public static LoginOrchestrator create(@NonNull CredentialSource credentialSource,
                                            @NonNull HACKListener hackListener) {
@@ -93,10 +95,10 @@ public class LoginOrchestrator implements
             Timber.i("VALID BLOG URL: " + blogUrl);
             mValidBlogUrl = blogUrl;
             mApiProvider = mApiProviderFactory.create(blogUrl);
-            mAuthService = AuthService.createWithGivenCredentials(mApiProvider.getGhostApi(),
-                    mCredentialSource);
+            mAuthService = AuthService.createWithGivenCredentials(blogUrl,
+                    mApiProvider.getGhostApi(), mCredentialSource);
             // FIXME FIXME FIXME
-            mHACKListener.setApiService(mApiProvider.getGhostApi());
+            mHACKListener.setApiService(blogUrl, mApiProvider.getGhostApi());
         } else {
             mValidBlogUrl = null;
             mApiProvider = null;
@@ -151,21 +153,21 @@ public class LoginOrchestrator implements
                 .getAuthReqBody(config)
                     .subscribeOn(AndroidSchedulers.mainThread())
                     .observeOn(Schedulers.io())
-                .doOnNext(mCredentialSink::saveCredentials)
+                .doOnNext(this::setCandidateCredentials)
                 .flatMap(api::getAuthToken)
                     .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::handleError)
-                .doOnError(e -> mCredentialSink.deleteCredentials())
+                .doOnError(e -> this.unsetCandidateCredentials())
                 // if auth fails, ask for credentials again and retry
                 // don't retry infinitely, as a safety mechanism for tests
                 .retry(20);
     }
 
     private void handleAuthToken(AuthToken authToken) {
+        mCredentialSink.saveCredentials(mValidBlogUrl, mCandidateCredentials);
         // FIXME FIXME FIXME FIXME
-        mCredentialSink.setLoggedIn(true);
-        mHACKListener.onNewAuthToken(authToken);
-        forEachListener(l -> l.onLoginDone(mValidBlogUrl));
+        mHACKListener.onNewLogin(mValidBlogUrl, authToken);
+        forEachListener(Listener::onLoginDone);
         getBus().post(new LoginDoneEvent(mValidBlogUrl));
     }
 
@@ -240,11 +242,19 @@ public class LoginOrchestrator implements
         return inputBlogUrl.trim().replaceFirst("^(.*)/ghost/?$", "$1");
     }
 
+    private void setCandidateCredentials(AuthReqBody authReqBody) {
+        mCandidateCredentials = authReqBody;
+    }
+
+    private void unsetCandidateCredentials() {
+        mCandidateCredentials = null;
+    }
+
 
     // FIXME this is basically a giant hack needed while I refactor NetworkService.java
     public interface HACKListener {
-        void setApiService(GhostApiService api);
-        void onNewAuthToken(AuthToken authToken);
+        void setApiService(String blogUrl, GhostApiService api);
+        void onNewLogin(String blogUrl, AuthToken authToken);
     }
 
     public interface Listener {
@@ -283,9 +293,8 @@ public class LoginOrchestrator implements
 
         /**
          * Login completed successfully.
-         * @param blogUrl - the URL of the blog successfully logged in to
          */
-        void onLoginDone(String blogUrl);
+        void onLoginDone();
     }
 
 }

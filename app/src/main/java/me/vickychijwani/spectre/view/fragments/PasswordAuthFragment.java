@@ -200,7 +200,7 @@ public class PasswordAuthFragment extends BaseFragment implements
     }
 
     @Override
-    public void onLoginDone(String blogUrl) {
+    public void onLoginDone() {
         // no-op
     }
 

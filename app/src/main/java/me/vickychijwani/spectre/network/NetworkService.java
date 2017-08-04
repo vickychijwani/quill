@@ -1,7 +1,6 @@
 package me.vickychijwani.spectre.network;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -30,7 +29,7 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.auth.AuthService;
 import me.vickychijwani.spectre.auth.AuthStore;
@@ -67,7 +66,9 @@ import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.event.SyncPostsEvent;
 import me.vickychijwani.spectre.event.TagsLoadedEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
+import me.vickychijwani.spectre.model.RealmUtils;
 import me.vickychijwani.spectre.model.entity.AuthToken;
+import me.vickychijwani.spectre.model.entity.BlogMetadata;
 import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.model.entity.ETag;
 import me.vickychijwani.spectre.model.entity.PendingAction;
@@ -79,7 +80,6 @@ import me.vickychijwani.spectre.network.entity.PostList;
 import me.vickychijwani.spectre.network.entity.PostStubList;
 import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
-import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
@@ -108,7 +108,6 @@ public class NetworkService implements
     private Realm mRealm = null;
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
-    private String mBlogUrl = null;
     private AuthService mAuthService = null;
 
     private boolean mbSyncOnGoing = false;
@@ -116,16 +115,17 @@ public class NetworkService implements
     private final ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
     private final ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
 
-    public void start(Context context, OkHttpClient httpClient) {
+    public void start(OkHttpClient httpClient) {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
         getBus().register(this);
-        mRealm = Realm.getDefaultInstance();
-        if (new AuthStore().isLoggedIn()) {
-            mAuthToken = new AuthToken(mRealm.where(AuthToken.class).findFirst());
-            mBlogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
-            GhostApiService api = GhostApiUtils.getRetrofit(mBlogUrl, httpClient)
+        if (AccountManager.hasActiveBlog()) {
+            BlogMetadata activeBlog = AccountManager.getActiveBlog();
+            GhostApiService api = GhostApiUtils.getRetrofit(activeBlog.getBlogUrl(), httpClient)
                     .create(GhostApiService.class);
-            setApiService(api);
+            setApiService(activeBlog.getBlogUrl(), api);
+
+            mRealm = Realm.getInstance(activeBlog.getDataRealmConfig());
+            mAuthToken = new AuthToken(mRealm.where(AuthToken.class).findFirst());
         }
     }
 
@@ -138,12 +138,12 @@ public class NetworkService implements
 
     // TODO temporary crutch while I refactor this huge class
     @Override
-    public void setApiService(GhostApiService api) {
+    public void setApiService(String blogUrl, GhostApiService api) {
         mApi = api;
         if (mAuthService != null) {
             mAuthService.unlisten(this);
         }
-        mAuthService = AuthService.createWithStoredCredentials(api);
+        mAuthService = AuthService.createWithStoredCredentials(blogUrl, api);
         mAuthService.listen(this);
     }
 
@@ -153,6 +153,14 @@ public class NetworkService implements
         authToken.setCreatedAt(DateTimeUtils.getEpochSeconds());
         mAuthToken = new AuthToken(createOrUpdateModel(authToken));
         flushApiEventQueue(false);
+    }
+
+    @Override
+    public void onNewLogin(String blogUrl, AuthToken authToken) {
+        AccountManager.setActiveBlog(blogUrl);
+        BlogMetadata activeBlog = AccountManager.getActiveBlog();
+        mRealm = Realm.getInstance(activeBlog.getDataRealmConfig());
+        onNewAuthToken(authToken);
     }
 
     @Override
@@ -845,11 +853,17 @@ public class NetworkService implements
         // clear all persisted blog data to avoid primary key conflicts
         mRealm.close();
         Realm.deleteRealm(mRealm.getConfiguration());
-        mRealm = Realm.getDefaultInstance();
-        new AuthStore().deleteCredentials();
+        String activeBlogUrl = AccountManager.getActiveBlogUrl();
+        new AuthStore().deleteCredentials(activeBlogUrl);
+        AccountManager.deleteBlog(activeBlogUrl);
+
+        // switch the Realm to the now-active blog
+        if (AccountManager.hasActiveBlog()) {
+            mRealm = Realm.getInstance(AccountManager.getActiveBlog().getDataRealmConfig());
+        }
+
         // reset state, to be sure
         mAuthToken = null;
-        mBlogUrl = null;
         mAuthService = null;
         mApiEventQueue.clear();
         mRefreshEventsQueue.clear();
@@ -916,8 +930,9 @@ public class NetworkService implements
     private void savePermalinkFormat(List<Setting> settings) {
         for (Setting setting : settings) {
             if ("permalinks".equals(setting.getKey())) {
-                UserPrefs.getInstance(SpectreApplication.getInstance())
-                        .setString(UserPrefs.Key.PERMALINK_FORMAT, setting.getValue());
+                BlogMetadata activeBlog = AccountManager.getActiveBlog();
+                activeBlog.setPermalinkFormat(setting.getValue());
+                AccountManager.addOrUpdateBlog(activeBlog);
             }
         }
     }
@@ -979,7 +994,7 @@ public class NetworkService implements
 
     private <T extends RealmModel> T createOrUpdateModel(T object,
                                                          @Nullable Runnable afterTransaction) {
-        return executeRealmTransaction(mRealm, realm -> {
+        return RealmUtils.executeTransaction(mRealm, realm -> {
             T realmObject = mRealm.copyToRealmOrUpdate(object);
             if (afterTransaction != null) {
                 afterTransaction.run();
@@ -997,7 +1012,7 @@ public class NetworkService implements
         if (! objects.iterator().hasNext()) {
             return Collections.emptyList();
         }
-        return executeRealmTransaction(mRealm, realm -> {
+        return RealmUtils.executeTransaction(mRealm, realm -> {
             List<T> realmObjects = mRealm.copyToRealmOrUpdate(objects);
             if (afterTransaction != null) {
                 afterTransaction.run();
@@ -1007,9 +1022,8 @@ public class NetworkService implements
     }
 
     private <T extends RealmModel> void deleteModel(T realmObject) {
-        executeRealmTransaction(mRealm, realm -> {
+        RealmUtils.executeTransaction(mRealm, realm -> {
             RealmObject.deleteFromRealm(realmObject);
-            return null;
         });
     }
 
@@ -1017,34 +1031,11 @@ public class NetworkService implements
         if (! realmObjects.iterator().hasNext()) {
             return;
         }
-        executeRealmTransaction(mRealm, realm -> {
+        RealmUtils.executeTransaction(mRealm, realm -> {
             for (T realmObject : realmObjects) {
                 RealmObject.deleteFromRealm(realmObject);
             }
-            return null;
         });
-    }
-
-    private static <T> T executeRealmTransaction(@NonNull Realm realm,
-                                                 @NonNull RealmTransactionWithReturn<T> transaction) {
-        T retValue;
-        realm.beginTransaction();
-        try {
-            retValue = transaction.execute(realm);
-            realm.commitTransaction();
-        } catch (Throwable e) {
-            if (realm.isInTransaction()) {
-                realm.cancelTransaction();
-            } else {
-                Log.w(TAG, "Could not cancel transaction, not currently in a transaction.");
-            }
-            throw e;
-        }
-        return retValue;
-    }
-
-    private interface RealmTransactionWithReturn<T> {
-        T execute(@NonNull Realm realm);
     }
 
     private Bus getBus() {

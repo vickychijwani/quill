@@ -12,7 +12,7 @@ import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.auth.CredentialSource;
 import me.vickychijwani.spectre.auth.GhostAuth;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
-import me.vickychijwani.spectre.pref.UserPrefs;
+import me.vickychijwani.spectre.auth.PasswordAuth;
 import me.vickychijwani.spectre.util.Listenable;
 import me.vickychijwani.spectre.util.Pair;
 import me.vickychijwani.spectre.view.fragments.GenericFragment;
@@ -105,7 +105,7 @@ public class LoginActivity extends BaseActivity implements
     }
 
     @Override
-    public Observable<Pair<String, String>> getEmailAndPassword() {
+    public Observable<Pair<String, String>> getEmailAndPassword(PasswordAuth.Params params) {
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
         if (!(currentFragment instanceof PasswordAuthFragment)) {
             PasswordAuthFragment newFragment = PasswordAuthFragment.newInstance();
@@ -149,11 +149,8 @@ public class LoginActivity extends BaseActivity implements
     }
 
     @Override
-    public void onLoginDone(String blogUrl) {
-        UserPrefs prefs = UserPrefs.getInstance(this);
-        prefs.setString(UserPrefs.Key.BLOG_URL, blogUrl);
+    public void onLoginDone() {
         finish();
-
         Intent intent = new Intent(this, PostListActivity.class);
         startActivity(intent);
     }

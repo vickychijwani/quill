@@ -48,6 +48,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.event.DeletePostEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
 import me.vickychijwani.spectre.event.PostDeletedEvent;
@@ -57,7 +58,6 @@ import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.event.TagsLoadedEvent;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
-import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.util.functions.Action1;
@@ -96,7 +96,6 @@ public class PostViewActivity extends BaseActivity implements
     private ProgressDialog mProgressDialog;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mSaveTimeoutRunnable;
-    private String mBlogUrl;
     private PostSettingsChangedListener mPostSettingsChangedListener;
 
     @Override
@@ -122,8 +121,6 @@ public class PostViewActivity extends BaseActivity implements
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         mFormattingToolbarManager = new FormattingToolbarManager((ViewGroup) findViewById(R.id.format_toolbar));
-
-        mBlogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
 
         ArrayAdapter<String> tagSuggestionsAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, Collections.emptyList());
@@ -413,7 +410,8 @@ public class PostViewActivity extends BaseActivity implements
         String imageUrl = mPost.getFeatureImage();
         if (!TextUtils.isEmpty(imageUrl)) {
             mPostImageLayoutManager.setViewState(PostImageLayoutManager.ViewState.PROGRESS_BAR);
-            imageUrl = NetworkUtils.makeAbsoluteUrl(mBlogUrl, imageUrl);
+            String blogUrl = AccountManager.getActiveBlogUrl();
+            imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, imageUrl);
             getPicasso()
                     .load(imageUrl)
                     .fit().centerCrop()
