@@ -15,6 +15,7 @@
     <string name="login_connection_error">Es konnte keine Verbindung zu %s/ghost erstellt werden. Bitte versuche es erneut.</string>
     <string name="login_ssl_unsupported">Dein Blog unterstützt leider kein https:// (SSL)</string>
     <string name="logout">Abmelden</string>
+    <string name="credentials_expired">Hat sich dein Passwort geändert? Anmeldung mit diesem Passwort nicht möglich.</string>
     <string name="unsynced_changes_msg">Alle nicht synchronisierten Änderungen gehen verloren, wenn du dich jetzt abmeldest</string>
     <string name="dont_logout">Nicht abmelden</string>
 

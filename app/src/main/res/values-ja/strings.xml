@@ -13,6 +13,7 @@
     <string name="login_connection_error">%s/ghost に接続できませんでした。もう一度やり直してください。</string>
     <string name="login_ssl_unsupported">あなたのブログは https:// (SSL) をサポートしていません</string>
     <string name="logout">ログアウト</string>
+    <string name="credentials_expired">パスワードを変更しましたか? そのパスワードでログインできませんでした。</string>
     <string name="unsynced_changes_msg">今ログアウトすると、未同期の変更がすべて失われます</string>
     <string name="dont_logout">ログアウトしない</string>
 

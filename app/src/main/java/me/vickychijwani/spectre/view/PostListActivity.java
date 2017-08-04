@@ -114,6 +114,12 @@ public class PostListActivity extends BaseActivity {
             return;
         }
 
+        if (! AccountManager.getActiveBlog().isLoggedIn()) {
+            // is it safe to infer that an active blog which is not logged in must mean the
+            // password has changed or Ghost Auth code is expired?
+            credentialsExpired();
+        }
+
         setLayout(R.layout.activity_post_list);
         setSupportActionBar(mToolbar);
         if (BuildConfig.DEBUG) {

@@ -12,6 +12,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.squareup.otto.Bus;
@@ -166,6 +167,11 @@ public abstract class BaseActivity extends AppCompatActivity {
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
     }
 
+    protected void credentialsExpired() {
+        new CredentialsExpiredEventHandler(this)
+                .onCredentialsExpiredEvent(new CredentialsExpiredEvent());
+    }
+
 
     // the event handler cannot be added to BaseActivity directly because Otto doesn't look at base
     // classes when looking for subscribers, hence this little helper class
@@ -182,6 +188,8 @@ public abstract class BaseActivity extends AppCompatActivity {
             // destroy all activities in this task stack
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             mActivity.startActivity(intent);
+            Toast.makeText(mActivity, mActivity.getString(R.string.credentials_expired),
+                    Toast.LENGTH_LONG).show();
             mActivity.finish();
         }
     }

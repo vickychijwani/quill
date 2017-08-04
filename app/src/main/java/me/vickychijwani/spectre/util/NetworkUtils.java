@@ -79,6 +79,14 @@ public class NetworkUtils {
         return httpEx.code() == HttpURLConnection.HTTP_NOT_FOUND;
     }
 
+    public static boolean isUnprocessableEntity(@Nullable Throwable e) {
+        if (e == null || !(e instanceof HttpException)) {
+            return false;
+        }
+        HttpException httpEx = (HttpException) e;
+        return httpEx.code() == 422;
+    }
+
     public static boolean isTooManyRequests(@Nullable Throwable e) {
         if (e == null || !(e instanceof HttpException)) {
             return false;

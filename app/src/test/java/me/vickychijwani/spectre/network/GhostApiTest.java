@@ -31,6 +31,7 @@ import me.vickychijwani.spectre.network.entity.RefreshReqBody;
 import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
+import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.functions.Action1;
 import me.vickychijwani.spectre.util.functions.Action3;
 import okhttp3.OkHttpClient;
@@ -160,6 +161,8 @@ public final class GhostApiTest {
         } catch (Exception e) {
             assertThat(e.getCause(), instanceOf(HttpException.class));
             HttpException httpEx = (HttpException) e.getCause();
+            // Ghost returns a 422 Unprocessable Entity for an incorrect password
+            assertThat("http code = " + httpEx.code(), NetworkUtils.isUnprocessableEntity(httpEx), is(true));
             ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, httpEx);
             assertThat(apiErrors, notNullValue());
             assertThat(apiErrors.errors.size(), is(1));

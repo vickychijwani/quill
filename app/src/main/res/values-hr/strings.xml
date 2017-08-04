@@ -13,6 +13,7 @@
     <string name="login_connection_error">Nemogućnost spajanja na %s/ghost. Molimo pokušajte ponovno.</string>
     <string name="login_ssl_unsupported">Vaš blog ne podržava https:// (SSL)</string>
     <string name="logout">Odjava</string>
+    <string name="credentials_expired">Je li se Vaša lozinka promijenila? Prijava nije moguća s tom lozinkom.</string>
     <string name="unsynced_changes_msg">Izgubit ćete sve nesinkronizirane promjene ukoliko se sada odjavite</string>
     <string name="dont_logout">Nemoj se odjaviti</string>
 

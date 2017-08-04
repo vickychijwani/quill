@@ -30,7 +30,6 @@ public class AuthStore implements CredentialSource, CredentialSink {
         } else {
             blog = new BlogMetadata();
             blog.setBlogUrl(blogUrl);
-            blog.setLoggedIn(true);
         }
 
         if (authReqBody.isGrantTypePassword()) {
@@ -39,16 +38,17 @@ public class AuthStore implements CredentialSource, CredentialSink {
         } else {
             blog.setAuthCode(authReqBody.authorizationCode);
         }
+        blog.setLoggedIn(true);
         AccountManager.addOrUpdateBlog(blog);
     }
 
     @Override
     public void deleteCredentials(String blogUrl) {
         BlogMetadata blog = AccountManager.getBlog(blogUrl);
-        blog.setLoggedIn(false);
         blog.setEmail(null);
         blog.setPassword(null);
         blog.setAuthCode(null);
+        blog.setLoggedIn(false);
         AccountManager.addOrUpdateBlog(blog);
     }
 

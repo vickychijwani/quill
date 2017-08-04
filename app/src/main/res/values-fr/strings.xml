@@ -13,6 +13,7 @@
     <string name="login_connection_error">Connexion impossible à %s/Ghost. Veuillez essayer à nouveau.</string>
     <string name="login_ssl_unsupported">Votre blog ne supporte pas le https:// (SSL)</string>
     <string name="logout">Déconnexion</string>
+    <string name="credentials_expired">Votre mot de passe a t\'il changé? Connexion impossible avec ce mot de passe.</string>
     <string name="unsynced_changes_msg">Vous perdrez toutes les modifications non synchronisés si vous vous déconnectez maintenant</string>
     <string name="dont_logout">Rester connecté</string>
 

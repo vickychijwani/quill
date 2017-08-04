@@ -14,6 +14,7 @@
     <string name="login_connection_error">Could not connect to %s/ghost. Please try again.</string>
     <string name="login_ssl_unsupported">Your blog does not support https:// (SSL)</string>
     <string name="logout">Logout</string>
+    <string name="credentials_expired">Auto-login failed, please log in again</string>
     <string name="unsynced_changes_msg">You will lose all unsynced changes if you log out now</string>
     <string name="dont_logout">Don\'t logout</string>
 

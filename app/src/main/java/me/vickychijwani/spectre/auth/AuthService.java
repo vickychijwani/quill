@@ -137,7 +137,9 @@ public class AuthService implements Listenable<AuthService.Listener> {
 
     private void handleLoginError(Throwable e) {
         mbRequestOngoing = false;
-        if (NetworkUtils.isUnauthorized(e)) {
+        // TODO Ghost returns 422 for an incorrect password, but I haven't tested what it returns for an
+        // TODO expired / incorrect Ghost Auth code. Checking isUnauthorized just to be safe.
+        if (NetworkUtils.isUnprocessableEntity(e) || NetworkUtils.isUnauthorized(e)) {
             // password changed / auth code expired
             mCredentialSink.deleteCredentials(mBlogUrl);
             getBus().post(new CredentialsExpiredEvent());
