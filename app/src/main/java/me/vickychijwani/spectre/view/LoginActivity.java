@@ -15,8 +15,8 @@ import me.vickychijwani.spectre.auth.LoginOrchestrator;
 import me.vickychijwani.spectre.auth.PasswordAuth;
 import me.vickychijwani.spectre.util.Listenable;
 import me.vickychijwani.spectre.util.Pair;
-import me.vickychijwani.spectre.view.fragments.GenericFragment;
 import me.vickychijwani.spectre.view.fragments.GhostAuthFragment;
+import me.vickychijwani.spectre.view.fragments.GhostV0ErrorFragment;
 import me.vickychijwani.spectre.view.fragments.LoginUrlFragment;
 import me.vickychijwani.spectre.view.fragments.PasswordAuthFragment;
 
@@ -135,7 +135,7 @@ public class LoginActivity extends BaseActivity implements
 
     @Override
     public void onGhostV0Error() {
-        GenericFragment fragment = GenericFragment.newInstance(R.layout.fragment_ghost_v0_error);
+        Fragment fragment = GhostV0ErrorFragment.newInstance();
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_container, fragment)

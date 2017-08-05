@@ -22,20 +22,32 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/icon"
         android:gravity="center"
-        android:text="Upgrade to Ghost 1.0"
+        android:text="@string/ghost_v0_error_title"
         android:textAppearance="@style/TextAppearance.Large"
         android:textStyle="bold"
         android:textColor="@color/text_primary_inverted"
         />
 
     <TextView
-        android:id="@+id/error_content"
+        android:id="@+id/error_tip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/error_title"
+        android:layout_marginTop="@dimen/padding_default"
+        android:gravity="center"
+        android:text="@string/ghost_v0_error_tip"
+        android:textAppearance="@style/TextAppearance.Small.Dim"
+        android:textColor="@color/text_primary_inverted_dim"
+        />
+
+    <TextView
+        android:id="@+id/error_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/error_tip"
         android:layout_marginTop="@dimen/padding_large"
         android:gravity="center"
-        android:text="You're using a Ghost version older than 1.0, please upgrade.\n\nI'll wait for you right here."
+        android:text="@string/ghost_v0_error_content"
         android:textAppearance="@style/TextAppearance.Medium.Inverse"
         />
 

@@ -32,6 +32,10 @@
 
     <string name="about_icon_credits" translatable="false">Launcher icon \"Feather\" by <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
 
+    <string name="ghost_v0_error_title" translatable="false">Upgrade to Ghost 1.0</string>
+    <string name="ghost_v0_error_tip" translatable="false" tools:ignore="TypographyDashes"><![CDATA[Tap <a href="https://blog.ghost.org/1-0/#howtoupgradetoghost10">here</a> to see upgrade instructions]]></string>
+    <string name="ghost_v0_error_content" translatable="false" tools:ignore="TypographyDashes"><![CDATA[You\'re using a version of Ghost older than 1.0, please <a href="https://blog.ghost.org/1-0/#howtoupgradetoghost10">upgrade</a>.<br><br>I\'ll wait for you right here.]]></string>
+
     <!-- content descriptions -->
     <string name="format_bold" translatable="false">Bold</string>
     <string name="format_italic" translatable="false">Italic</string>
