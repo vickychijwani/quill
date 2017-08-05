@@ -380,12 +380,6 @@ public class PostViewActivity extends BaseActivity implements
 
     @Subscribe
     public void onPostDeletedEvent(PostDeletedEvent event) {
-        if (event.postId != null && event.postId.equals(mPost.getId())) {
-            RuntimeException e = new IllegalArgumentException("Received post deleted event for id = "
-                    + event.postId + ", current id = " + mPost.getId());
-            Crashlytics.log(Log.ERROR, TAG, e.getMessage());
-            throw e;
-        }
         setResult(RESULT_CODE_DELETED);
         finish();
     }
