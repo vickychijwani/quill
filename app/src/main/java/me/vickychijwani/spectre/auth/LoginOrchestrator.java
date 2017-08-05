@@ -13,6 +13,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
 import io.reactivex.schedulers.Schedulers;
 import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.error.LoginFailedException;
 import me.vickychijwani.spectre.event.LoginDoneEvent;
 import me.vickychijwani.spectre.event.LoginErrorEvent;
@@ -187,6 +188,7 @@ public class LoginOrchestrator implements
             if (NetworkUtils.isUnauthorized(e)
                     && url.pathSegments().contains("configuration")) {
                 // config was not publicly accessible before Ghost 1.x
+                AnalyticsService.logGhostV0Error();
                 forEachListener(Listener::onGhostV0Error);
             } else if (url.pathSegments().contains("authentication")) {
                 ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(

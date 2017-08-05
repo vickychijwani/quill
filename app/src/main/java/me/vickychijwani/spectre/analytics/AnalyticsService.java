@@ -74,6 +74,11 @@ public class AnalyticsService {
                 .putSuccess(success));
     }
 
+    public static void logGhostV0Error() {
+        Timber.i("GHOST VERSION 0.x ERROR - UPGRADE REQUIRED");
+        Answers.getInstance().logCustom(new CustomEvent("Ghost v0.x error"));
+    }
+
     @Subscribe
     public void onLogoutStatusEvent(LogoutStatusEvent logoutEvent) {
         if (logoutEvent.succeeded) {
