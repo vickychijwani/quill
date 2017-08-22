@@ -29,10 +29,21 @@
         />
 
     <TextView
-        android:id="@+id/error_tip"
+        android:id="@+id/error_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/error_title"
+        android:layout_marginTop="@dimen/padding_large"
+        android:gravity="center"
+        android:text="@string/ghost_v0_error_content"
+        android:textAppearance="@style/TextAppearance.Medium.Inverse"
+        />
+
+    <TextView
+        android:id="@+id/error_tip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/error_content"
         android:layout_marginTop="@dimen/padding_default"
         android:gravity="center"
         android:text="@string/ghost_v0_error_tip"
@@ -41,14 +52,15 @@
         />
 
     <TextView
-        android:id="@+id/error_content"
+        android:id="@+id/error_legacy"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/error_tip"
-        android:layout_marginTop="@dimen/padding_large"
+        android:layout_marginTop="@dimen/padding_huge"
         android:gravity="center"
-        android:text="@string/ghost_v0_error_content"
-        android:textAppearance="@style/TextAppearance.Medium.Inverse"
+        android:text="@string/ghost_v0_error_legacy"
+        android:textAppearance="@style/TextAppearance.Small.Dim"
+        android:textColor="@color/text_primary_inverted_dim"
         />
 
 </RelativeLayout>
