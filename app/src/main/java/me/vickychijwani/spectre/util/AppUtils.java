@@ -10,7 +10,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.text.Html;
+import android.text.SpannableStringBuilder;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.URLSpan;
 import android.util.DisplayMetrics;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -18,24 +25,40 @@ import com.crashlytics.android.Crashlytics;
 import java.util.Locale;
 
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.util.functions.Action1;
 import me.vickychijwani.spectre.view.BaseActivity;
 
 public class AppUtils {
 
     private static final String TAG = AppUtils.class.getSimpleName();
 
-    public static void emailDeveloper(@NonNull BaseActivity activity) {
-        String emailSubject = activity.getString(R.string.email_subject,
+    public static void emailFeedbackToDeveloper(@NonNull BaseActivity activity) {
+        String subject = activity.getString(R.string.feedback_email_subject,
                 activity.getString(R.string.app_name));
+        String body = "App version: " + getAppVersion(activity) + "\n" +
+                "Android API version: " + Build.VERSION.SDK_INT + "\n" +
+                "Ghost version: <include if relevant>" + "\n" +
+                "\n";
+        emailDeveloper(activity, subject, body);
+    }
+
+    public static void emailLoginIssueToDeveloper(@NonNull BaseActivity activity) {
+        String subject = activity.getString(R.string.login_help_email_subject,
+                activity.getString(R.string.app_name));
+        String body = "App version: " + getAppVersion(activity) + "\n" +
+                "Android API version: " + Build.VERSION.SDK_INT + "\n" +
+                "Ghost version: <include if relevant>" + "\n" +
+                "\n" +
+                "<Describe your issue here>\n";
+        emailDeveloper(activity, subject, body);
+    }
+
+    private static void emailDeveloper(@NonNull BaseActivity activity, @NonNull String subject,
+                                       @NonNull String body) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this
         intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "vickychijwani@gmail.com" });
-        intent.putExtra(Intent.EXTRA_SUBJECT, emailSubject);
-
-        String body = "App version: " + getAppVersion(activity) + "\n";
-        body += "Android API version: " + Build.VERSION.SDK_INT + "\n";
-        body += "Ghost version: <include if relevant>" + "\n";
-        body += "\n";
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         intent.putExtra(Intent.EXTRA_TEXT, body);
 
         if (intent.resolveActivity(activity.getPackageManager()) != null) {
@@ -86,6 +109,29 @@ public class AppUtils {
         android.content.res.Configuration conf = res.getConfiguration();
         conf.locale = Locale.getDefault();
         res.updateConfiguration(conf, dm);
+    }
+
+    // Add a custom event handler for link clicks in TextView HTML
+    // credits: https://stackoverflow.com/a/19989677/504611
+    public static void setHtmlWithLinkClickHandler(TextView tv, String html,
+                                            Action1<String> linkClickHandler) {
+        CharSequence sequence = Html.fromHtml(html);
+        SpannableStringBuilder strBuilder = new SpannableStringBuilder(sequence);
+        URLSpan[] urls = strBuilder.getSpans(0, sequence.length(), URLSpan.class);
+        for (URLSpan span : urls) {
+            int start = strBuilder.getSpanStart(span);
+            int end = strBuilder.getSpanEnd(span);
+            int flags = strBuilder.getSpanFlags(span);
+            ClickableSpan clickable = new ClickableSpan() {
+                public void onClick(View view) {
+                    linkClickHandler.call(span.getURL());
+                }
+            };
+            strBuilder.setSpan(clickable, start, end, flags);
+            strBuilder.removeSpan(span);
+        }
+        tv.setText(strBuilder);
+        tv.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
 }

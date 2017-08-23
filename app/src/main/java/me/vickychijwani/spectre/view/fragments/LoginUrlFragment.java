@@ -20,10 +20,12 @@ import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
+import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.Listenable;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.view.LoginActivity;
+import timber.log.Timber;
 
 public class LoginUrlFragment extends BaseFragment implements
         TextView.OnEditorActionListener,
@@ -33,6 +35,7 @@ public class LoginUrlFragment extends BaseFragment implements
     @Bind(R.id.blog_url)                EditText mBlogUrlView;
     @Bind(R.id.next_btn)                View mNextBtn;
     @Bind(R.id.blog_url_error)          TextView mBlogUrlErrorView;
+    @Bind(R.id.login_help_tip)          TextView mLoginHelpTipView;
     @Bind(R.id.progress)                ProgressBar mProgress;
 
     private Listenable<LoginOrchestrator.Listener> mLoginOrchestrator = null;
@@ -57,6 +60,16 @@ public class LoginUrlFragment extends BaseFragment implements
             mBlogUrlView.setSelection(mBlogUrlView.getText().length());
         }
         mBlogUrlView.setOnEditorActionListener(this);
+
+        final String loginHelpTip = mLoginHelpTipView.getText().toString();
+        AppUtils.setHtmlWithLinkClickHandler(mLoginHelpTipView, loginHelpTip, (url) -> {
+            if ("login-help".equals(url)) {
+                AppUtils.emailLoginIssueToDeveloper(
+                        (LoginActivity) LoginUrlFragment.this.getActivity());
+            } else {
+                Timber.wtf("Unexpected URL = " + url);
+            }
+        });
 
         return view;
     }
@@ -142,6 +155,8 @@ public class LoginUrlFragment extends BaseFragment implements
         mBlogUrlErrorView.setText(errorStr);
         mBlogUrlView.setSelection(mBlogUrlView.getText().length());
         KeyboardUtils.focusAndShowKeyboard(getActivity(), mBlogUrlView);
+        // show the help tip, and let it stay there; no need to hide it again
+        mLoginHelpTipView.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -180,6 +195,10 @@ public class LoginUrlFragment extends BaseFragment implements
     private void allowInput(boolean allow) {
         mBlogUrlView.setEnabled(allow);
         mNextBtn.setEnabled(allow);
+        if (!allow) {
+            // hide the help tip since it contains a clickable link
+            mLoginHelpTipView.setVisibility(View.INVISIBLE);
+        }
     }
 
 }

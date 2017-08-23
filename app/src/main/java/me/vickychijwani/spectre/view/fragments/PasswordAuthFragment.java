@@ -22,10 +22,12 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
+import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.KeyboardUtils;
 import me.vickychijwani.spectre.util.Listenable;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.view.LoginActivity;
+import timber.log.Timber;
 
 public class PasswordAuthFragment extends BaseFragment implements
         TextView.OnEditorActionListener,
@@ -36,6 +38,7 @@ public class PasswordAuthFragment extends BaseFragment implements
     @Bind(R.id.email_error)             TextView mEmailErrorView;
     @Bind(R.id.password)                EditText mPasswordView;
     @Bind(R.id.password_error)          TextView mPasswordErrorView;
+    @Bind(R.id.login_help_tip)          TextView mLoginHelpTipView;
     @Bind(R.id.sign_in_btn)             View mSignInBtn;
     @Bind(R.id.progress)                ProgressBar mProgress;
 
@@ -55,6 +58,16 @@ public class PasswordAuthFragment extends BaseFragment implements
         View view = inflater.inflate(R.layout.fragment_password_auth, container, false);
         ButterKnife.bind(this, view);
         mPasswordView.setOnEditorActionListener(this);
+
+        final String loginHelpTip = mLoginHelpTipView.getText().toString();
+        AppUtils.setHtmlWithLinkClickHandler(mLoginHelpTipView, loginHelpTip, (url) -> {
+            if ("login-help".equals(url)) {
+                AppUtils.emailLoginIssueToDeveloper(
+                        (LoginActivity) PasswordAuthFragment.this.getActivity());
+            } else {
+                Timber.wtf("Unexpected URL = " + url);
+            }
+        });
 
         return view;
     }
@@ -174,6 +187,8 @@ public class PasswordAuthFragment extends BaseFragment implements
         } else {
             errorMsgView.setText(Html.fromHtml(error));
         }
+        // show the help tip, and let it stay there; no need to hide it again
+        mLoginHelpTipView.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -222,6 +237,10 @@ public class PasswordAuthFragment extends BaseFragment implements
         mEmailView.setEnabled(allow);
         mPasswordView.setEnabled(allow);
         mSignInBtn.setEnabled(allow);
+        if (!allow) {
+            // hide the help tip since it contains a clickable link
+            mLoginHelpTipView.setVisibility(View.INVISIBLE);
+        }
     }
 
     private void showEmailError(@Nullable String error) {

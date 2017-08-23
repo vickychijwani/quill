@@ -252,7 +252,7 @@ public class PostListActivity extends BaseActivity {
                 refreshData(false);
                 return true;
             case R.id.action_feedback:
-                AppUtils.emailDeveloper(this);
+                AppUtils.emailFeedbackToDeveloper(this);
                 return true;
             case R.id.action_about:
                 Intent aboutIntent = new Intent(this, AboutActivity.class);

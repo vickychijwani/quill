@@ -90,7 +90,7 @@ public class AboutActivity extends BaseActivity {
 
     @OnClick(R.id.about_email_developer)
     public void onEmailDeveloperClicked(View v) {
-        AppUtils.emailDeveloper(this);
+        AppUtils.emailFeedbackToDeveloper(this);
     }
 
 }
