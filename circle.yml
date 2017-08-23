@@ -4,7 +4,7 @@ machine:
     TOOLS_VERSION: 25.2.4
     BUILD_TOOLS_VERSION: 25.0.2
     GHOST_DIR: ghost
-    GHOST_VERSION: 1.5.2
+    GHOST_VERSION: 1.7.0
   java:
     version: oraclejdk8
   # recommended Node version from https://docs.ghost.org/docs/supported-node-versions
