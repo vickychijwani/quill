@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:padding="@dimen/padding_huge"
+    android:background="?attr/colorPrimary">
+
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_centerHorizontal="true"
+        app:srcCompat="@drawable/ghost_sad_face"
+        />
+
+    <TextView
+        android:id="@+id/error_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/icon"
+        android:gravity="center"
+        android:text="@string/ghost_v0_error_title"
+        android:textAppearance="@style/TextAppearance.Large"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary_inverted"
+        />
+
+    <TextView
+        android:id="@+id/error_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/error_title"
+        android:layout_marginTop="@dimen/padding_large"
+        android:gravity="center"
+        android:text="@string/ghost_v0_error_content"
+        android:textAppearance="@style/TextAppearance.Medium.Inverse"
+        />
+
+    <TextView
+        android:id="@+id/error_tip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/error_content"
+        android:layout_marginTop="@dimen/padding_default"
+        android:gravity="center"
+        android:text="@string/ghost_v0_error_tip"
+        android:textAppearance="@style/TextAppearance.Small.Dim"
+        android:textColor="@color/text_primary_inverted_dim"
+        />
+
+    <TextView
+        android:id="@+id/error_legacy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/error_tip"
+        android:layout_marginTop="@dimen/padding_huge"
+        android:gravity="center"
+        android:text="@string/ghost_v0_error_legacy"
+        android:textAppearance="@style/TextAppearance.Small.Dim"
+        android:textColor="@color/text_primary_inverted_dim"
+        />
+
+</RelativeLayout>

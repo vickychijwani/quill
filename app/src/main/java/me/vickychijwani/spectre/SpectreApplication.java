@@ -19,16 +19,22 @@ import java.io.File;
 import java.io.IOException;
 
 import io.fabric.sdk.android.Fabric;
+import io.reactivex.plugins.RxJavaPlugins;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.exceptions.RealmMigrationNeededException;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
+import me.vickychijwani.spectre.auth.LoginOrchestrator;
+import me.vickychijwani.spectre.error.UncaughtRxException;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.model.DatabaseMigration;
 import me.vickychijwani.spectre.network.NetworkService;
 import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
+import me.vickychijwani.spectre.util.CrashReportingTree;
 import okhttp3.OkHttpClient;
 import retrofit2.Response;
+import timber.log.Timber;
 
 public class SpectreApplication extends Application {
 
@@ -44,32 +50,65 @@ public class SpectreApplication extends Application {
     @SuppressWarnings("FieldCanBeLocal")
     private AnalyticsService mAnalyticsService = null;
 
+    // FIXME hacks
+    private LoginOrchestrator.HACKListener mHACKListener;
+    private int mHACKOldSchemaVersion = -1;
+
     @Override
     public void onCreate() {
         super.onCreate();
+
         Fabric.with(this, new Crashlytics(), new Answers());
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new Timber.DebugTree());
+        } else {
+            Timber.plant(new CrashReportingTree());
+        }
         Crashlytics.log(Log.DEBUG, TAG, "APP LAUNCHED");
+
         BusProvider.getBus().register(this);
         sInstance = this;
+
+        RxJavaPlugins.setErrorHandler(this::uncaughtRxException);
 
         setupRealm();
         setupFonts();
         initOkHttpClient();
         initPicasso();
-        new NetworkService().start(this, mOkHttpClient);
+
+        NetworkService networkService = new NetworkService();
+        mHACKListener = networkService;
+        networkService.start(mOkHttpClient);
 
         mAnalyticsService = new AnalyticsService(BusProvider.getBus());
         mAnalyticsService.start();
     }
 
+    public void setOldRealmSchemaVersion(int oldSchemaVersion) {
+        mHACKOldSchemaVersion = oldSchemaVersion;
+    }
+
     private void setupRealm() {
-        final int DB_SCHEMA_VERSION = 3;
+        final int DB_SCHEMA_VERSION = 4;
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder()
                 .schemaVersion(DB_SCHEMA_VERSION)
                 .migration(new DatabaseMigration())
                 .build();
         Realm.setDefaultConfiguration(config);
+
+        // open the Realm to check if a migration is needed
+        try {
+            Realm realm = Realm.getDefaultInstance();
+            realm.close();
+        } catch (RealmMigrationNeededException e) {
+            // delete existing Realm if we're below v4
+            if (mHACKOldSchemaVersion >= 0 && mHACKOldSchemaVersion < 4) {
+                Realm.deleteRealm(config);
+                mHACKOldSchemaVersion = -1;
+            }
+        }
+
         AnalyticsService.logDbSchemaVersion(String.valueOf(DB_SCHEMA_VERSION));
     }
 
@@ -116,6 +155,10 @@ public class SpectreApplication extends Application {
         return mPicasso;
     }
 
+    public LoginOrchestrator.HACKListener getHACKListener() {
+        return mHACKListener;
+    }
+
     public void addDebugDrawer(@NonNull Activity activity) {
         // no-op, overridden in debug build
     }
@@ -154,7 +197,11 @@ public class SpectreApplication extends Application {
 
     @Subscribe
     public void onDeadEvent(DeadEvent event) {
-        Log.w(TAG, "Dead event ignored: " + event.event.getClass().getName());
+        Crashlytics.log(Log.WARN, TAG, "Dead event ignored: " + event.event.getClass().getName());
+    }
+
+    private void uncaughtRxException(Throwable e) {
+        Crashlytics.logException(new UncaughtRxException(e));
     }
 
 }

@@ -31,7 +31,7 @@
                 android:id="@+id/user_image"
                 android:layout_width="@dimen/toolbar_height"
                 android:layout_height="@dimen/toolbar_height"
-                android:contentDescription="@string/user_image"
+                android:contentDescription="@string/cdesc_user_image"
                 android:padding="@dimen/padding_default"
                 tools:src="@drawable/ic_launcher"
                 />

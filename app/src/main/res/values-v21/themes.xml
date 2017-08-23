@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <style name="LoginTheme" parent="BaseLoginTheme">
-        <item name="android:statusBarColor">#88000000</item>
-        <item name="android:navigationBarColor">#88000000</item>
-    </style>
-
-</resources>

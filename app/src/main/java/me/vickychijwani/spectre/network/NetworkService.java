@@ -1,7 +1,6 @@
 package me.vickychijwani.spectre.network;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -16,8 +15,6 @@ import com.squareup.otto.Subscribe;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.annotation.Annotation;
-import java.net.HttpURLConnection;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,17 +29,16 @@ import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.Sort;
-import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
-import me.vickychijwani.spectre.error.ExpiredTokenUsedException;
+import me.vickychijwani.spectre.auth.AuthService;
+import me.vickychijwani.spectre.auth.AuthStore;
+import me.vickychijwani.spectre.auth.LoginOrchestrator;
 import me.vickychijwani.spectre.error.PostConflictFoundException;
-import me.vickychijwani.spectre.error.TokenRevocationFailedException;
 import me.vickychijwani.spectre.event.ApiCallEvent;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
 import me.vickychijwani.spectre.event.BusProvider;
-import me.vickychijwani.spectre.event.ConfigurationLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.DeletePostEvent;
@@ -52,17 +48,12 @@ import me.vickychijwani.spectre.event.FileUploadedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
 import me.vickychijwani.spectre.event.GhostVersionLoadedEvent;
 import me.vickychijwani.spectre.event.LoadBlogSettingsEvent;
-import me.vickychijwani.spectre.event.LoadConfigurationEvent;
 import me.vickychijwani.spectre.event.LoadGhostVersionEvent;
 import me.vickychijwani.spectre.event.LoadPostsEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
 import me.vickychijwani.spectre.event.LoadUserEvent;
-import me.vickychijwani.spectre.event.LoginDoneEvent;
-import me.vickychijwani.spectre.event.LoginErrorEvent;
-import me.vickychijwani.spectre.event.LoginStartEvent;
 import me.vickychijwani.spectre.event.LogoutEvent;
 import me.vickychijwani.spectre.event.LogoutStatusEvent;
-import me.vickychijwani.spectre.event.PasswordChangedEvent;
 import me.vickychijwani.spectre.event.PostConflictFoundEvent;
 import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostDeletedEvent;
@@ -75,7 +66,9 @@ import me.vickychijwani.spectre.event.SavePostEvent;
 import me.vickychijwani.spectre.event.SyncPostsEvent;
 import me.vickychijwani.spectre.event.TagsLoadedEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
+import me.vickychijwani.spectre.model.RealmUtils;
 import me.vickychijwani.spectre.model.entity.AuthToken;
+import me.vickychijwani.spectre.model.entity.BlogMetadata;
 import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.model.entity.ETag;
 import me.vickychijwani.spectre.model.entity.PendingAction;
@@ -83,35 +76,29 @@ import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Setting;
 import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.model.entity.User;
-import me.vickychijwani.spectre.network.entity.ApiErrorList;
-import me.vickychijwani.spectre.network.entity.AuthReqBody;
-import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.network.entity.PostList;
 import me.vickychijwani.spectre.network.entity.PostStubList;
-import me.vickychijwani.spectre.network.entity.RefreshReqBody;
-import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
-import me.vickychijwani.spectre.pref.AppState;
-import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.util.functions.Action0;
-import me.vickychijwani.spectre.util.functions.Action1;
-import me.vickychijwani.spectre.util.functions.Action2;
 import me.vickychijwani.spectre.util.DateTimeUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
+import me.vickychijwani.spectre.util.functions.Action0;
+import me.vickychijwani.spectre.util.functions.Action1;
+import me.vickychijwani.spectre.util.functions.Action2;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
-public class NetworkService {
+public class NetworkService implements
+        LoginOrchestrator.HACKListener,
+        AuthService.Listener
+{
 
     private static final String TAG = "NetworkService";
 
@@ -121,25 +108,24 @@ public class NetworkService {
     private Realm mRealm = null;
     private GhostApiService mApi = null;
     private AuthToken mAuthToken = null;
-    private String mBlogUrl = null;
-    private OkHttpClient mOkHttpClient = null;
+    private AuthService mAuthService = null;
 
-    private boolean mbAuthRequestOnGoing = false;
     private boolean mbSyncOnGoing = false;
     private ApiFailure mRefreshError = null;
     private final ArrayDeque<ApiCallEvent> mApiEventQueue = new ArrayDeque<>();
     private final ArrayDeque<ApiCallEvent> mRefreshEventsQueue = new ArrayDeque<>();
-    private Retrofit mRetrofit;
 
-    public void start(Context context, OkHttpClient okHttpClient) {
+    public void start(OkHttpClient httpClient) {
         Crashlytics.log(Log.DEBUG, TAG, "Initializing NetworkService...");
         getBus().register(this);
-        mOkHttpClient = okHttpClient;
-        mRealm = Realm.getDefaultInstance();
-        if (AppState.getInstance(context).getBoolean(AppState.Key.LOGGED_IN)) {
-            mAuthToken = mRealm.where(AuthToken.class).findFirst();
-            mBlogUrl = UserPrefs.getInstance(context).getString(UserPrefs.Key.BLOG_URL);
-            mApi = buildApiService(mBlogUrl);
+        if (AccountManager.hasActiveBlog()) {
+            BlogMetadata activeBlog = AccountManager.getActiveBlog();
+            GhostApiService api = GhostApiUtils.getRetrofit(activeBlog.getBlogUrl(), httpClient)
+                    .create(GhostApiService.class);
+            setApiService(activeBlog.getBlogUrl(), api);
+
+            mRealm = Realm.getInstance(activeBlog.getDataRealmConfig());
+            mAuthToken = new AuthToken(mRealm.where(AuthToken.class).findFirst());
         }
     }
 
@@ -150,51 +136,36 @@ public class NetworkService {
         mRealm.close();
     }
 
-    @Subscribe
-    public void onLoginStartEvent(final LoginStartEvent event) {
-        if (mbAuthRequestOnGoing) return;
-        mbAuthRequestOnGoing = true;
-        mBlogUrl = event.blogUrl;
-        mApi = buildApiService(mBlogUrl);
-        GhostApiUtils.doWithClientSecret(mApi, mBlogUrl, clientSecret -> {
-            doLogin(event, clientSecret);
-        });
+    // TODO temporary crutch while I refactor this huge class
+    @Override
+    public void setApiService(String blogUrl, GhostApiService api) {
+        mApi = api;
+        if (mAuthService != null) {
+            mAuthService.unlisten(this);
+        }
+        mAuthService = AuthService.createWithStoredCredentials(blogUrl, api);
+        mAuthService.listen(this);
     }
 
-    private void doLogin(@NonNull LoginStartEvent event, @Nullable String clientSecret) {
-        AuthReqBody credentials = new AuthReqBody(event.username, event.password, clientSecret);
-        mApi.getAuthToken(credentials).enqueue(new Callback<AuthToken>() {
-            @Override
-            public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
-                mbAuthRequestOnGoing = false;
-                if (response.isSuccessful()) {
-                    AuthToken authToken = response.body();
-                    onNewAuthToken(authToken);
-                    getBus().post(new LoginDoneEvent(event.blogUrl, event.username, event.password,
-                            event.initiatedByUser));
-                } else {
-                    // if this request was not initiated by the user and the response is 401 Unauthorized,
-                    // it means the password changed - ask for the password again
-                    if (!event.initiatedByUser && NetworkUtils.isUnauthorized(response)) {
-                        clearSavedPassword();
-                        getBus().post(new PasswordChangedEvent());
-                    } else {
-                        ApiFailure<AuthToken> apiFailure = new ApiFailure<>(response);
-                        ApiErrorList apiErrors = parseApiErrors(mRetrofit, response);
-                        getBus().post(new LoginErrorEvent<>(apiFailure, apiErrors, event.blogUrl, event.initiatedByUser));
-                    }
-                }
-            }
+    @Override
+    public void onNewAuthToken(AuthToken authToken) {
+        Log.d(TAG, "Got new access token = " + authToken.getAccessToken());
+        authToken.setCreatedAt(DateTimeUtils.getEpochSeconds());
+        mAuthToken = new AuthToken(createOrUpdateModel(authToken));
+        flushApiEventQueue(false);
+    }
 
-            @Override
-            public void onFailure(Call<AuthToken> call, Throwable error) {
-                // error in transport layer, or lower
-                mbAuthRequestOnGoing = false;
-                ApiFailure<AuthToken> apiFailure = new ApiFailure<>(error);
-                getBus().post(new LoginErrorEvent<>(apiFailure, null, event.blogUrl, event.initiatedByUser));
-                flushApiEventQueue(true);
-            }
-        });
+    @Override
+    public void onNewLogin(String blogUrl, AuthToken authToken) {
+        AccountManager.setActiveBlog(blogUrl);
+        BlogMetadata activeBlog = AccountManager.getActiveBlog();
+        mRealm = Realm.getInstance(activeBlog.getDataRealmConfig());
+        onNewAuthToken(authToken);
+    }
+
+    @Override
+    public void onUnrecoverableFailure() {
+        flushApiEventQueue(true);
     }
 
     @Subscribe
@@ -212,7 +183,6 @@ public class NetworkService {
         mRefreshEventsQueue.addAll(Arrays.asList(
                 new LoadUserEvent(true),
                 new LoadBlogSettingsEvent(true),
-                new LoadConfigurationEvent(true),
                 new SyncPostsEvent(true)
         ));
 
@@ -251,33 +221,6 @@ public class NetworkService {
             }
         }
 
-        if (! validateAccessToken(event)) return;
-
-        Action0 checkVersionInConfiguration = () -> {
-            Action1<List<ConfigurationParam>> successCallback = configParams -> {
-                boolean versionFound = false;
-                for (ConfigurationParam param : configParams) {
-                    if ("version".equals(param.getKey())) {
-                        versionFound = true;
-                        getBus().post(new GhostVersionLoadedEvent(param.getValue()));
-                    }
-                }
-                if (! versionFound) {
-                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
-                }
-            };
-            Action1<ApiFailure> failureCallback = apiFailure -> {
-                Response response = apiFailure.response;
-                if (response != null && NetworkUtils.isNotModified(response)) {
-                    // fallback to cached data
-                    successCallback.call(mRealm.where(ConfigurationParam.class).findAll());
-                } else {
-                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
-                }
-            };
-            doLoadConfiguration(new LoadConfigurationEvent(true), successCallback, failureCallback);
-        };
-
         mApi.getVersion(mAuthToken.getAuthHeader()).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
@@ -292,14 +235,7 @@ public class NetworkService {
                         getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
                     }
                 } else {
-                    if (response.code() == HttpURLConnection.HTTP_NOT_FOUND) {
-                        // this condition means the version is < 0.7.9, because that is when
-                        // the new /configuration/about endpoint was introduced
-                        // FIXME remove this mess once we stop supporting < 0.7.9
-                        checkVersionInConfiguration.call();
-                    } else {
-                        getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
-                    }
+                    getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
                 }
             }
 
@@ -323,7 +259,6 @@ public class NetworkService {
             // else no users found in db, force a network call!
         }
 
-        if (! validateAccessToken(event)) return;
         mApi.getCurrentUser(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_CURRENT_USER)).enqueue(new Callback<UserList>() {
             @Override
             public void onResponse(Call<UserList> call, Response<UserList> response) {
@@ -380,7 +315,6 @@ public class NetworkService {
             // no settings found in db, force a network call!
         }
 
-        if (! validateAccessToken(event)) return;
         mApi.getSettings(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_BLOG_SETTINGS)).enqueue(new Callback<SettingsList>() {
             @Override
             public void onResponse(Call<SettingsList> call, Response<SettingsList> response) {
@@ -422,69 +356,6 @@ public class NetworkService {
     }
 
     @Subscribe
-    public void onLoadConfigurationEvent(final LoadConfigurationEvent event) {
-        Action1<List<ConfigurationParam>> successCallback = configParams -> {
-            getBus().post(new ConfigurationLoadedEvent(configParams));
-            refreshSucceeded(event);
-        };
-        Action1<ApiFailure> failureCallback = apiFailure -> {
-            Response response = apiFailure.response;
-            // fallback to cached data
-            RealmResults<ConfigurationParam> params = mRealm.where(ConfigurationParam.class).findAll();
-            if (params.size() > 0) {
-                getBus().post(new ConfigurationLoadedEvent(params));
-            }
-            if (response == null || NetworkUtils.isUnrecoverableError(response)) {
-                refreshFailed(event, apiFailure);
-            } else {
-                refreshSucceeded(event);
-            }
-        };
-        doLoadConfiguration(event, successCallback, failureCallback);
-    }
-
-    private void doLoadConfiguration(final LoadConfigurationEvent event,
-                                     @NonNull Action1<List<ConfigurationParam>> successCallback,
-                                     @NonNull Action1<ApiFailure> failureCallback) {
-        if (event.loadCachedData || ! event.forceNetworkCall) {
-            RealmResults<ConfigurationParam> params = mRealm.where(ConfigurationParam.class).findAll();
-            if (params.size() > 0) {
-                successCallback.call(params);
-                return;
-            }
-            // no configuration params found in db, force a network call!
-        }
-
-        if (! validateAccessToken(event)) return;
-        mApi.getConfiguration(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_CONFIGURATION)).enqueue(new Callback<ConfigurationList>() {
-            @Override
-            public void onResponse(Call<ConfigurationList> call, Response<ConfigurationList> response) {
-                if (response.isSuccessful()) {
-                    ConfigurationList configurationList = response.body();
-                    storeEtag(response.headers(), ETag.TYPE_CONFIGURATION);
-                    createOrUpdateModel(configurationList.configuration);
-                    successCallback.call(configurationList.configuration);
-                } else {
-                    ApiFailure<ConfigurationList> apiFailure = new ApiFailure<>(response);
-                    if (NetworkUtils.isUnauthorized(response)) {
-                        // defer the event and try to re-authorize
-                        refreshAccessToken(event);
-                    } else if (NetworkUtils.isUnrecoverableError(response)) {
-                        getBus().post(new ApiErrorEvent(apiFailure));
-                    }
-                    failureCallback.call(new ApiFailure<>(response));
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ConfigurationList> call, Throwable error) {
-                // error in transport layer, or lower
-                failureCallback.call(new ApiFailure(error));
-            }
-        });
-    }
-
-    @Subscribe
     public void onLoadPostsEvent(final LoadPostsEvent event) {
         if (event.loadCachedData || ! event.forceNetworkCall) {
             List<Post> posts = getPostsSorted();
@@ -498,7 +369,6 @@ public class NetworkService {
             }
         }
 
-        if (! validateAccessToken(event)) return;
         mApi.getPosts(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_ALL_POSTS), POSTS_FETCH_LIMIT).enqueue(new Callback<PostList>() {
             @Override
             public void onResponse(Call<PostList> call, Response<PostList> response) {
@@ -513,11 +383,11 @@ public class NetworkService {
                     if (users.size() > 0) {
                         User user = users.first();
                         if (user.hasOnlyAuthorRole()) {
-                            int currentUser = user.getId();
+                            String currentUser = user.getId();
                             // reverse iteration because in forward iteration, indices change on deleting
                             for (int i = postList.posts.size() - 1; i >= 0; --i) {
                                 Post post = postList.posts.get(i);
-                                if (post.getAuthor() != currentUser) {
+                                if (currentUser.equals(post.getAuthor())) {
                                     postList.posts.remove(i);
                                 }
                             }
@@ -528,7 +398,7 @@ public class NetworkService {
                     // this assumes that postList.posts is a list of ALL posts on the server
                     // FIXME time complexity is quadratic in the number of posts!
                     Iterable<Post> deletedPosts = Observable.fromIterable(mRealm.where(Post.class).findAll())
-                            .filter(cached -> ! postList.contains(cached.getUuid()))
+                            .filter(cached -> ! postList.contains(cached.getId()))
                             .blockingIterable();
                     deleteModels(deletedPosts);
 
@@ -541,7 +411,7 @@ public class NetworkService {
                             .findAll();
                     for (int i = postList.posts.size() - 1; i >= 0; --i) {
                         for (int j = 0; j < localOnlyEdits.size(); ++j) {
-                            if (postList.posts.get(i).getUuid().equals(localOnlyEdits.get(j).getUuid())) {
+                            if (postList.posts.get(i).getId().equals(localOnlyEdits.get(j).getId())) {
                                 postList.posts.remove(i);
                             }
                         }
@@ -589,7 +459,7 @@ public class NetworkService {
         Crashlytics.log(Log.DEBUG, TAG, "[onCreatePostEvent] creating new post");
         Post newPost = new Post();
         newPost.addPendingAction(PendingAction.CREATE);
-        newPost.setUuid(getTempUniqueId(Post.class));
+        newPost.setId(getTempUniqueId(Post.class));
         createOrUpdateModel(newPost);                    // save the local post to db
         getBus().post(new PostCreatedEvent(newPost));
         getBus().post(new SyncPostsEvent(false));
@@ -619,7 +489,7 @@ public class NetworkService {
                 .findAll());
         final List<Post> localNewPosts = copyPosts(mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.CREATE)
-                .findAllSorted("uuid", Sort.DESCENDING));
+                .findAll());
         final List<Post> localEditedPosts = copyPosts(mRealm.where(Post.class)
                 .equalTo("pendingActions.type", PendingAction.EDIT)
                 .findAll());
@@ -651,7 +521,7 @@ public class NetworkService {
                 for (int i = 0; i < postsToDelete.size(); ++i) {
                     Post post = postsToDelete.get(i);
                     if (i > 0) deleteQuery.or();
-                    deleteQuery.equalTo("uuid", post.getUuid());
+                    deleteQuery.equalTo("id", post.getId());
                 }
                 deleteModels(deleteQuery.findAll());
             }
@@ -755,7 +625,7 @@ public class NetworkService {
                         PostList postList = response.body();
                         createOrUpdateModel(postList.posts);
                         postUploadQueue.removeFirstOccurrence(editedPost);
-                        getBus().post(new PostSyncedEvent(editedPost.getUuid()));
+                        getBus().post(new PostSyncedEvent(editedPost.getId()));
                         if (postUploadQueue.isEmpty()) syncFinishedCB.call();
                     } else {
                         onFailure.call(editedPost, new ApiFailure<>(response));
@@ -834,8 +704,8 @@ public class NetworkService {
 
         // save tags to Realm first
         for (Tag tag : updatedPost.getTags()) {
-            if (tag.getUuid() == null) {
-                tag.setUuid(getTempUniqueId(Tag.class));
+            if (tag.getId() == null) {
+                tag.setId(getTempUniqueId(Tag.class));
                 createOrUpdateModel(tag);
             }
         }
@@ -867,7 +737,7 @@ public class NetworkService {
 
     @Subscribe
     public void onDeletePostEvent(DeletePostEvent event) {
-        int postId = event.post.getId();
+        String postId = event.post.getId();
         Crashlytics.log(Log.DEBUG, TAG, "[onDeletePostEvent] post id = " + postId);
 
         Post realmPost = mRealm.where(Post.class).equalTo("id", postId).findFirst();
@@ -891,7 +761,6 @@ public class NetworkService {
     @SuppressLint("DefaultLocale")
     @Subscribe
     public void onFileUploadEvent(FileUploadEvent event) {
-        if (! validateAccessToken(event)) return;
         Crashlytics.log(Log.DEBUG, TAG, "[onFileUploadEvent] uploading file");
 
         InputStream inputStream = event.inputStream;
@@ -978,38 +847,29 @@ public class NetworkService {
             }
         }
 
-        // copy auth token before closing the Realm
-        final AuthToken tokenToRevoke = new AuthToken(mAuthToken);
+        // revoke access and refresh tokens in the background
+        mAuthService.revokeToken(mAuthToken);
 
         // clear all persisted blog data to avoid primary key conflicts
         mRealm.close();
         Realm.deleteRealm(mRealm.getConfiguration());
-        mRealm = Realm.getDefaultInstance();
-        AppState.getInstance(SpectreApplication.getInstance())
-                .setBoolean(AppState.Key.LOGGED_IN, false);
+        String activeBlogUrl = AccountManager.getActiveBlogUrl();
+        new AuthStore().deleteCredentials(activeBlogUrl);
+        AccountManager.deleteBlog(activeBlogUrl);
+
+        // switch the Realm to the now-active blog
+        if (AccountManager.hasActiveBlog()) {
+            mRealm = Realm.getInstance(AccountManager.getActiveBlog().getDataRealmConfig());
+        }
+
         // reset state, to be sure
         mAuthToken = null;
-        mBlogUrl = null;
+        mAuthService = null;
         mApiEventQueue.clear();
         mRefreshEventsQueue.clear();
-        mbAuthRequestOnGoing = false;
         mbSyncOnGoing = false;
         mRefreshError = null;
         getBus().post(new LogoutStatusEvent(true, false));
-
-        // revoke access and refresh tokens in the background
-        GhostApiService apiToRevokeOn = mApi;
-        GhostApiUtils.doWithClientSecret(apiToRevokeOn, event.blogUrl, clientSecret -> {
-            RevokeReqBody refreshTokenRevokeReqBody = new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH,
-                    tokenToRevoke.getRefreshToken(), clientSecret);
-            RevokeReqBody accessTokenRevokeReqBody = new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS,
-                    tokenToRevoke.getAccessToken(), clientSecret);
-            String authHeader = tokenToRevoke.getAuthHeader();
-            // revoke access token *last*, because access token is needed for revocation
-            revokeToken(apiToRevokeOn, authHeader, refreshTokenRevokeReqBody, () -> {
-                revokeToken(apiToRevokeOn, authHeader, accessTokenRevokeReqBody, () -> {});
-            });
-        });
     }
 
 
@@ -1027,102 +887,11 @@ public class NetworkService {
         });
     }
 
-    private boolean validateAccessToken(@NonNull ApiCallEvent event) {
-        boolean valid = ! hasAccessTokenExpired();
-        if (! valid) {
-            refreshAccessToken(event);
-        }
-        return valid;
-    }
-
     private void refreshAccessToken(@Nullable final ApiCallEvent eventToDefer) {
         if (eventToDefer != null) {
             mApiEventQueue.addLast(eventToDefer);
         }
-        if (mbAuthRequestOnGoing) return;
-
-        // FIXME this is way overkill - the bandwidth savings are miniscule
-        // FIXME after Ghost 1.0, even more so, as token expiry times are increasing 100x
-        // don't waste bandwidth by trying to use an expired refresh token
-        if (hasRefreshTokenExpired()) {
-            postLoginStartEvent();
-            return;
-        }
-
-        mbAuthRequestOnGoing = true;
-        GhostApiUtils.doWithClientSecret(mApi, mBlogUrl, clientSecret -> {
-            final RefreshReqBody credentials = new RefreshReqBody(mAuthToken.getRefreshToken(),
-                    clientSecret);
-            mApi.refreshAuthToken(credentials).enqueue(new Callback<AuthToken>() {
-                @Override
-                public void onResponse(Call<AuthToken> call, Response<AuthToken> response) {
-                    mbAuthRequestOnGoing = false;
-                    if (response.isSuccessful()) {
-                        // since this is a *refreshed* auth token, there is no refresh token in it,
-                        // so add it manually
-                        AuthToken authToken = response.body();
-                        authToken.setRefreshToken(credentials.refreshToken);
-                        onNewAuthToken(authToken);
-                    } else {
-                        // if the response is 401 Unauthorized, we can recover from it by logging in
-                        // anew; this should only happen if the refresh token is manually revoked or
-                        // the expiration time is changed inside Ghost (#92)
-                        if (NetworkUtils.isUnauthorized(response)) {
-                            try {
-                                String responseStr = response.errorBody().string();
-                                Crashlytics.logException(new ExpiredTokenUsedException(responseStr));
-                            } catch (IOException e) {
-                                Log.e(TAG, Log.getStackTraceString(e));
-                            }
-                            postLoginStartEvent();
-                        } else {
-                            ApiFailure<AuthToken> apiFailure = new ApiFailure<>(response);
-                            ApiErrorList apiErrors = parseApiErrors(mRetrofit, response);
-                            getBus().post(new LoginErrorEvent<>(apiFailure, apiErrors, null, false));
-                            flushApiEventQueue(true);
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<AuthToken> call, Throwable error) {
-                    // error in transport layer, or lower
-                    mbAuthRequestOnGoing = false;
-                    ApiFailure<AuthToken> apiFailure = new ApiFailure<>(error);
-                    getBus().post(new LoginErrorEvent<>(apiFailure, null, null, false));
-                    flushApiEventQueue(true);
-                }
-            });
-        });
-    }
-
-    private static void revokeToken(GhostApiService api, String authHeader,
-                                    RevokeReqBody reqBody, Runnable onComplete) {
-        final Call<JsonElement> call = api.revokeAuthToken(authHeader, reqBody);
-        call.enqueue(new Callback<JsonElement>() {
-            @Override
-            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
-                if (response.isSuccessful()) {
-                    JsonElement jsonResponse = response.body();
-                    JsonObject jsonObj = jsonResponse.getAsJsonObject();
-                    if (jsonObj.has("error")) {
-                        Crashlytics.logException(new TokenRevocationFailedException(
-                                reqBody.tokenTypeHint, jsonObj.get("error").getAsString()));
-                    }
-                } else {
-                    Crashlytics.logException(new TokenRevocationFailedException(
-                            reqBody.tokenTypeHint, "<this shouldn't happen>"));
-                }
-                onComplete.run();
-            }
-
-            @Override
-            public void onFailure(Call<JsonElement> call, Throwable error) {
-                Crashlytics.logException(new TokenRevocationFailedException(
-                        reqBody.tokenTypeHint, error));
-                onComplete.run();
-            }
-        });
+        mAuthService.refreshToken(mAuthToken);
     }
 
     private void flushApiEventQueue(boolean loadCachedData) {
@@ -1158,71 +927,14 @@ public class NetworkService {
         }
     }
 
-    private void clearSavedPassword() {
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        prefs.clear(UserPrefs.Key.PASSWORD);
-        AppState appState = AppState.getInstance(SpectreApplication.getInstance());
-        appState.clear(AppState.Key.LOGGED_IN);
-    }
-
     private void savePermalinkFormat(List<Setting> settings) {
         for (Setting setting : settings) {
             if ("permalinks".equals(setting.getKey())) {
-                UserPrefs.getInstance(SpectreApplication.getInstance())
-                        .setString(UserPrefs.Key.PERMALINK_FORMAT, setting.getValue());
+                BlogMetadata activeBlog = AccountManager.getActiveBlog();
+                activeBlog.setPermalinkFormat(setting.getValue());
+                AccountManager.addOrUpdateBlog(activeBlog);
             }
         }
-    }
-
-    private void postLoginStartEvent() {
-        UserPrefs prefs = UserPrefs.getInstance(SpectreApplication.getInstance());
-        String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
-        String username = prefs.getString(UserPrefs.Key.USERNAME);
-        String password = prefs.getString(UserPrefs.Key.PASSWORD);
-        getBus().post(new LoginStartEvent(blogUrl, username, password, false));
-    }
-
-    private void onNewAuthToken(AuthToken authToken) {
-        Log.d(TAG, "Got new access token = " + authToken.getAccessToken());
-        authToken.setCreatedAt(DateTimeUtils.getEpochSeconds());
-        mAuthToken = createOrUpdateModel(authToken);
-        AppState.getInstance(SpectreApplication.getInstance())
-                .setBoolean(AppState.Key.LOGGED_IN, true);
-        flushApiEventQueue(false);
-    }
-
-    private boolean hasAccessTokenExpired() {
-        // consider the token as "expired" 60 seconds earlier, because the createdAt timestamp can
-        // be off by several seconds
-        return DateTimeUtils.getEpochSeconds() > mAuthToken.getCreatedAt() +
-                mAuthToken.getExpiresIn() - 60;
-    }
-
-    private boolean hasRefreshTokenExpired() {
-        // consider the token as "expired" 60 seconds earlier, because the createdAt timestamp can
-        // be off by several seconds
-        return DateTimeUtils.getEpochSeconds() > mAuthToken.getCreatedAt() + 86400 - 60;
-    }
-
-    private GhostApiService buildApiService(@NonNull String blogUrl) {
-        String baseUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, "ghost/api/v0.1/");
-        mRetrofit = GhostApiUtils.getRetrofit(baseUrl, mOkHttpClient);
-        return mRetrofit.create(GhostApiService.class);
-    }
-
-    @Nullable
-    private static ApiErrorList parseApiErrors(Retrofit retrofit, Response<AuthToken> response) {
-        ResponseBody errorBody = response.errorBody();
-        ApiErrorList apiErrors = null;
-        try {
-            apiErrors = (ApiErrorList) retrofit.responseBodyConverter(
-                    ApiErrorList.class, new Annotation[0]).convert(errorBody);
-        } catch (IOException | ClassCastException e) {
-            Crashlytics.log(Log.ERROR, TAG, "Error while parsing login errors! "
-                    + "Response code = " + response.code());
-            Crashlytics.logException(e);
-        }
-        return apiErrors;
     }
 
     private List<Post> getPostsSorted() {
@@ -1262,7 +974,7 @@ public class NetworkService {
     @NonNull
     private <T extends RealmModel> String getTempUniqueId(Class<T> clazz) {
         int tempId = Integer.MAX_VALUE;
-        while (mRealm.where(clazz).equalTo("uuid", String.valueOf(tempId)).findAll().size() > 0) {
+        while (mRealm.where(clazz).equalTo("id", String.valueOf(tempId)).findAll().size() > 0) {
             --tempId;
         }
         return String.valueOf(tempId);
@@ -1282,7 +994,7 @@ public class NetworkService {
 
     private <T extends RealmModel> T createOrUpdateModel(T object,
                                                          @Nullable Runnable afterTransaction) {
-        return executeRealmTransaction(mRealm, realm -> {
+        return RealmUtils.executeTransaction(mRealm, realm -> {
             T realmObject = mRealm.copyToRealmOrUpdate(object);
             if (afterTransaction != null) {
                 afterTransaction.run();
@@ -1300,7 +1012,7 @@ public class NetworkService {
         if (! objects.iterator().hasNext()) {
             return Collections.emptyList();
         }
-        return executeRealmTransaction(mRealm, realm -> {
+        return RealmUtils.executeTransaction(mRealm, realm -> {
             List<T> realmObjects = mRealm.copyToRealmOrUpdate(objects);
             if (afterTransaction != null) {
                 afterTransaction.run();
@@ -1310,9 +1022,8 @@ public class NetworkService {
     }
 
     private <T extends RealmModel> void deleteModel(T realmObject) {
-        executeRealmTransaction(mRealm, realm -> {
+        RealmUtils.executeTransaction(mRealm, realm -> {
             RealmObject.deleteFromRealm(realmObject);
-            return null;
         });
     }
 
@@ -1320,34 +1031,11 @@ public class NetworkService {
         if (! realmObjects.iterator().hasNext()) {
             return;
         }
-        executeRealmTransaction(mRealm, realm -> {
+        RealmUtils.executeTransaction(mRealm, realm -> {
             for (T realmObject : realmObjects) {
                 RealmObject.deleteFromRealm(realmObject);
             }
-            return null;
         });
-    }
-
-    private static <T> T executeRealmTransaction(@NonNull Realm realm,
-                                                 @NonNull RealmTransactionWithReturn<T> transaction) {
-        T retValue;
-        realm.beginTransaction();
-        try {
-            retValue = transaction.execute(realm);
-            realm.commitTransaction();
-        } catch (Throwable e) {
-            if (realm.isInTransaction()) {
-                realm.cancelTransaction();
-            } else {
-                Log.w(TAG, "Could not cancel transaction, not currently in a transaction.");
-            }
-            throw e;
-        }
-        return retValue;
-    }
-
-    private interface RealmTransactionWithReturn<T> {
-        T execute(@NonNull Realm realm);
     }
 
     private Bus getBus() {

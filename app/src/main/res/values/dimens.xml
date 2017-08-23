@@ -4,6 +4,7 @@
     <dimen name="padding_inline">4dp</dimen>
     <dimen name="padding_default">8dp</dimen>
     <dimen name="padding_large">16dp</dimen>
+    <dimen name="padding_huge">32dp</dimen>
     <dimen name="padding_fab_normal">88dp</dimen>  <!-- fab_size_normal + 2 * padding_large -->
 
     <!-- card view with useCompatPadding=true already has 3dp horizontal for shadow -->
@@ -29,6 +30,11 @@
     <dimen name="text_size_hyperlarge">72sp</dimen>
 
     <!-- view dimensions and spacing -->
+    <dimen name="responsive_breakpoint">480dp</dimen>
+
+    <dimen name="touch_size_default">48dp</dimen>
+    <dimen name="touch_size_comfy">56dp</dimen>
+
     <dimen name="toolbar_height">56dp</dimen>
     <dimen name="toolbar_container_height">96dp</dimen>
     <dimen name="toolbar_elevation">4dp</dimen>
@@ -36,13 +42,12 @@
 
     <dimen name="format_toolbar_height">48dp</dimen>
     <dimen name="format_toolbar_elevation">5dp</dimen>    <!-- must be < 6dp (snackbar elevation) so it doesn't hide snackbars -->
-    <dimen name="format_toolbar_max_width">384dp</dimen>  <!-- width of my Nexus 4 -->
+    <dimen name="format_toolbar_max_width">@dimen/responsive_breakpoint</dimen>
 
     <dimen name="post_view_appbar_height">104dp</dimen>   <!-- toolbar_height + tabbar_height -->
     <dimen name="post_image_height">192dp</dimen>
     <dimen name="post_grid_max_width">1200dp</dimen>
 
-    <!-- misc numbers -->
-    <integer name="animation_duration">200</integer>
+    <dimen name="login_form_max_width">@dimen/responsive_breakpoint</dimen>
 
 </resources>

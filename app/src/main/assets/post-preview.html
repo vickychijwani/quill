@@ -10,22 +10,9 @@
     <link rel="stylesheet" href="file:///android_asset/css/main.css" />
     <link rel="stylesheet" href="file:///android_asset/css/defer.css" />
 
-    <script type="text/javascript" src="file:///android_asset/showdown-ghost/showdown.js"></script>
-    <script type="text/javascript" src="file:///android_asset/showdown-ghost/extensions/ghostgfm.js"></script>
-    <script type="text/javascript" src="file:///android_asset/showdown-ghost/extensions/footnotes.js"></script>
-    <script type="text/javascript" src="file:///android_asset/showdown-ghost/extensions/highlight.js"></script>
+    <script type="text/javascript" src="file:///android_asset/markdown-converter.js"></script>
     <script type="text/javascript" src="file:///android_asset/js/prism.min.js"></script>
     <script type="text/javascript">
-        // https://github.com/TryGhost/Ghost/blob/master/core/client/app/helpers/gh-format-markdown.js#L8
-        var showdown = new Showdown.converter({
-            extensions: [
-                // 'ghostimagepreview',
-                'ghostgfm',
-                'footnotes',
-                'highlight'
-            ]
-        });
-
         var content = undefined, title = undefined;
         window.addEventListener('load', function () {
             content = document.getElementsByClassName('post-content')[0];
@@ -45,7 +32,7 @@
             }
             markdown = POST.getMarkdown();
 
-            var html = showdown.makeHtml(markdown),
+            var html = MarkdownConverter.render(markdown),
                 blogUrl = POST.getBlogUrl();
 
             html = html

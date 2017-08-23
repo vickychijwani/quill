@@ -48,6 +48,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.event.DeletePostEvent;
 import me.vickychijwani.spectre.event.LoadTagsEvent;
 import me.vickychijwani.spectre.event.PostDeletedEvent;
@@ -57,7 +58,6 @@ import me.vickychijwani.spectre.event.PostSyncedEvent;
 import me.vickychijwani.spectre.event.TagsLoadedEvent;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
-import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
 import me.vickychijwani.spectre.util.functions.Action1;
@@ -96,8 +96,6 @@ public class PostViewActivity extends BaseActivity implements
     private ProgressDialog mProgressDialog;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mSaveTimeoutRunnable;
-    private String mBlogUrl;
-    private boolean mbFileStorageEnabled = false;
     private PostSettingsChangedListener mPostSettingsChangedListener;
 
     @Override
@@ -123,8 +121,6 @@ public class PostViewActivity extends BaseActivity implements
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         mFormattingToolbarManager = new FormattingToolbarManager((ViewGroup) findViewById(R.id.format_toolbar));
-
-        mBlogUrl = UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
 
         ArrayAdapter<String> tagSuggestionsAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, Collections.emptyList());
@@ -187,9 +183,8 @@ public class PostViewActivity extends BaseActivity implements
             // hide the formatting toolbar in the preview
             mFormattingToolbarManager.hide();
         }
-        mbFileStorageEnabled = bundle.getBoolean(BundleKeys.FILE_STORAGE_ENABLED);
         mViewPager.setAdapter(new PostViewFragmentPagerAdapter(this, getSupportFragmentManager(),
-                mPost, mbFileStorageEnabled, this));
+                mPost, this));
         mViewPager.removeOnPageChangeListener(this);
         mViewPager.addOnPageChangeListener(this);
         mViewPager.setCurrentItem(startingTabPosition);
@@ -197,8 +192,6 @@ public class PostViewActivity extends BaseActivity implements
         mTabLayout.addOnTabSelectedListener(this);
         updatePostSettings();
         mPostImageLayoutManager.setOnClickListener(this);
-
-        getBus().post(new LoadTagsEvent());
     }
 
     @Override
@@ -207,9 +200,16 @@ public class PostViewActivity extends BaseActivity implements
         // if the post is replaced (e.g., right after new post creation) followed by an
         // orientation change, make sure we have the updated post after being re-created
         outState.putParcelable(BundleKeys.POST, mPost);
-        outState.putBoolean(BundleKeys.FILE_STORAGE_ENABLED, mbFileStorageEnabled);
         outState.putBoolean(BundleKeys.START_EDITING,
                 mViewPager.getCurrentItem() == PostViewFragmentPagerAdapter.TAB_POSITION_EDIT);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (mPostTagsEditText.getAdapter() == null || mPostTagsEditText.getAdapter().isEmpty()) {
+            getBus().post(new LoadTagsEvent());
+        }
     }
 
     @Override
@@ -338,7 +338,7 @@ public class PostViewActivity extends BaseActivity implements
 
     @Subscribe
     public void onPostSyncedEvent(PostSyncedEvent event) {
-        if (event.uuid.equals(mPost.getUuid()) && mbPreviewPost) {
+        if (event.id.equals(mPost.getId()) && mbPreviewPost) {
             mHandler.removeCallbacks(mSaveTimeoutRunnable);
             startBrowserActivity(PostUtils.getPostUrl(mPost));
             if (mProgressDialog != null) {
@@ -372,7 +372,7 @@ public class PostViewActivity extends BaseActivity implements
 
     @Subscribe
     public void onPostSavedEvent(PostSavedEvent event) {
-        if (! mPost.getUuid().equals(event.post.getUuid())) {
+        if (! mPost.getId().equals(event.post.getId())) {
             return;
         }
         updatePost(event.post);
@@ -380,12 +380,6 @@ public class PostViewActivity extends BaseActivity implements
 
     @Subscribe
     public void onPostDeletedEvent(PostDeletedEvent event) {
-        if (event.postId != mPost.getId()) {
-            RuntimeException e = new IllegalArgumentException("Received post deleted event for id = "
-                    + event.postId + ", current id = " + mPost.getId());
-            Crashlytics.log(Log.ERROR, TAG, e.getMessage());
-            throw e;
-        }
         setResult(RESULT_CODE_DELETED);
         finish();
     }
@@ -407,10 +401,11 @@ public class PostViewActivity extends BaseActivity implements
     }
 
     private void updatePostSettings() {
-        String imageUrl = mPost.getImage();
+        String imageUrl = mPost.getFeatureImage();
         if (!TextUtils.isEmpty(imageUrl)) {
             mPostImageLayoutManager.setViewState(PostImageLayoutManager.ViewState.PROGRESS_BAR);
-            imageUrl = NetworkUtils.makeAbsoluteUrl(mBlogUrl, imageUrl);
+            String blogUrl = AccountManager.getActiveBlogUrl();
+            imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, imageUrl);
             getPicasso()
                     .load(imageUrl)
                     .fit().centerCrop()
@@ -442,12 +437,8 @@ public class PostViewActivity extends BaseActivity implements
     public void onClick(View view) {
         if (view.getId() == R.id.post_image_edit_layout) {
             PopupMenu popupMenu = new PopupMenu(this, mPostImageLayoutManager.getRootLayout());
-            if (mbFileStorageEnabled) {
-                popupMenu.inflate(R.menu.insert_image_file_storage_enabled);
-            } else {
-                popupMenu.inflate(R.menu.insert_image_file_storage_disabled);
-            }
-            if (TextUtils.isEmpty(mPost.getImage())) {
+            popupMenu.inflate(R.menu.insert_image);
+            if (TextUtils.isEmpty(mPost.getFeatureImage())) {
                 MenuItem removeImageItem = popupMenu.getMenu().findItem(R.id.action_image_remove);
                 removeImageItem.setVisible(false);
             }

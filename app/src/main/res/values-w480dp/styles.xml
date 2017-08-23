@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MyFormatToolbar">
+        <item name="android:layout_width">@dimen/format_toolbar_max_width</item>
+        <item name="android:layout_height">@dimen/format_toolbar_height</item>
+    </style>
+
+    <style name="MyLoginForm">
+        <item name="android:layout_width">@dimen/login_form_max_width</item>
+    </style>
+
+</resources>

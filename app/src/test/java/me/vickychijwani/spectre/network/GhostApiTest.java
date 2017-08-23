@@ -14,15 +14,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
+import io.reactivex.Observable;
 import io.realm.RealmList;
 import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Role;
 import me.vickychijwani.spectre.model.entity.Setting;
+import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.model.entity.User;
+import me.vickychijwani.spectre.network.entity.ApiErrorList;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
-import me.vickychijwani.spectre.network.entity.ConfigurationList;
 import me.vickychijwani.spectre.network.entity.PostList;
 import me.vickychijwani.spectre.network.entity.PostStubList;
 import me.vickychijwani.spectre.network.entity.RefreshReqBody;
@@ -30,11 +32,12 @@ import me.vickychijwani.spectre.network.entity.RevokeReqBody;
 import me.vickychijwani.spectre.network.entity.SettingsList;
 import me.vickychijwani.spectre.network.entity.UserList;
 import me.vickychijwani.spectre.util.NetworkUtils;
-import me.vickychijwani.spectre.util.functions.Action2;
+import me.vickychijwani.spectre.util.functions.Action1;
 import me.vickychijwani.spectre.util.functions.Action3;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
+import retrofit2.HttpException;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
@@ -42,21 +45,27 @@ import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
+ * TYPE: integration-style (requires running Ghost server)
  * PURPOSE: contract tests for the latest version of the Ghost API that we support
  *
  * Run these against a live Ghost instance to detect ANY behaviour changes (breaking or
  * non-breaking) in the API when a new Ghost version comes out.
+ *
+ * What's NOT tested here:
+ * - Ghost Auth (needs a UI)
  */
 
 public final class GhostApiTest {
@@ -67,21 +76,30 @@ public final class GhostApiTest {
 
     private static GhostApiService API;
     private static Slugify SLUGIFY;
+    private static Retrofit RETROFIT;
 
     @BeforeClass
     public static void setupApiService() {
-        String baseUrl = NetworkUtils.makeAbsoluteUrl(BLOG_URL, "ghost/api/v0.1/");
         OkHttpClient httpClient = new ProductionHttpClientFactory().create(null)
                 .newBuilder()
                 .addInterceptor(new HttpLoggingInterceptor()
                         .setLevel(HttpLoggingInterceptor.Level.BODY))
                 .build();
-        Retrofit retrofit = GhostApiUtils.getRetrofit(baseUrl, httpClient);
-        API = retrofit.create(GhostApiService.class);
+        RETROFIT = GhostApiUtils.getRetrofit(BLOG_URL, httpClient);
+        API = RETROFIT.create(GhostApiService.class);
 
-        // delete the default "Welcome to Ghost" post, if it exists
-        doWithAuthToken((token, __) -> {
-            execute(API.deletePost(token.getAuthHeader(), 1));
+        doWithAuthToken(token -> {
+            PostList posts = execute(API.getPosts(token.getAuthHeader(), "", 100)).body();
+            // A default Ghost install has these many posts initially. If there are more than this,
+            // abort. This is to avoid messing up a production blog (like my own) by mistake.
+            final int DEFAULT_POST_COUNT = 7;
+            if (!posts.posts.isEmpty() && posts.posts.size() != DEFAULT_POST_COUNT) {
+                throw new IllegalStateException("Aborting! Expected " + DEFAULT_POST_COUNT +
+                        " posts, found " + posts.posts.size());
+            }
+            for (Post post : posts.posts) {
+                execute(API.deletePost(token.getAuthHeader(), post.getId()));
+            }
         });
     }
 
@@ -104,56 +122,92 @@ public final class GhostApiTest {
 
     @Test
     public void test_getAuthToken_withPassword() {
-        doWithAuthToken((token, response) -> {
-            assertThat(response.code(), is(HTTP_OK));
+        doWithAuthToken(token -> {
             assertThat(token.getTokenType(), is("Bearer"));
             assertThat(token.getAccessToken(), notNullValue());
             assertThat(token.getRefreshToken(), notNullValue());
-            assertThat(token.getExpiresIn(), is(3600));
+            assertThat(token.getExpiresIn(), is(2628000));
         });
     }
 
     @Test
+    public void test_getAuthToken_wrongEmail() {
+        String clientSecret = getClientSecret();
+        assertThat(clientSecret, notNullValue());
+        AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, "wrong@email.com", TEST_PWD);
+        try {
+            execute(API.getAuthToken(credentials));
+            fail("Test did not throw exception as expected!");
+        } catch (Exception e) {
+            assertThat(e.getCause(), instanceOf(HttpException.class));
+            HttpException httpEx = (HttpException) e.getCause();
+            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, httpEx);
+            assertThat(apiErrors, notNullValue());
+            assertThat(apiErrors.errors.size(), is(1));
+            assertThat(apiErrors.errors.get(0).errorType, is("NotFoundError"));
+            assertThat(apiErrors.errors.get(0).message, notNullValue());
+            assertThat(apiErrors.errors.get(0).message, not(""));
+        }
+    }
+
+    @Test
+    public void test_getAuthToken_wrongPassword() {
+        String clientSecret = getClientSecret();
+        assertThat(clientSecret, notNullValue());
+        AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, TEST_USER, "wrongpassword");
+        try {
+            execute(API.getAuthToken(credentials));
+            fail("Test did not throw exception as expected!");
+        } catch (Exception e) {
+            assertThat(e.getCause(), instanceOf(HttpException.class));
+            HttpException httpEx = (HttpException) e.getCause();
+            // Ghost returns a 422 Unprocessable Entity for an incorrect password
+            assertThat("http code = " + httpEx.code(), NetworkUtils.isUnprocessableEntity(httpEx), is(true));
+            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, httpEx);
+            assertThat(apiErrors, notNullValue());
+            assertThat(apiErrors.errors.size(), is(1));
+            assertThat(apiErrors.errors.get(0).errorType, is("ValidationError"));
+            assertThat(apiErrors.errors.get(0).message, notNullValue());
+            assertThat(apiErrors.errors.get(0).message, not(""));
+        }
+    }
+
+    @Test
     public void test_getAuthToken_withRefreshToken() {
-        doWithAuthToken((expiredToken, __) -> {
+        doWithAuthToken(expiredToken -> {
             String clientSecret = getClientSecret();
             RefreshReqBody credentials = new RefreshReqBody(expiredToken.getRefreshToken(),
                     clientSecret);
-            Response<AuthToken> response = execute(API.refreshAuthToken(credentials));
-            AuthToken refreshedToken = response.body();
+            AuthToken refreshedToken = execute(API.refreshAuthToken(credentials));
 
-            assertThat(response.code(), is(HTTP_OK));
             assertThat(refreshedToken.getTokenType(), is("Bearer"));
             assertThat(refreshedToken.getAccessToken(), notNullValue());
             assertThat(refreshedToken.getRefreshToken(), isEmptyOrNullString());
             assertThat(refreshedToken.getExpiresIn(), is(2628000));
 
-            RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
-                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, refreshedToken.getRefreshToken(), clientSecret),
-                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, refreshedToken.getAccessToken(), clientSecret)
-            };
-            for (RevokeReqBody reqBody : revokeReqs) {
-                execute(API.revokeAuthToken(refreshedToken.getAuthHeader(), reqBody));
-            }
+            // revoke only the access token, the refresh token is null anyway
+            RevokeReqBody reqBody = RevokeReqBody.fromAccessToken(refreshedToken.getAccessToken(),
+                    clientSecret);
+            execute(API.revokeAuthToken(refreshedToken.getAuthHeader(), reqBody));
         });
     }
 
     @Test
     public void test_revokeAuthToken() {
         String clientSecret = getClientSecret();
-        AuthReqBody credentials = new AuthReqBody(TEST_USER, TEST_PWD, clientSecret);
-        AuthToken token = execute(API.getAuthToken(credentials)).body();
+        assertThat(clientSecret, notNullValue());
+        AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, TEST_USER, TEST_PWD);
+        AuthToken token = execute(API.getAuthToken(credentials));
 
+        // revoke refresh token BEFORE access token, because the access token is needed for revocation!
         RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
-                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, token.getRefreshToken(), clientSecret),
-                new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, token.getAccessToken(), clientSecret)
+                RevokeReqBody.fromRefreshToken(token.getRefreshToken(), clientSecret),
+                RevokeReqBody.fromAccessToken(token.getAccessToken(), clientSecret),
         };
         for (RevokeReqBody reqBody : revokeReqs) {
-            Response<JsonElement> response = execute(API.revokeAuthToken(token.getAuthHeader(), reqBody));
-            JsonElement jsonResponse = response.body();
-            JsonObject jsonObj = jsonResponse.getAsJsonObject();
+            JsonElement response = execute(API.revokeAuthToken(token.getAuthHeader(), reqBody));
+            JsonObject jsonObj = response.getAsJsonObject();
 
-            assertThat(response.code(), is(HTTP_OK));
             assertThat(jsonObj.has("error"), is(false));
             assertThat(jsonObj.get("token").getAsString(), is(reqBody.token));
         }
@@ -161,7 +215,7 @@ public final class GhostApiTest {
 
     @Test
     public void test_getCurrentUser() {
-        doWithAuthToken((token, __) -> {
+        doWithAuthToken(token -> {
             Response<UserList> response = execute(API.getCurrentUser(token.getAuthHeader(), ""));
             UserList users = response.body();
             User user = users.users.get(0);
@@ -169,8 +223,7 @@ public final class GhostApiTest {
             assertThat(response.code(), is(HTTP_OK));
             assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
             assertThat(user, notNullValue());
-            //assertThat(user.getId(), instanceOf(Integer.class)); // no-op, int can't be null
-            assertThat(user.getUuid(), notNullValue());
+            assertThat(user.getId(), notNullValue());
             assertThat(user.getName(), notNullValue());
             assertThat(user.getSlug(), notNullValue());
             assertThat(user.getEmail(), is(TEST_USER));
@@ -180,7 +233,6 @@ public final class GhostApiTest {
 
             Role role = user.getRoles().first();
             //assertThat(role.getId(), instanceOf(Integer.class)); // no-op, int can't be null
-            assertThat(role.getUuid(), notNullValue());
             assertThat(role.getName(), notNullValue());
             assertThat(role.getDescription(), notNullValue());
         });
@@ -188,14 +240,15 @@ public final class GhostApiTest {
 
     @Test
     public void test_createPost() {
-        doWithAuthToken((token, __) -> {
+        doWithAuthToken(token -> {
             createRandomPost(token, (expectedPost, response, createdPost) -> {
                 assertThat(response.code(), is(HTTP_CREATED));
                 assertThat(createdPost.getTitle(), is(expectedPost.getTitle()));
                 assertThat(createdPost.getSlug(), is(SLUGIFY.slugify(expectedPost.getTitle())));
                 assertThat(createdPost.getStatus(), is(expectedPost.getStatus()));
                 assertThat(createdPost.getMarkdown(), is(expectedPost.getMarkdown()));
-                assertThat(createdPost.getHtml(), is("<p>" + expectedPost.getMarkdown() + "</p>"));
+                assertThat(createdPost.getHtml(), is("<div class=\"kg-card-markdown\"><p>"
+                        + expectedPost.getMarkdown() + "</p>\n</div>"));
                 assertThat(createdPost.getTags(), is(expectedPost.getTags()));
                 assertThat(createdPost.isFeatured(), is(false));
             });
@@ -217,7 +270,7 @@ public final class GhostApiTest {
             assertThat(posts.get(1).getTitle(), is(p1.getTitle()));
             assertThat(posts.get(1).getMarkdown(), is(p1.getMarkdown()));
         };
-        doWithAuthToken((token, __) -> {
+        doWithAuthToken(token -> {
             createRandomPost(token, (post1, r1, cp1) -> {
                 createRandomPost(token, (post2, r2, cp2) -> {
                     checkPosts.call(token, post1, post2);
@@ -237,7 +290,7 @@ public final class GhostApiTest {
             assertThat(posts.get(0).getTitle(), is(p2.getTitle()));
             assertThat(posts.get(0).getMarkdown(), is(p2.getMarkdown()));
         };
-        doWithAuthToken((token, __) -> {
+        doWithAuthToken(token -> {
             createRandomPost(token, (post1, r1, cp1) -> {
                 createRandomPost(token, (post2, r2, cp2) -> {
                     checkPosts.call(token, post1, post2);
@@ -248,7 +301,7 @@ public final class GhostApiTest {
 
     @Test
     public void test_getPost() {
-        doWithAuthToken((token, __) -> {
+        doWithAuthToken(token -> {
             createRandomPost(token, (expected, ___, created) -> {
                 Response<PostList> response = execute(API.getPost(token.getAuthHeader(), created.getId()));
                 Post post = response.body().posts.get(0);
@@ -260,8 +313,31 @@ public final class GhostApiTest {
     }
 
     @Test
+    public void test_updatePost() {
+        doWithAuthToken(token -> {
+            createRandomPost(token, (newPost, __, created) -> {
+                Post updatedPost = new Post(newPost);
+                Tag updatedTag = new Tag("updated-tag");
+                updatedPost.setMarkdown("updated **markdown**");
+                updatedPost.setTags(new RealmList<>(updatedTag));
+                PostStubList postStubs = PostStubList.from(updatedPost);
+
+                Response<PostList> response = execute(API.updatePost(token.getAuthHeader(),
+                        created.getId(), postStubs));
+                Post post = response.body().posts.get(0);
+
+                assertThat(response.code(), is(HTTP_OK));
+                assertThat(post.getTitle(), is(updatedPost.getTitle()));
+                assertThat(post.getMarkdown(), is(updatedPost.getMarkdown()));
+                assertThat(post.getTags(), hasSize(1));
+                assertThat(post.getTags().get(0).getName(), is(updatedTag.getName()));
+            });
+        });
+    }
+
+    @Test
     public void test_deletePost() {
-        doWithAuthToken((token, __) -> {
+        doWithAuthToken(token -> {
             final Post[] deleted = {null};
             createRandomPost(token, (expected, ___, created) -> {
                 deleted[0] = created;
@@ -274,7 +350,7 @@ public final class GhostApiTest {
 
     @Test
     public void test_getSettings() {
-        doWithAuthToken((token, __) -> {
+        doWithAuthToken(token -> {
             Response<SettingsList> response = execute(API.getSettings(token.getAuthHeader(), ""));
             List<Setting> settings = response.body().settings;
 
@@ -294,23 +370,15 @@ public final class GhostApiTest {
 
     @Test
     public void test_getConfiguration() {
-        doWithAuthToken((token, __) -> {
-            Response<ConfigurationList> response = execute(API.getConfiguration(token.getAuthHeader(), ""));
-            List<ConfigurationParam> config = response.body().configuration;
+        // NOTE: configuration (except the /configuration/about endpoint) can be queried without auth
+        List<ConfigurationParam> config = execute(API.getConfiguration()).configuration;
 
-            assertThat(response.code(), is(HTTP_OK));
-            assertThat(response.headers().get("ETag"), not(isEmptyOrNullString()));
-            assertThat(config, notNullValue());
-            // is file storage enabled? if not, images etc can't be uploaded
-            assertThat(config, hasItem(allOf(
-                    hasProperty("key", is("fileStorage")),
-                    hasProperty("value", anyOf(is("true"), is("false"))))));
-        });
+        assertThat(config, notNullValue());
     }
 
     @Test
     public void test_getConfigAbout() {
-        doWithAuthToken((token, __) -> {
+        doWithAuthToken(token -> {
             Response<JsonObject> response = execute(API.getVersion(token.getAuthHeader()));
             JsonObject about = response.body();
             String version = null;
@@ -329,20 +397,18 @@ public final class GhostApiTest {
 
 
     // private helpers
-    private static void doWithAuthToken(Action2<AuthToken, Response<AuthToken>> callback) {
+    private static void doWithAuthToken(Action1<AuthToken> callback) {
         String clientSecret = getClientSecret();
-        AuthReqBody credentials = new AuthReqBody(TEST_USER, TEST_PWD, clientSecret);
-        Response<AuthToken> response = execute(API.getAuthToken(credentials));
-        if (!response.isSuccessful()) {
-            throw new RuntimeException("Failed to get auth token");
-        }
-        AuthToken token = response.body();
+        assertThat(clientSecret, notNullValue());
+        AuthReqBody credentials = AuthReqBody.fromPassword(clientSecret, TEST_USER, TEST_PWD);
+        AuthToken token = execute(API.getAuthToken(credentials));
         try {
-            callback.call(token, response);
+            callback.call(token);
         } finally {
+            // revoke refresh token BEFORE access token, because the access token is needed for revocation!
             RevokeReqBody[] revokeReqs = new RevokeReqBody[] {
-                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_REFRESH, token.getRefreshToken(), clientSecret),
-                    new RevokeReqBody(RevokeReqBody.TOKEN_TYPE_ACCESS, token.getAccessToken(), clientSecret)
+                    RevokeReqBody.fromRefreshToken(token.getRefreshToken(), clientSecret),
+                    RevokeReqBody.fromAccessToken(token.getAccessToken(), clientSecret),
             };
             for (RevokeReqBody reqBody : revokeReqs) {
                 execute(API.revokeAuthToken(token.getAuthHeader(), reqBody));
@@ -371,8 +437,7 @@ public final class GhostApiTest {
 
     @Nullable
     private static String getClientSecret() {
-        String html = execute(API.getLoginPage(NetworkUtils.makeAbsoluteUrl(BLOG_URL, "ghost/"))).body();
-        return GhostApiUtils.extractClientSecretFromHtml(html);
+        return execute(API.getConfiguration()).getClientSecret();
     }
 
     @NonNull
@@ -386,6 +451,10 @@ public final class GhostApiTest {
             //noinspection ConstantConditions
             return null;
         }
+    }
+
+    private static <T> T execute(Observable<T> observable) {
+        return observable.blockingFirst();
     }
 
     private static String getRandomString(int length) {

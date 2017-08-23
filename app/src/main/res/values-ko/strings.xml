@@ -2,9 +2,7 @@
 <resources><string name="prompt_blog_url">블로그 주소 (blog.example.com)</string>
     <string name="prompt_email">이메일</string>
     <string name="prompt_password">비밀번호</string>
-    <string name="error_invalid_url">입력한 URL이 올바르지 않습니다.</string>
     <string name="error_invalid_email">입력한 이메일 주소가 올바르지 않습니다.</string>
-    <string name="error_invalid_password">입력한 비밀번호가 너무 짧습니다.</string>
     <string name="no_such_blog">%s/ghost에는 관리자가 존재하지 않습니다.</string>
     <string name="login_unexpected_error">로그인 과정에서 예기치 않은 오류가 발생하였습니다. 다시 시도해주세요.</string>
     <string name="login_connection_error">%s/ghost에 연결할 수 없습니다. 다시 시도해주세요.</string>
@@ -12,7 +10,7 @@
     <string name="logout">로그아웃</string>
     <string name="error_field_required">이 입력란은 필수 항목입니다.</string>
 
-    <string name="password_changed">비밀번호를 최근에 변경하셨나요? 입력하신 비밀번호로 로그인할 수 없습니다.</string>
+    <string name="credentials_expired">비밀번호를 최근에 변경하셨나요? 입력하신 비밀번호로 로그인할 수 없습니다.</string>
     <string name="unsynced_changes_msg">지금 로그아웃하면 동기화되지 않은 변경 사항을 잃게 됩니다</string>
     <string name="status_draft">초안</string>
     <string name="status_published">%s 발행됨</string>
@@ -52,10 +50,6 @@
     <string name="save_post_failed">저장 실패</string>
     <string name="save_scenario_unpublish_published_post">글이 발행 취소되었습니다</string>
     <string name="post_tags_format_hint">콤마를 사용하여 태그 구분</string>
-    <string name="format_bold">굵게</string>
-    <string name="format_italic">이탤릭체</string>
-    <string name="format_link">링크 삽입</string>
-    <string name="format_image">그림 삽입</string>
 
     <string name="uploading">업로드하는 중…</string>
     <string name="image_upload_failed">그림을 업로드할 수 없습니다</string>
@@ -66,21 +60,10 @@
     <string name="about">소개</string>
 
     <string name="version">버전</string>
-    <string name="open_source_libs">사용된 오픈 소스 라이브러리</string>
-
-    <string name="category_developer">개발자</string>
-    <string name="fork_on_github">Github 저장소</string>
-    <string name="follow_on_twitter">Twitter 팔로우하기</string>
-    <string name="visit_website">웹사이트 방문하기</string>
 
     <string name="category_support_development">개발 지원</string>
-    <string name="report_bugs">버그 신고하기</string>
-    <string name="report_bugs_subtitle">버그를 신고하거나 새 기능을 제안해주세요</string>
     <string name="play_store">Play Store 평점 매기기</string>
     <string name="play_store_subtitle">개발을 도와주셔서 감사합니다!</string>
-    <string name="email_developer">개발자에게 메일 보내기</string>
-    <string name="email_developer_subtitle">개발자에게 직접 문의하세요</string>
-    <string name="about_icon_credits">앱 아이콘 \"Feather\"는 <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a>에서 저작권 보유</string>
 
     <string name="no_internet_connection">인터넷 연결 없음</string>
     <string name="network_timeout">연결 시간 초과됨</string>
@@ -97,6 +80,4 @@
 
     <string name="action_sign_in">로그인</string>
 
-    <string name="login_heading2">블로그</string>
-
-    </resources>
+</resources>

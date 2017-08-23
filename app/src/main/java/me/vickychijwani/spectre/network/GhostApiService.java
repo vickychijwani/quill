@@ -3,6 +3,7 @@ package me.vickychijwani.spectre.network;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import io.reactivex.Observable;
 import me.vickychijwani.spectre.model.entity.AuthToken;
 import me.vickychijwani.spectre.network.entity.AuthReqBody;
 import me.vickychijwani.spectre.network.entity.ConfigurationList;
@@ -24,23 +25,18 @@ import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
-import retrofit2.http.Url;
 
-interface GhostApiService {
-
-    // auth
-    @GET
-    Call<String> getLoginPage(@Url String url);
+public interface GhostApiService {
 
     @POST("authentication/token/")
-    Call<AuthToken> getAuthToken(@Body AuthReqBody credentials);
+    Observable<AuthToken> getAuthToken(@Body AuthReqBody credentials);
 
     @POST("authentication/token/")
-    Call<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials);
+    Observable<AuthToken> refreshAuthToken(@Body RefreshReqBody credentials);
 
     @POST("authentication/revoke/")
-    Call<JsonElement> revokeAuthToken(@Header("Authorization") String authHeader,
-                                      @Body RevokeReqBody revoke);
+    Observable<JsonElement> revokeAuthToken(@Header("Authorization") String authHeader,
+                                            @Body RevokeReqBody revoke);
 
     // users
     @GET("users/me/?include=roles&status=all")
@@ -48,24 +44,24 @@ interface GhostApiService {
                                   @Header("If-None-Match") String etag);
 
     // posts
-    @POST("posts/?include=tags")
+    @POST("posts/?include=tags&formats=mobiledoc,html")
     Call<PostList> createPost(@Header("Authorization") String authHeader,
                               @Body PostStubList posts);
 
     // FIXME (issue #81) only allowing N posts right now to avoid too much data transfer
-    @GET("posts/?status=all&staticPages=all&include=tags")
+    @GET("posts/?status=all&staticPages=all&include=tags&formats=mobiledoc,html")
     Call<PostList> getPosts(@Header("Authorization") String authHeader,
                             @Header("If-None-Match") String etag, @Query("limit") int numPosts);
 
-    @GET("posts/{id}/?status=all&include=tags")
-    Call<PostList> getPost(@Header("Authorization") String authHeader, @Path("id") int id);
+    @GET("posts/{id}/?status=all&include=tags&formats=mobiledoc,html")
+    Call<PostList> getPost(@Header("Authorization") String authHeader, @Path("id") String id);
 
-    @PUT("posts/{id}/?include=tags")
+    @PUT("posts/{id}/?include=tags&formats=mobiledoc,html")
     Call<PostList> updatePost(@Header("Authorization") String authHeader,
-                              @Path("id") int id, @Body PostStubList posts);
+                              @Path("id") String id, @Body PostStubList posts);
 
     @DELETE("posts/{id}/")
-    Call<String> deletePost(@Header("Authorization") String authHeader, @Path("id") int id);
+    Call<String> deletePost(@Header("Authorization") String authHeader, @Path("id") String id);
 
     // settings / configuration
     @GET("settings/?type=blog")
@@ -73,8 +69,7 @@ interface GhostApiService {
                                    @Header("If-None-Match") String etag);
 
     @GET("configuration/")
-    Call<ConfigurationList> getConfiguration(@Header("Authorization") String authHeader,
-                                             @Header("If-None-Match") String etag);
+    Observable<ConfigurationList> getConfiguration();
 
     @GET("configuration/about/")
     Call<JsonObject> getVersion(@Header("Authorization") String authHeader);

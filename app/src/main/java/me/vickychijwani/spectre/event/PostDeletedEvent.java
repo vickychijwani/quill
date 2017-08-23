@@ -2,9 +2,9 @@ package me.vickychijwani.spectre.event;
 
 public class PostDeletedEvent {
 
-    public final int postId;
+    public final String postId;
 
-    public PostDeletedEvent(int postId) {
+    public PostDeletedEvent(String postId) {
         this.postId = postId;
     }
 }

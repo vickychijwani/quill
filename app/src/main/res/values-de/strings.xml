@@ -1,26 +1,21 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <!-- login -->
-    <string name="login_heading1">Einloggen in deinen</string>
-    <string name="login_heading2">Blog</string>
-
-    <string name="prompt_blog_url">Blogadresse (blog.beispiel.de)</string>
+    <string name="prompt_blog_url">Blogadresse</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Passwort</string>
     <string name="action_sign_in">Anmelden</string>
 
-    <string name="error_invalid_url">Diese Url ist ungültig.</string>
-    <string name="error_invalid_email">Diese Emailadresse ist ungültig.</string>
-    <string name="error_invalid_password">Dieses Passwort ist zu kurz.</string>
-    <string name="error_field_required">Bitte fülle dieses Feld aus.</string>
+    <string name="error_invalid_email">Diese Emailadresse ist ungültig</string>
+    <string name="error_field_required">Bitte fülle dieses Feld aus</string>
 
-    <string name="no_such_blog">Es konnte kein Ghost Admin-Panel in %s/ghost gefunden werden.</string>
+    <string name="no_such_blog">Es konnte kein Ghost Admin-Panel in %s/ghost gefunden werden</string>
     <string name="login_unexpected_error">Unerwarteter Fehler beim Anmelden. Bitte versuche es erneut.</string>
     <string name="login_connection_error">Es konnte keine Verbindung zu %s/ghost erstellt werden. Bitte versuche es erneut.</string>
-    <string name="login_ssl_unsupported">Dein Blog unterstützt leider kein https:// (SSL). Versuch es stattdessen mit http://.</string>
+    <string name="login_ssl_unsupported">Dein Blog unterstützt leider kein https:// (SSL)</string>
     <string name="logout">Abmelden</string>
-    <string name="password_changed">Hat sich dein Passwort geändert? Anmeldung mit diesem Passwort nicht möglich.</string>
+    <string name="credentials_expired">Hat sich dein Passwort geändert? Anmeldung mit diesem Passwort nicht möglich.</string>
     <string name="unsynced_changes_msg">Alle nicht synchronisierten Änderungen gehen verloren, wenn du dich jetzt abmeldest</string>
     <string name="dont_logout">Nicht abmelden</string>
 
@@ -32,7 +27,6 @@
     <string name="status_published_auto_saved">Änderungen automatisch gespeichert - noch nicht veröffentlicht</string>
     <string name="status_marked_for_deletion">Zum Löschen markiert, wartet auf eine Verbindung…</string>
     <string name="status_marked_for_deletion_open_error">Dieser Artikel wurde zum Löschen markiert, du kannst ihn nicht öffnen</string>
-    <string name="post_limit_exceeded" tools:ignore="PluralsCandidate"><![CDATA[%1$s Im Moment werden nur die letzten %2$d Artikel von deinem Blog geladen. Falls du gerne die Möglichkeit hättest auch ältere Posts zu laden, <a href="%3$s">gib mir deine Stimme bei Github</a> und hilf mir die Entwicklung dafür zu priorisieren.]]></string>
     <string name="send_feedback">Sende Feedback…</string>
 
     <string name="preview">Vorschau</string>
@@ -80,12 +74,6 @@
     <string name="post_image_load_error">Fehler beim Laden des Artikelbildes</string>
     <string name="post_feature_hint">Feature diesen Artikel</string>
 
-    <!-- formatting toolbar -->
-    <string name="format_bold">Fett</string>
-    <string name="format_italic">Kursiv</string>
-    <string name="format_link">Link einfügen</string>
-    <string name="format_image">Bild einfügen</string>
-
     <!-- image insert / upload -->
     <string name="insert_image">Bild einfügen</string>
     <string name="insert_image_url">Url einfügen</string>
@@ -100,24 +88,10 @@
     <string name="about">Über</string>
 
     <string name="version">Version</string>
-    <string name="version_unknown">Unbekannt</string>
-    <string name="open_source_libs">Open-source libraries</string>
-
-    <string name="category_developer">Entwickler</string>
-    <string name="fork_on_github">Fork on Github</string>
-    <string name="follow_on_twitter">Folge mir auf Twitter</string>
-    <string name="visit_website">Entwickler-Website besuchen</string>
 
     <string name="category_support_development">Entwicklung unterstützen</string>
-    <string name="report_bugs">Fehler melden</string>
-    <string name="report_bugs_subtitle">Melde Fehler oder schlage neue Funktionen vor</string>
     <string name="play_store">Im Play Store bewerten</string>
     <string name="play_store_subtitle">Vielen Dank für Deine Unterstützung!</string>
-    <string name="email_developer">Schreibe eine Email an den Entwickler</string>
-    <string name="email_developer_subtitle">Kontaktiere den Entwickler direkt</string>
-    <string name="email_subject">%s - Feedback</string>
-
-    <string name="about_icon_credits">Launcher-Symbol \"Feather\" von <a href="https://thenounproject.com/term/feather/31094">Simple Icons</a></string>
 
     <!-- network -->
     <string name="no_internet_connection">Keine Internetverbindung</string>
@@ -132,9 +106,6 @@
     <string name="loading">Lädt…</string>
     <string name="insert">Einfügen</string>
     <string name="intent_no_apps">Es konnte keine App gefunden werde, die diese Aufgabe ausführen kann</string>
-
-    <!-- content descriptions -->
-    <string name="user_image">Benutzerbild</string>
-    <string name="cdesc_post_image">Artikelbild</string>
+    <string name="next">Nächster</string>
 
 </resources>

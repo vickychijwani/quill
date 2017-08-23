@@ -1,0 +1,76 @@
+{
+    "url": "http://localhost:2368",
+    "server": {
+        "host": "0.0.0.0",
+        "port": 2368
+    },
+    "privacy": false,
+    "useMinFiles": true,
+    "paths": {
+        "contentPath": "content/"
+    },
+    "storage": {
+        "active": "LocalFileStorage"
+    },
+    "scheduling": {
+        "active": "SchedulingDefault"
+    },
+    "logging": {
+        "level": "info",
+        "rotation": {
+            "enabled": false
+        },
+        "transports": ["stdout"]
+    },
+    "spam": {
+        "user_login": {
+            "minWait": 600000,
+            "maxWait": 604800000,
+            "freeRetries": 4
+        },
+        "user_reset": {
+            "minWait": 3600000,
+            "maxWait": 3600000,
+            "lifetime": 3600,
+            "freeRetries": 4
+        },
+        "global_reset": {
+            "minWait": 3600000,
+            "maxWait": 3600000,
+            "lifetime": 3600,
+            "freeRetries":4
+        },
+        "global_block": {
+            "minWait": 3600000,
+            "maxWait": 3600000,
+            "lifetime": 3600,
+            "freeRetries":99
+        },
+        "private_block": {
+            "minWait": 3600000,
+            "maxWait": 3600000,
+            "lifetime": 3600,
+            "freeRetries":99
+        }
+    },
+    "caching": {
+        "frontend": {
+            "maxAge": 0
+        },
+        "301": {
+            "maxAge": 31536000
+        },
+        "customRedirects": {
+            "maxAge": 31536000
+        },
+        "favicon": {
+            "maxAge": 86400
+        },
+        "sitemap": {
+            "maxAge": 3600
+        },
+        "robotstxt": {
+            "maxAge": 3600000
+        }
+    }
+}

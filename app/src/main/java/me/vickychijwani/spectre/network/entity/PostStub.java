@@ -7,6 +7,7 @@ import java.util.List;
 
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
+import me.vickychijwani.spectre.network.GhostApiUtils;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public final class PostStub {
@@ -15,21 +16,21 @@ public final class PostStub {
     public final String title;
     public final String slug;
     public final String status;
-    public final String markdown;
+    public final String mobiledoc;
     public final List<TagStub> tags;
-    public final String image;
+    public final String featureImage;
     public final boolean featured;
 
     public PostStub(@NonNull Post post) {
         this.title = post.getTitle();
         this.slug = post.getSlug();
         this.status = post.getStatus();
-        this.markdown = post.getMarkdown();
+        this.mobiledoc = GhostApiUtils.markdownToMobiledoc(post.getMarkdown());
         this.tags = new ArrayList<>(post.getTags().size());
         for (Tag tag : post.getTags()) {
             this.tags.add(new TagStub(tag));
         }
-        this.image = post.getImage();
+        this.featureImage = post.getFeatureImage();
         this.featured = post.isFeatured();
     }
 

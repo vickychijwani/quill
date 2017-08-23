@@ -18,16 +18,17 @@
         <item name="android:checkboxStyle">@style/MyCheckBox</item>
     </style>
 
-    <style name="BaseLoginTheme" parent="AppTheme">
-        <item name="android:buttonStyle">@style/Widget.AppCompat.Button.Colored</item>
+    <style name="LoginTheme" parent="AppTheme">
+        <item name="android:buttonStyle">@style/MyBigButton</item>
+        <item name="android:textColor">@color/text_primary_inverted</item>
+        <item name="android:textColorPrimary">@color/text_primary_inverted</item>
+        <item name="android:textColorSecondary">@color/text_secondary_inverted</item>
+        <item name="android:textColorTertiary">@color/text_tertiary_inverted</item>
+        <item name="android:textColorPrimaryInverse">@color/text_primary</item>
+        <item name="android:textColorSecondaryInverse">@color/text_secondary</item>
+        <item name="android:textColorTertiaryInverse">@color/text_tertiary</item>
         <item name="android:textColorHint">@color/text_primary_inverted_dim</item>
-        <item name="colorControlNormal">@color/text_primary_inverted_dim</item>
-        <item name="colorControlActivated">@color/text_primary_inverted</item>
-        <item name="textColorError">?attr/colorAccent</item>
-        <item name="android:windowBackground">@drawable/login_bg</item>
-    </style>
-
-    <style name="LoginTheme" parent="BaseLoginTheme">
+        <item name="textColorError">@color/login_error</item>
     </style>
 
     <style name="CardListActivityTheme" parent="AppTheme">

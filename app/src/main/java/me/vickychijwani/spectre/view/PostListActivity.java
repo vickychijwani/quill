@@ -9,7 +9,6 @@ import android.animation.ValueAnimator;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -50,9 +49,9 @@ import butterknife.OnClick;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.SpectreApplication;
+import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.error.SyncException;
 import me.vickychijwani.spectre.event.BlogSettingsLoadedEvent;
-import me.vickychijwani.spectre.event.ConfigurationLoadedEvent;
 import me.vickychijwani.spectre.event.CreatePostEvent;
 import me.vickychijwani.spectre.event.DataRefreshedEvent;
 import me.vickychijwani.spectre.event.ForceCancelRefreshEvent;
@@ -63,11 +62,8 @@ import me.vickychijwani.spectre.event.PostCreatedEvent;
 import me.vickychijwani.spectre.event.PostsLoadedEvent;
 import me.vickychijwani.spectre.event.RefreshDataEvent;
 import me.vickychijwani.spectre.event.UserLoadedEvent;
-import me.vickychijwani.spectre.model.entity.ConfigurationParam;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Setting;
-import me.vickychijwani.spectre.pref.AppState;
-import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.AppUtils;
 import me.vickychijwani.spectre.util.DeviceUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
@@ -86,8 +82,6 @@ public class PostListActivity extends BaseActivity {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private Runnable mRefreshDataRunnable;
     private Runnable mRefreshTimeoutRunnable;
-
-    private boolean mFileStorageEnabled = true;
 
     private static final int REFRESH_FREQUENCY = 10 * 60 * 1000;    // in milliseconds
 
@@ -113,11 +107,17 @@ public class PostListActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (! AppState.getInstance(this).getBoolean(AppState.Key.LOGGED_IN)) {
+        if (! AccountManager.hasActiveBlog()) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
             return;
+        }
+
+        if (! AccountManager.getActiveBlog().isLoggedIn()) {
+            // is it safe to infer that an active blog which is not logged in must mean the
+            // password has changed or Ghost Auth code is expired?
+            credentialsExpired();
         }
 
         setLayout(R.layout.activity_post_list);
@@ -138,7 +138,8 @@ public class PostListActivity extends BaseActivity {
         mColorPrimary = typedColorValue.data;
 
         // initialize post list UI
-        mPostAdapter = new PostAdapter(this, mPosts, getBlogUrl(), getPicasso(), v -> {
+        final String activeBlogUrl = AccountManager.getActiveBlogUrl();
+        mPostAdapter = new PostAdapter(this, mPosts, activeBlogUrl, getPicasso(), v -> {
             int pos = mPostList.getChildLayoutPosition(v);
             if (pos == RecyclerView.NO_POSITION) return;
             Post post = (Post) mPostAdapter.getItem(pos);
@@ -149,15 +150,10 @@ public class PostListActivity extends BaseActivity {
             }
             Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
             intent.putExtra(BundleKeys.POST, post);
-            intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
             intent.putExtra(BundleKeys.START_EDITING, false);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                Bundle activityOptions = ActivityOptions.makeScaleUpAnimation(v, 0, 0,
-                        v.getWidth(), v.getHeight()).toBundle();
-                startActivityForResult(intent, REQUEST_CODE_VIEW_POST, activityOptions);
-            } else {
-                startActivityForResult(intent, REQUEST_CODE_VIEW_POST);
-            }
+            Bundle activityOptions = ActivityOptions.makeScaleUpAnimation(v, 0, 0,
+                    v.getWidth(), v.getHeight()).toBundle();
+            startActivityForResult(intent, REQUEST_CODE_VIEW_POST, activityOptions);
         });
         mPostList.setAdapter(mPostAdapter);
         mPostList.setLayoutManager(new StaggeredGridLayoutManager(
@@ -202,14 +198,13 @@ public class PostListActivity extends BaseActivity {
         mRefreshTimeoutRunnable = this::refreshTimedOut;
         mSwipeRefreshLayout.setColorSchemeColors(mColorAccent, mColorPrimary);
         mSwipeRefreshLayout.setOnRefreshListener(() -> refreshData(false));
-
-        // load cached data immediately
-        refreshData(true);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        // load cached data immediately
+        refreshData(true);
         // reset views involved in new post animation
         mNewPostRevealView.setVisibility(View.INVISIBLE);
         mNewPostRevealShrinkView.setScaleY(1f);
@@ -251,20 +246,20 @@ public class PostListActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_view_homepage:
-                startBrowserActivity(getBlogUrl());
+                startBrowserActivity(AccountManager.getActiveBlogUrl());
                 return true;
             case R.id.action_refresh:
                 refreshData(false);
                 return true;
             case R.id.action_feedback:
-                AppUtils.emailDeveloper(this);
+                AppUtils.emailFeedbackToDeveloper(this);
                 return true;
             case R.id.action_about:
                 Intent aboutIntent = new Intent(this, AboutActivity.class);
                 startActivity(aboutIntent);
                 return true;
             case R.id.action_logout:
-                getBus().post(new LogoutEvent(getBlogUrl(), false));
+                getBus().post(new LogoutEvent(AccountManager.getActiveBlogUrl(), false));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -312,12 +307,12 @@ public class PostListActivity extends BaseActivity {
 
     @Subscribe
     public void onUserLoadedEvent(UserLoadedEvent event) {
-        if (event.user.getImage() != null) {
-            if (event.user.getImage().isEmpty()) {
+        if (event.user.getProfileImage() != null) {
+            if (event.user.getProfileImage().isEmpty()) {
                 return;
             }
-            String blogUrl = getBlogUrl();
-            String imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, event.user.getImage());
+            String blogUrl = AccountManager.getActiveBlogUrl();
+            String imageUrl = NetworkUtils.makeAbsoluteUrl(blogUrl, event.user.getProfileImage());
             getPicasso()
                     .load(imageUrl)
                     .transform(new BorderedCircleTransformation())
@@ -338,15 +333,6 @@ public class PostListActivity extends BaseActivity {
             }
         }
         mBlogTitleView.setText(blogTitle);
-    }
-
-    @Subscribe
-    public void onConfigurationLoadedEvent(ConfigurationLoadedEvent event) {
-        for (ConfigurationParam param : event.params) {
-            if (param.getKey().equals("fileStorage")) {
-                mFileStorageEnabled = Boolean.valueOf(param.getValue());
-            }
-        }
     }
 
     @Subscribe
@@ -428,7 +414,6 @@ public class PostListActivity extends BaseActivity {
     public void onPostCreatedEvent(PostCreatedEvent event) {
         Intent intent = new Intent(PostListActivity.this, PostViewActivity.class);
         intent.putExtra(BundleKeys.POST, event.newPost);
-        intent.putExtra(BundleKeys.FILE_STORAGE_ENABLED, mFileStorageEnabled);
         intent.putExtra(BundleKeys.START_EDITING, true);
         startActivityForResult(intent, REQUEST_CODE_VIEW_POST);
 
@@ -448,7 +433,7 @@ public class PostListActivity extends BaseActivity {
                     })
                     .setNegativeButton(R.string.logout, (dialog, which) -> {
                         dialog.dismiss();
-                        getBus().post(new LogoutEvent(getBlogUrl(), true));
+                        getBus().post(new LogoutEvent(AccountManager.getActiveBlogUrl(), true));
                     })
                     .create();
             alertDialog.show();
@@ -496,10 +481,6 @@ public class PostListActivity extends BaseActivity {
         mSwipeRefreshLayout.setRefreshing(false);
         Toast.makeText(this, R.string.refresh_failed, Toast.LENGTH_LONG).show();
         scheduleDataRefresh();
-    }
-
-    private String getBlogUrl() {
-        return UserPrefs.getInstance(this).getString(UserPrefs.Key.BLOG_URL);
     }
 
 }

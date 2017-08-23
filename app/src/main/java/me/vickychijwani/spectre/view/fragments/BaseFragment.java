@@ -42,13 +42,13 @@ public abstract class BaseFragment extends Fragment {
     public void onStart() {
         super.onStart();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onStart()");
+        getBus().register(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onResume()");
-        getBus().register(this);
     }
 
     @Override
@@ -67,13 +67,13 @@ public abstract class BaseFragment extends Fragment {
     public void onPause() {
         super.onPause();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onPause()");
-        getBus().unregister(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
         Crashlytics.log(Log.DEBUG, TAG, this.getClass().getSimpleName() + "#onStop()");
+        getBus().unregister(this);
     }
 
     @Override

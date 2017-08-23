@@ -1,23 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<resources><string name="login_heading1">登錄到您的</string>
-    <string name="login_heading2">部落格</string>
+<resources>
 
-    <string name="prompt_blog_url">部落格地址 (blog.example.com)</string>
+    <string name="prompt_blog_url">部落格地址</string>
     <string name="prompt_email">電子郵箱</string>
     <string name="prompt_password">密碼</string>
     <string name="action_sign_in">登錄</string>
 
-    <string name="error_invalid_url">這是個無效的地址。</string>
     <string name="error_invalid_email">這是個無效的電子郵箱。</string>
-    <string name="error_invalid_password">密碼太短。</string>
     <string name="error_field_required">這是必填字段。</string>
 
-    <string name="no_such_blog">在 %s/ghost 上沒有管理頁面。</string>
+    <string name="no_such_blog">在 %s/ghost 上沒有管理頁面</string>
     <string name="login_unexpected_error">在登錄中出現了未知錯誤。請再試一次。</string>
     <string name="login_connection_error">不能連接到 %/ghost ，請再試一次。</string>
-    <string name="login_ssl_unsupported">您的部落格不支援 HTTPS (SSL) 連接。請嘗試使用 HTTP 連接。</string>
+    <string name="login_ssl_unsupported">您的部落格不支援 HTTPS (SSL) 連接。</string>
     <string name="logout">登出</string>
-    <string name="password_changed">您是否更改了密碼？不能用那個密碼登錄。</string>
+    <string name="credentials_expired">您是否更改了密碼？不能用那個密碼登錄。</string>
     <string name="unsynced_changes_msg">如果您現在登出，您會失去所有未同步的變更</string>
     <string name="dont_logout">不要登出</string>
 

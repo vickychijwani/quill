@@ -12,8 +12,8 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
 import me.vickychijwani.spectre.R;
+import me.vickychijwani.spectre.account.AccountManager;
 import me.vickychijwani.spectre.model.entity.Post;
-import me.vickychijwani.spectre.pref.UserPrefs;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.view.BundleKeys;
 
@@ -24,7 +24,6 @@ public class PostViewFragment extends BaseFragment
     private int mMarkdownHashCode;
     private WebViewFragment mWebViewFragment;
 
-    @SuppressWarnings("unused")
     public static PostViewFragment newInstance(@NonNull Post post) {
         PostViewFragment fragment = new PostViewFragment();
         Bundle args = new Bundle();
@@ -53,8 +52,7 @@ public class PostViewFragment extends BaseFragment
 
     @Override
     public void onWebViewCreated() {
-        UserPrefs prefs = UserPrefs.getInstance(getActivity());
-        final String blogUrl = prefs.getString(UserPrefs.Key.BLOG_URL);
+        final String blogUrl = AccountManager.getActiveBlogUrl();
         mWebViewFragment.setJSInterface(new Object() {
             @JavascriptInterface
             public String getTitle() {

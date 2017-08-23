@@ -22,7 +22,7 @@ public class ETag extends RealmObject {
     public static final String TYPE_BLOG_SETTINGS = "blog_settings";
     public static final String TYPE_CONFIGURATION = "configuration";
 
-    @PrimaryKey @Required
+    @PrimaryKey
     private String type;
 
     @Required

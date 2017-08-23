@@ -10,7 +10,7 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 @RealmClass
 public class AuthToken implements RealmModel {
 
-    @PrimaryKey @Required   // intentional; there should only ever be one auth token
+    @PrimaryKey   // intentional; there should only ever be one auth token
     private String tokenType = "Bearer";
 
     @Required
@@ -38,6 +38,17 @@ public class AuthToken implements RealmModel {
         this.setRefreshToken(other.getRefreshToken());
         this.setExpiresIn(other.getExpiresIn());
         this.setCreatedAt(other.getCreatedAt());
+    }
+
+    @Override
+    public String toString() {
+        return "AuthToken{" +
+                "tokenType='" + tokenType + '\'' +
+                ", accessToken='" + accessToken + '\'' +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", expiresIn=" + expiresIn +
+                ", createdAt=" + createdAt +
+                '}';
     }
 
     // accessors

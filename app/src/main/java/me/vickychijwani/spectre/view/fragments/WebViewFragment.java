@@ -5,13 +5,16 @@ import android.content.pm.ApplicationInfo;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.SslErrorHandler;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -22,16 +25,18 @@ import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.view.BundleKeys;
 
-/**
- * NOTE: Always use the {@link #newInstance} factory method to create an instance of this fragment.
- */
 public class WebViewFragment extends BaseFragment {
+
+    private static final String TAG = WebViewFragment.class.getSimpleName();
+    protected static final String KEY_LAYOUT_ID = "key:layout_id";
 
     public interface OnWebViewCreatedListener {
         void onWebViewCreated();
     }
 
+    // not using ButterKnife to ensure WebView is private
     private WebView mWebView;
+
     private String mUrl;
     private OnWebViewCreatedListener mOnWebViewCreatedListener = null;
 
@@ -44,6 +49,7 @@ public class WebViewFragment extends BaseFragment {
         WebViewFragment fragment = new WebViewFragment();
         Bundle args = new Bundle();
         args.putString(BundleKeys.URL, url);
+        args.putInt(KEY_LAYOUT_ID, R.layout.fragment_web_view_nested_scroll);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,15 +60,19 @@ public class WebViewFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_web_view, container, false);
+        @LayoutRes int layoutId = getArguments().getInt(KEY_LAYOUT_ID);
+        View view = inflater.inflate(layoutId, container, false);
+        // not using ButterKnife to ensure WebView is private
         mWebView = (WebView) view.findViewById(R.id.web_view);
         mUrl = getArguments().getString(BundleKeys.URL);
         if (TextUtils.isEmpty(mUrl)) {
             throw new IllegalArgumentException("Empty URL passed to WebViewFragment!");
         }
+        Crashlytics.log(Log.DEBUG, TAG, "Loading URL: " + mUrl);
 
         WebSettings settings = mWebView.getSettings();
         settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
 
         // enable remote debugging
         if (0 != (getActivity().getApplicationInfo().flags &= ApplicationInfo.FLAG_DEBUGGABLE) &&
@@ -156,6 +166,10 @@ public class WebViewFragment extends BaseFragment {
         mWebView.setWebViewClient(webViewClient);
     }
 
+    public <T extends DefaultWebChromeClient> void setWebChromeClient(@NonNull T webChromeClient) {
+        mWebView.setWebChromeClient(webChromeClient);
+    }
+
     @Override
     public boolean onBackPressed() {
         if (mWebView.canGoBack()) {
@@ -179,6 +193,10 @@ public class WebViewFragment extends BaseFragment {
                 Crashlytics.logException(new RuntimeException("SSL error: " + error.toString()));
             }
         }
+    }
+
+    public static class DefaultWebChromeClient extends WebChromeClient {
+        // no-op
     }
 
 }
