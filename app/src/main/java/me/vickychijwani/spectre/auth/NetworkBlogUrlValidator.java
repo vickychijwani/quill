@@ -31,16 +31,12 @@ class NetworkBlogUrlValidator implements BlogUrlValidator {
      */
     @Override
     public Observable<String> validate(@NonNull String blogUrl) {
-        if (blogUrl.startsWith("http://") || blogUrl.startsWith("https://")) {
-            throw new IllegalArgumentException("Blog URL must not have a scheme! (http or https)");
-        }
-
         // try HTTPS and HTTP, in that order
         return Observable.create(source -> {
-            checkGhostBlog(NetworkUtils.SCHEME_HTTPS + blogUrl, mHttpClient)
-                    .onErrorResumeNext(checkGhostBlog(NetworkUtils.SCHEME_HTTP + blogUrl, mHttpClient))
+            checkGhostBlog("https://" + blogUrl, mHttpClient)
+                    .onErrorResumeNext(checkGhostBlog("http://" + blogUrl, mHttpClient))
                     .subscribe(source::onNext, e -> {
-                        source.onError(new UrlValidationException(e, NetworkUtils.SCHEME_HTTPS + blogUrl));
+                        source.onError(new UrlValidationException(e, "https://" + blogUrl));
                     });
         });
     }

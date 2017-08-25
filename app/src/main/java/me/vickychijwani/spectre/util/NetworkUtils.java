@@ -5,10 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringDef;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -24,13 +21,6 @@ import retrofit2.HttpException;
 import retrofit2.Response;
 
 public class NetworkUtils {
-
-    @Retention(RetentionPolicy.SOURCE)
-    @StringDef({SCHEME_HTTP, SCHEME_HTTPS})
-    public @interface Scheme {}
-
-    public static final String SCHEME_HTTP = "http://";
-    public static final String SCHEME_HTTPS = "https://";
 
     /**
      * Check whether there is any network with a usable connection.
@@ -124,7 +114,7 @@ public class NetworkUtils {
         }
 
         // maybe relativePath is already absolute
-        if (relativePath.startsWith(SCHEME_HTTP) || relativePath.startsWith(SCHEME_HTTPS)) {
+        if (relativePath.startsWith("http://") || relativePath.startsWith("https://")) {
             return relativePath;
         }
 

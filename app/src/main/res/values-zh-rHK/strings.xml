@@ -11,7 +11,7 @@
 
     <string name="no_such_blog">在 %s/ghost 上沒有管理頁面</string>
     <string name="login_unexpected_error">在登錄中出現了未知錯誤。請再試一次。</string>
-    <string name="login_connection_error">不能連接到 %/ghost ，請再試一次。</string>
+    <string name="login_connection_error">不能連接到 %s/ghost ，請再試一次。</string>
     <string name="login_ssl_unsupported">您的部落格不支援 HTTPS (SSL) 連接。</string>
     <string name="logout">登出</string>
     <string name="credentials_expired">您是否更改了密碼？不能用那個密碼登錄。</string>
