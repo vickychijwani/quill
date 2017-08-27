@@ -104,6 +104,8 @@ public class PostUtils {
             return true;
         if (original.isFeatured() != current.isFeatured())
             return true;
+        if (original.isPage() != current.isPage())
+            return true;
         return false;
     }
 

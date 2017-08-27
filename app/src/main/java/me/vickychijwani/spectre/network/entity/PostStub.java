@@ -20,6 +20,7 @@ public final class PostStub {
     public final List<TagStub> tags;
     public final String featureImage;
     public final boolean featured;
+    public final boolean page;
 
     public PostStub(@NonNull Post post) {
         this.title = post.getTitle();
@@ -32,6 +33,7 @@ public final class PostStub {
         }
         this.featureImage = post.getFeatureImage();
         this.featured = post.isFeatured();
+        this.page = post.isPage();
     }
 
 }

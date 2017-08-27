@@ -552,6 +552,7 @@ public class PostEditFragment extends BaseFragment implements
         mPost.setHtml(null);   // omit stale HTML from request body
         mPost.setTags(mPostSettingsManager.getTags());
         mPost.setFeatured(mPostSettingsManager.isFeatured());
+        mPost.setPage(mPostSettingsManager.isPage());
         if (newStatus != null) {
             mPost.setStatus(newStatus);
         }
@@ -785,6 +786,7 @@ public class PostEditFragment extends BaseFragment implements
         void removeOnPostSettingsChangedListener();
         RealmList<Tag> getTags();
         boolean isFeatured();
+        boolean isPage();
     }
 
 }

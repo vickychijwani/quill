@@ -60,6 +60,7 @@ import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
+import me.vickychijwani.spectre.util.functions.Action0;
 import me.vickychijwani.spectre.util.functions.Action1;
 import me.vickychijwani.spectre.view.fragments.PostEditFragment;
 import me.vickychijwani.spectre.view.fragments.PostViewFragment;
@@ -87,6 +88,7 @@ public class PostViewActivity extends BaseActivity implements
     private PostImageLayoutManager mPostImageLayoutManager = null;
     private ChipsEditText mPostTagsEditText;
     private CheckBox mPostFeatureCheckBox;
+    private CheckBox mPostPageCheckBox;
 
     private Post mPost;
     private PostViewFragment mPostViewFragment;
@@ -114,6 +116,7 @@ public class PostViewActivity extends BaseActivity implements
         mPostImageLayoutManager = new PostImageLayoutManager(postImageLayout);
         mPostTagsEditText = (ChipsEditText) headerView.findViewById(R.id.post_tags_edit);
         mPostFeatureCheckBox = (CheckBox) headerView.findViewById(R.id.post_feature);
+        mPostPageCheckBox = (CheckBox) headerView.findViewById(R.id.post_page);
 
         setSupportActionBar(mToolbar);
         //noinspection ConstantConditions
@@ -137,6 +140,11 @@ public class PostViewActivity extends BaseActivity implements
         mPostTagsEditText.setHorizontallyScrolling(false);
         mPostTagsEditText.setImeOptions(EditorInfo.IME_ACTION_DONE);
 
+        final Action0 postSettingsChangedHandler = () -> {
+            if (mPostSettingsChangedListener != null) {
+                mPostSettingsChangedListener.onPostSettingsChanged();
+            }
+        };
         mPostTagsEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -146,15 +154,14 @@ public class PostViewActivity extends BaseActivity implements
 
             @Override
             public void afterTextChanged(Editable e) {
-                if (mPostSettingsChangedListener != null) {
-                    mPostSettingsChangedListener.onPostSettingsChanged();
-                }
+                postSettingsChangedHandler.call();
             }
         });
         mPostFeatureCheckBox.setOnCheckedChangeListener((btn, checked) -> {
-            if (mPostSettingsChangedListener != null) {
-                mPostSettingsChangedListener.onPostSettingsChanged();
-            }
+            postSettingsChangedHandler.call();
+        });
+        mPostPageCheckBox.setOnCheckedChangeListener((btn, checked) -> {
+            postSettingsChangedHandler.call();
         });
 
         mSaveTimeoutRunnable = () -> {
@@ -431,6 +438,7 @@ public class PostViewActivity extends BaseActivity implements
         }
         mPostTagsEditText.setTokens(tagStrs);
         mPostFeatureCheckBox.setChecked(mPost.isFeatured());
+        mPostPageCheckBox.setChecked(mPost.isPage());
     }
 
     @Override
@@ -485,6 +493,10 @@ public class PostViewActivity extends BaseActivity implements
     @Override
     public boolean isFeatured() {
         return mPostFeatureCheckBox.isChecked();
+    }
+
+    public boolean isPage() {
+        return mPostPageCheckBox.isChecked();
     }
 
     @Override
