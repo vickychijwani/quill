@@ -99,7 +99,7 @@
             android:layout_marginStart="@dimen/padding_large"
             android:layout_marginRight="@dimen/padding_large"
             android:layout_marginEnd="@dimen/padding_large"
-            android:text="@string/login_help_tip"
+            android:text="@string/url_help_tip"
             android:textColor="?android:attr/textColorTertiary"
             android:visibility="invisible"
             />

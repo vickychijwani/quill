@@ -13,6 +13,7 @@
     <string name="translate_subtitle" translatable="false">Help me translate this app to your language!</string>
 
     <!-- non-critical strings that don't need translations -->
+    <string name="url_help_tip" translatable="false"><![CDATA[Don\'t have a Ghost blog yet? See <a href="ghost-help">here</a> for how to get one.]]></string>
     <string name="login_help_tip" translatable="false"><![CDATA[Trouble logging in? Tap <a href="login-help">here</a> to get help]]></string>
     <string name="post_limit_exceeded" translatable="false" tools:ignore="PluralsCandidate"><![CDATA[%1$s currently only loads the latest %2$d posts from your blog. If you would like to see support for loading older posts, <a href="%3$s">vote for this feature on Github</a> and help me prioritize development.]]></string>
 
