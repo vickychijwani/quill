@@ -212,7 +212,7 @@ public class LoginOrchestrator implements
         getBus().post(new LoginErrorEvent(blogUrl));
     }
 
-    public void handleUrlValidationError(Throwable error, String blogUrl) {
+    private void handleUrlValidationError(Throwable error, String blogUrl) {
         ErrorType errorType = getErrorType(error);
         forEachListener(l -> l.onBlogUrlError(errorType, error, blogUrl));
     }

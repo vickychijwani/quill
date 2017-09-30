@@ -29,9 +29,9 @@ public class LoginActivity extends BaseActivity implements
 
     private LoginOrchestrator mLoginOrchestrator = null;
     // Rx subject for Ghost auth
-    private PublishSubject<String> mAuthCodeSubject = PublishSubject.create();
+    private final PublishSubject<String> mAuthCodeSubject = PublishSubject.create();
     // Rx subject for password auth
-    private PublishSubject<Pair<String, String>> mCredentialsSubject = PublishSubject.create();
+    private final PublishSubject<Pair<String, String>> mCredentialsSubject = PublishSubject.create();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

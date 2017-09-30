@@ -19,6 +19,7 @@ import butterknife.ButterKnife;
 import me.vickychijwani.spectre.SpectreApplication;
 import me.vickychijwani.spectre.event.BusProvider;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class BaseFragment extends Fragment {
 
     private static final String TAG = "BaseFragment";

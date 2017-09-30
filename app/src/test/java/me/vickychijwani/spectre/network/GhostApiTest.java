@@ -138,15 +138,16 @@ public final class GhostApiTest {
         try {
             execute(API.getAuthToken(credentials));
             fail("Test did not throw exception as expected!");
-        } catch (Exception e) {
-            assertThat(e.getCause(), instanceOf(HttpException.class));
-            HttpException httpEx = (HttpException) e.getCause();
-            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, httpEx);
+        } catch (HttpException e) {
+            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, e);
             assertThat(apiErrors, notNullValue());
             assertThat(apiErrors.errors.size(), is(1));
             assertThat(apiErrors.errors.get(0).errorType, is("NotFoundError"));
             assertThat(apiErrors.errors.get(0).message, notNullValue());
             assertThat(apiErrors.errors.get(0).message, not(""));
+        } catch (Exception e) {
+            assertThat("Test threw a different kind of exception than expected!",
+                    e, instanceOf(HttpException.class));
         }
     }
 
@@ -158,17 +159,18 @@ public final class GhostApiTest {
         try {
             execute(API.getAuthToken(credentials));
             fail("Test did not throw exception as expected!");
-        } catch (Exception e) {
-            assertThat(e.getCause(), instanceOf(HttpException.class));
-            HttpException httpEx = (HttpException) e.getCause();
+        } catch (HttpException e) {
             // Ghost returns a 422 Unprocessable Entity for an incorrect password
-            assertThat("http code = " + httpEx.code(), NetworkUtils.isUnprocessableEntity(httpEx), is(true));
-            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, httpEx);
+            assertThat("http code = " + e.code(), NetworkUtils.isUnprocessableEntity(e), is(true));
+            ApiErrorList apiErrors = GhostApiUtils.parseApiErrors(RETROFIT, e);
             assertThat(apiErrors, notNullValue());
             assertThat(apiErrors.errors.size(), is(1));
             assertThat(apiErrors.errors.get(0).errorType, is("ValidationError"));
             assertThat(apiErrors.errors.get(0).message, notNullValue());
             assertThat(apiErrors.errors.get(0).message, not(""));
+        } catch (Exception e) {
+            assertThat("Test threw a different kind of exception than expected!",
+                    e, instanceOf(HttpException.class));
         }
     }
 

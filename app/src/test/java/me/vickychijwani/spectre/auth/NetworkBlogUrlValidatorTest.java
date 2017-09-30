@@ -117,7 +117,7 @@ public class NetworkBlogUrlValidatorTest {
             return new Response.Builder()
                     .protocol(Protocol.HTTP_1_1)
                     .request(chain.request().newBuilder().url(httpsRequestUrl).build())
-                    .code(200)
+                    .code(200).message("OK")
                     .body(ResponseBody.create(MediaType.parse("text/plain"), ""))
                     .build();
         }).build();
@@ -146,7 +146,7 @@ public class NetworkBlogUrlValidatorTest {
             return new Response.Builder()
                     .protocol(Protocol.HTTP_1_1)
                     .request(chain.request())
-                    .code(200)
+                    .code(200).message("OK")
                     .body(ResponseBody.create(MediaType.parse("text/plain"), ""))
                     .build();
         }).build();

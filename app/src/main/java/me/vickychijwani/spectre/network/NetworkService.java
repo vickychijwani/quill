@@ -223,7 +223,7 @@ public class NetworkService implements
 
         mApi.getVersion(mAuthToken.getAuthHeader()).enqueue(new Callback<JsonObject>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
                 if (response.isSuccessful()) {
                     try {
                         String ghostVersion = response.body()
@@ -240,7 +240,7 @@ public class NetworkService implements
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable error) {
+            public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable error) {
                 // error in transport layer, or lower
                 getBus().post(new GhostVersionLoadedEvent(UNKNOWN_VERSION));
             }
@@ -261,7 +261,7 @@ public class NetworkService implements
 
         mApi.getCurrentUser(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_CURRENT_USER)).enqueue(new Callback<UserList>() {
             @Override
-            public void onResponse(Call<UserList> call, Response<UserList> response) {
+            public void onResponse(@NonNull Call<UserList> call, @NonNull Response<UserList> response) {
                 if (response.isSuccessful()) {
                     UserList userList = response.body();
                     storeEtag(response.headers(), ETag.TYPE_CURRENT_USER);
@@ -294,7 +294,7 @@ public class NetworkService implements
             }
 
             @Override
-            public void onFailure(Call<UserList> call, Throwable error) {
+            public void onFailure(@NonNull Call<UserList> call, @NonNull Throwable error) {
                 // error in transport layer, or lower
                 ApiFailure apiFailure = new ApiFailure<>(error);
                 getBus().post(new ApiErrorEvent(apiFailure));
@@ -317,7 +317,7 @@ public class NetworkService implements
 
         mApi.getSettings(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_BLOG_SETTINGS)).enqueue(new Callback<SettingsList>() {
             @Override
-            public void onResponse(Call<SettingsList> call, Response<SettingsList> response) {
+            public void onResponse(@NonNull Call<SettingsList> call, @NonNull Response<SettingsList> response) {
                 if (response.isSuccessful()) {
                     SettingsList settingsList = response.body();
                     storeEtag(response.headers(), ETag.TYPE_BLOG_SETTINGS);
@@ -346,7 +346,7 @@ public class NetworkService implements
             }
 
             @Override
-            public void onFailure(Call<SettingsList> call, Throwable error) {
+            public void onFailure(@NonNull Call<SettingsList> call, @NonNull Throwable error) {
                 // error in transport layer, or lower
                 ApiFailure<SettingsList> apiFailure = new ApiFailure<>(error);
                 getBus().post(new ApiErrorEvent(apiFailure));
@@ -371,7 +371,7 @@ public class NetworkService implements
 
         mApi.getPosts(mAuthToken.getAuthHeader(), loadEtag(ETag.TYPE_ALL_POSTS), POSTS_FETCH_LIMIT).enqueue(new Callback<PostList>() {
             @Override
-            public void onResponse(Call<PostList> call, Response<PostList> response) {
+            public void onResponse(@NonNull Call<PostList> call, @NonNull Response<PostList> response) {
                 if (response.isSuccessful()) {
                     PostList postList = response.body();
                     storeEtag(response.headers(), ETag.TYPE_ALL_POSTS);
@@ -445,7 +445,7 @@ public class NetworkService implements
             }
 
             @Override
-            public void onFailure(Call<PostList> call, Throwable error) {
+            public void onFailure(@NonNull Call<PostList> call, @NonNull Throwable error) {
                 // error in transport layer, or lower
                 ApiFailure<PostList> apiFailure = new ApiFailure<>(error);
                 getBus().post(new ApiErrorEvent(apiFailure));
@@ -569,7 +569,7 @@ public class NetworkService implements
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] deleting post id = " + localPost.getId());
             mApi.deletePost(mAuthToken.getAuthHeader(), localPost.getId()).enqueue(new Callback<String>() {
                 @Override
-                public void onResponse(Call<String> call, Response<String> response) {
+                public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
                     if (response.isSuccessful()) {
                         AnalyticsService.logDraftDeleted();
                         postUploadQueue.removeFirstOccurrence(localPost);
@@ -581,7 +581,7 @@ public class NetworkService implements
                 }
 
                 @Override
-                public void onFailure(Call<String> call, Throwable error) {
+                public void onFailure(@NonNull Call<String> call, @NonNull Throwable error) {
                     onFailure.call(localPost, new ApiFailure<>(error));
                 }
             });
@@ -592,7 +592,7 @@ public class NetworkService implements
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] creating post");    // local new posts don't have an id
             mApi.createPost(mAuthToken.getAuthHeader(), PostStubList.from(localPost)).enqueue(new Callback<PostList>() {
                 @Override
-                public void onResponse(Call<PostList> call, Response<PostList> response) {
+                public void onResponse(@NonNull Call<PostList> call, @NonNull Response<PostList> response) {
                     if (response.isSuccessful()) {
                         PostList postList = response.body();
                         AnalyticsService.logNewDraftUploaded();
@@ -608,7 +608,7 @@ public class NetworkService implements
                 }
 
                 @Override
-                public void onFailure(Call<PostList> call, Throwable error) {
+                public void onFailure(@NonNull Call<PostList> call, @NonNull Throwable error) {
                     onFailure.call(localPost, new ApiFailure<>(error));
                 }
             });
@@ -620,7 +620,7 @@ public class NetworkService implements
             PostStubList postStubList = PostStubList.from(editedPost);
             mApi.updatePost(mAuthToken.getAuthHeader(), editedPost.getId(), postStubList).enqueue(new Callback<PostList>() {
                 @Override
-                public void onResponse(Call<PostList> call, Response<PostList> response) {
+                public void onResponse(@NonNull Call<PostList> call, @NonNull Response<PostList> response) {
                     if (response.isSuccessful()) {
                         PostList postList = response.body();
                         createOrUpdateModel(postList.posts);
@@ -633,7 +633,7 @@ public class NetworkService implements
                 }
 
                 @Override
-                public void onFailure(Call<PostList> call, Throwable error) {
+                public void onFailure(@NonNull Call<PostList> call, @NonNull Throwable error) {
                     onFailure.call(editedPost, new ApiFailure<>(error));
                 }
             });
@@ -642,7 +642,7 @@ public class NetworkService implements
             Crashlytics.log(Log.DEBUG, TAG, "[onSyncPostsEvent] downloading edited post with id = " + localPost.getId() + " for comparison");
             mApi.getPost(mAuthToken.getAuthHeader(), localPost.getId()).enqueue(new Callback<PostList>() {
                 @Override
-                public void onResponse(Call<PostList> call, Response<PostList> response) {
+                public void onResponse(@NonNull Call<PostList> call, @NonNull Response<PostList> response) {
                     if (response.isSuccessful()) {
                         PostList postList = response.body();
                         Post serverPost = null;
@@ -674,7 +674,7 @@ public class NetworkService implements
                 }
 
                 @Override
-                public void onFailure(Call<PostList> call, Throwable error) {
+                public void onFailure(@NonNull Call<PostList> call, @NonNull Throwable error) {
                     // if we can't get the server post, optimistically upload the local copy
                     uploadEditedPost.call(localPost);
                 }
@@ -800,7 +800,7 @@ public class NetworkService implements
 
         mApi.uploadFile(mAuthToken.getAuthHeader(), filePart).enqueue(new Callback<JsonElement>() {
             @Override
-            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+            public void onResponse(@NonNull Call<JsonElement> call, @NonNull Response<JsonElement> response) {
                 if (response.isSuccessful()) {
                     String url = response.body().getAsString();
                     getBus().post(new FileUploadedEvent(url));
@@ -817,7 +817,7 @@ public class NetworkService implements
             }
 
             @Override
-            public void onFailure(Call<JsonElement> call, Throwable error) {
+            public void onFailure(@NonNull Call<JsonElement> call, @NonNull Throwable error) {
                 // error in transport layer, or lower
                 getBus().post(new ApiErrorEvent(new ApiFailure(error)));
             }

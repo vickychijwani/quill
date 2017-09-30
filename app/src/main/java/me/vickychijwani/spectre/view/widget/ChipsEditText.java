@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.AppCompatMultiAutoCompleteTextView;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -31,7 +32,7 @@ import me.vickychijwani.spectre.util.DeviceUtils;
  * Adapted from https://github.com/kpbird/chipsedittext/blob/master/src/com/kpbird/chipsedittext/ChipsMultiAutoCompleteTextview.java
  */
 @SuppressWarnings("SameParameterValue")
-public class ChipsEditText extends MultiAutoCompleteTextView implements AdapterView.OnItemClickListener {
+public class ChipsEditText extends AppCompatMultiAutoCompleteTextView implements AdapterView.OnItemClickListener {
 
     private Pattern mTokenPattern;
     @ColorInt private int mChipBgColor;

@@ -74,7 +74,7 @@ import retrofit2.Response;
 public class PostListActivity extends BaseActivity {
 
     private static final String TAG = "PostListActivity";
-    public static final int REQUEST_CODE_VIEW_POST = 1;
+    private static final int REQUEST_CODE_VIEW_POST = 1;
 
     private final List<Post> mPosts = new ArrayList<>();
     private PostAdapter mPostAdapter;

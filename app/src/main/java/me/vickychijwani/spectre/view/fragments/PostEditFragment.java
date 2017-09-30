@@ -435,7 +435,7 @@ public class PostEditFragment extends BaseFragment implements
         }
     }
 
-    public void uploadImage(@NonNull Uri uri) {
+    private void uploadImage(@NonNull Uri uri) {
         if (mUploadDisposable != null && !mUploadDisposable.isDisposed()) {
             mUploadDisposable.dispose();
             mUploadDisposable = null;
@@ -632,13 +632,9 @@ public class PostEditFragment extends BaseFragment implements
                     // slug with the title as long as it's being published now (even if it was
                     // published and then unpublished earlier).
                     if (Post.PUBLISHED.equals(finalTargetStatus)) {
-                        try {
-                            // update the title in memory first, from the latest value in UI
-                            mPost.setTitle(mPostTitleEditView.getText().toString());
-                            mPost.setSlug(new Slugify().slugify(mPost.getTitle()));
-                        } catch (IOException e) {
-                            Crashlytics.logException(e);
-                        }
+                        // update the title in memory first, from the latest value in UI
+                        mPost.setTitle(mPostTitleEditView.getText().toString());
+                        mPost.setSlug(new Slugify().slugify(mPost.getTitle()));
                     }
                     saveToServerExplicitly(finalTargetStatus);
                 })
@@ -773,7 +769,7 @@ public class PostEditFragment extends BaseFragment implements
         public void afterTextChanged(Editable s) {}
     }
 
-    class PostSettingsChangedListener implements PostViewActivity.PostSettingsChangedListener {
+    private class PostSettingsChangedListener implements PostViewActivity.PostSettingsChangedListener {
         @Override
         public void onPostSettingsChanged() {
             mPostChangedInMemory = true;

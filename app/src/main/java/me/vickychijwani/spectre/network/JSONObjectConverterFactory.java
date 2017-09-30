@@ -1,5 +1,6 @@
 package me.vickychijwani.spectre.network;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -16,7 +17,7 @@ import retrofit2.Retrofit;
 
 /* package */ class JSONObjectConverterFactory extends Converter.Factory {
 
-    private JSONObjectConverter mConverter;
+    private final JSONObjectConverter mConverter;
 
     public static JSONObjectConverterFactory create() {
         return new JSONObjectConverterFactory();
@@ -39,7 +40,7 @@ import retrofit2.Retrofit;
 
         @Nullable
         @Override
-        public JSONObject convert(ResponseBody value) throws IOException {
+        public JSONObject convert(@NonNull ResponseBody value) throws IOException {
             try {
                 return new JSONObject(value.string());
             } catch (JSONException e) {

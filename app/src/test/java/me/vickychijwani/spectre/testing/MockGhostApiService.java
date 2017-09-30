@@ -64,7 +64,7 @@ public class MockGhostApiService implements GhostApiService {
             final okhttp3.Response rawResponse = new okhttp3.Response.Builder()
                     .protocol(Protocol.HTTP_1_1)
                     .request(new Request.Builder().url(tokenUrl).build())
-                    .code(HttpURLConnection.HTTP_UNAUTHORIZED)
+                    .code(HttpURLConnection.HTTP_UNAUTHORIZED).message("Unauthorized")
                     .body(body)
                     .build();
             final Response<Object> res = Response.error(body, rawResponse);

@@ -16,8 +16,6 @@
 
 package me.vickychijwani.spectre.util;
 
-import java.util.Objects;
-
 /**
  * Container to ease passing around a tuple of two objects. This object provides a sensible
  * implementation of equals(), returning true if equals() is true on each of the contained
@@ -52,7 +50,11 @@ public class Pair<F, S> {
             return false;
         }
         Pair<?, ?> p = (Pair<?, ?>) o;
-        return Objects.equals(p.first, first) && Objects.equals(p.second, second);
+        return equals(p.first, first) && equals(p.second, second);
+    }
+
+    private static boolean equals(Object a, Object b) {
+        return (a == b) || (a != null && a.equals(b));
     }
 
     /**

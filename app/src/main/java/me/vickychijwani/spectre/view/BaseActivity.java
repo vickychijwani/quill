@@ -31,6 +31,7 @@ import me.vickychijwani.spectre.event.BusProvider;
 import me.vickychijwani.spectre.event.CredentialsExpiredEvent;
 import me.vickychijwani.spectre.view.fragments.BaseFragment;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class BaseActivity extends AppCompatActivity {
 
     private static final String TAG = "BaseActivity";
