@@ -596,11 +596,11 @@ public class NetworkService implements
                     if (response.isSuccessful()) {
                         PostList postList = response.body();
                         AnalyticsService.logNewDraftUploaded();
-                        createOrUpdateModel(postList.posts);
+                        Post updatedPost = copyPosts(createOrUpdateModel(postList.posts)).get(0);
                         postUploadQueue.removeFirstOccurrence(localPost);
                         postsToDelete.add(localPost);
                         // FIXME this is a new post! how do subscribers know which post changed?
-                        getBus().post(new PostReplacedEvent(postList.posts.get(0)));
+                        getBus().post(new PostReplacedEvent(updatedPost));
                         if (postUploadQueue.isEmpty()) syncFinishedCB.call();
                     } else {
                         onFailure.call(localPost, new ApiFailure<>(response));

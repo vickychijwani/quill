@@ -316,21 +316,23 @@ public final class GhostApiTest {
     public void test_updatePost() {
         doWithAuthToken(token -> {
             createRandomPost(token, (newPost, __, created) -> {
-                Post updatedPost = new Post(newPost);
+                Post expectedPost = new Post(newPost);
                 Tag updatedTag = new Tag("updated-tag");
-                updatedPost.setMarkdown("updated **markdown**");
-                updatedPost.setTags(new RealmList<>(updatedTag));
-                PostStubList postStubs = PostStubList.from(updatedPost);
+                expectedPost.setMarkdown("updated **markdown**");
+                expectedPost.setTags(new RealmList<>(updatedTag));
+                PostStubList postStubs = PostStubList.from(expectedPost);
 
                 Response<PostList> response = execute(API.updatePost(token.getAuthHeader(),
                         created.getId(), postStubs));
-                Post post = response.body().posts.get(0);
+                String actualPostId = response.body().posts.get(0).getId();
+                Post actualPost = execute(API.getPost(token.getAuthHeader(), actualPostId))
+                        .body().posts.get(0);
 
                 assertThat(response.code(), is(HTTP_OK));
-                assertThat(post.getTitle(), is(updatedPost.getTitle()));
-                assertThat(post.getMarkdown(), is(updatedPost.getMarkdown()));
-                assertThat(post.getTags(), hasSize(1));
-                assertThat(post.getTags().get(0).getName(), is(updatedTag.getName()));
+                assertThat(actualPost.getTitle(), is(expectedPost.getTitle()));
+                assertThat(actualPost.getMarkdown(), is(expectedPost.getMarkdown()));
+                assertThat(actualPost.getTags(), hasSize(1));
+                assertThat(actualPost.getTags().get(0).getName(), is(updatedTag.getName()));
             });
         });
     }
@@ -426,7 +428,8 @@ public final class GhostApiTest {
         newPost.setTags(new RealmList<>());
         Response<PostList> response = execute(API.createPost(token.getAuthHeader(),
                 PostStubList.from(newPost)));
-        Post created = response.body().posts.get(0);
+        String createdId = response.body().posts.get(0).getId();
+        Post created = execute(API.getPost(token.getAuthHeader(), createdId)).body().posts.get(0);
 
         try {
             callback.call(newPost, response, created);
