@@ -21,7 +21,7 @@ dependencies:
     - /usr/local/android-sdk-linux/build-tools/$BUILD_TOOLS_VERSION
     - $HOME/.cache/yarn
   override:
-    - ./tests/ghost-setup.sh $GHOST_DIR $GHOST_VERSION password
+    - JOBS=2 ./tests/ghost-setup.sh $GHOST_DIR $GHOST_VERSION password
 
 # actual build and test
 # can't build/test release because Fabric API keys are not available in CI
