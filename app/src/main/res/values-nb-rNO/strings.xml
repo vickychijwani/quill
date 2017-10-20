@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string name="prompt_blog_url">Bloggadresse (blogg.eksempel.no)</string>
+    <string name="prompt_email">E-post</string>
+    <string name="prompt_password">Passord</string>
+    <string name="action_sign_in">Logg inn</string>
+
+    <string name="error_invalid_email">Denne e-postadressen er ugyldig.</string>
+    <string name="error_field_required">Dette feltet er påkrevd.</string>
+
+    <string name="no_such_blog">Det er ingen Ghost-administrator på %s/ghost.</string>
+    <string name="login_unexpected_error">Uventet feil under innlogging. Prøv igjen.</string>
+    <string name="login_connection_error">Kunne ikke koble til %s/ghost. Prøv igjen.</string>
+    <string name="login_ssl_unsupported">Din blogg støtter ikke https:// (SSL). Prøv å endre til http://.</string>
+    <string name="logout">Logg ut</string>
+    <string name="unsynced_changes_msg">Du vil miste alle ulagrede endringer hvis du logger ut nå</string>
+    <string name="dont_logout">Ikke logg ut</string>
+
+    <string name="status_published">Publisert %s</string>
+    <string name="status_draft">Kladd</string>
+    <string name="status_scheduled">Planlagt - %s</string>
+    <string name="status_offline_changes">Lagret på enhet, venter på nettilgang…</string>
+    <string name="status_published_auto_saved">Endringer auto-lagret, ikke publisert enda</string>
+    <string name="status_marked_for_deletion">Markert for sletting, venter på nettilgang…</string>
+    <string name="status_marked_for_deletion_open_error">Den posten er merket for sletting, den kan ikke åpnes</string>
+
+    <string name="preview">Forhåndsvis</string>
+    <string name="edit">Rediger</string>
+    <string name="publish">Publiser</string>
+    <string name="update_post">Oppdater post</string>
+    <string name="unpublish">Tilbakekall</string>
+    <string name="alert_publish">Publiser kladd?</string>
+    <string name="alert_unpublish">Tilbakekall post?</string>
+    <string name="delete_draft">Slett kladd</string>
+    <string name="alert_delete_draft_title">Slett denne kladden?</string>
+    <string name="alert_delete_draft_msg">Du vil ikke kunne angre dette!</string>
+    <string name="alert_delete_yes">Slett</string>
+    <string name="alert_delete_no">Behold</string>
+    <string name="post_deleted">Post slettet</string>
+    <string name="alert_save_msg">Oppdater denne posten med endringer?</string>
+    <string name="alert_save_yes">Ja, oppdater</string>
+    <string name="alert_save_no">Ikke enda</string>
+    <string name="discard_changes">Forkast endringer</string>
+    <string name="alert_discard_changes_title">Forkast ALLE endringer siden du sist endret denne posten?</string>
+    <string name="alert_discard_changes_msg">Det er ingen vei tilbake!</string>
+    <string name="discard">Forkast</string>
+    <string name="view_homepage">Vis hjemmeside</string>
+    <string name="view_post_on_blog">Vis post på blogg</string>
+    <string name="post_settings">Post-innstillinger</string>
+
+    <string name="save_post_progress">Lagrer post…</string>
+    <string name="save_post_failed">Kunne ikke lagre post</string>
+    <string name="save_post_view">Vis på blogg</string>
+    <string name="save_post_timeout">Lagret på enhet</string>
+
+    <string name="save_scenario_unknown">Lagret</string>
+    <string name="save_scenario_publish_draft">Post publisert.</string>
+    <string name="save_scenario_unpublish_published_post">Post tilbakekalt</string>
+    <string name="save_scenario_auto_save_scheduled_or_published_post">Endringer lagret på enhet</string>
+    <string name="save_scenario_explicitly_update_scheduled_or_published_post">Post oppdatert</string>
+    <string name="save_scenario_auto_save_draft">Kladd lagret</string>
+    <string name="save_scenario_explicitly_save_draft">Kladd lagret</string>
+
+    <string name="post_title_hint">Gi din post en tittel…</string>
+    <string name="post_image_hint">Legg et bilde til posten</string>
+    <string name="post_tags_hint">Legg til noen etiketter…</string>
+    <string name="post_tags_format_hint">Bruk kommainndeling for etiketter</string>
+    <string name="post_body_hint">Skriv noe her…</string>
+    <string name="post_image_load_error">Feil ved innlasting av post-bilde</string>
+    <string name="post_feature_hint">Framhev denne posten</string>
+
+    <string name="insert_image">Sett inn bilde</string>
+    <string name="insert_image_url">Sett inn nettadresse</string>
+    <string name="image_url">Bildets nettadresse</string>
+    <string name="insert_image_upload">Last opp bilde</string>
+    <string name="uploading">Laster opp…</string>
+    <string name="image_upload_failed">Kunne ikke laste opp bilde</string>
+    <string name="remove_image">Fjern dette bildet</string>
+    <string name="enable_permission_tip">Trykk på tilganger og skru på lagringstilgang</string>
+
+    <string name="conflict_explanation"><b>Posten <i>%s</i> har en konflikt.</b> Den ble oppdatert på tjeneren før din enhets kopi kunne lastes opp. Hvilken versjon av posten ønsker du å beholde?</string>
+    <string name="conflict_choice_use_device_copy">Last opp enhetskopi</string>
+    <string name="conflict_choice_use_server_copy">Last ned tjenerkopi</string>
+    <string name="conflict_last_update_at">Sist oppdatert %s</string>
+    <string name="conflict_post_preview_title">Kopien av posten nedenfor vil bli behold:</string>
+    <string name="conflict_post_preview_status">Post-status: <b>%s</b></string>
+
+    <string name="about_action">Om…</string>
+    <string name="about">Om</string>
+
+    <string name="version">Versjon</string>
+
+    <string name="category_support_development">Støtt utviklingen</string>
+    <string name="play_store">Vurder på Play-butikken</string>
+    <string name="play_store_subtitle">Takk for støtten!</string>
+
+    <string name="no_internet_connection">Mangler nettilgang</string>
+    <string name="network_timeout">Tidsavbrudd for tilkobling</string>
+    <string name="refresh_failed">Kunne ikke gjenoppfriske data</string>
+
+    <string name="done">Ferdig</string>
+    <string name="save">Lagre</string>
+    <string name="refresh">Gjenoppfrisk</string>
+    <string name="share">Del</string>
+    <string name="loading">Laster…</string>
+    <string name="insert">Sett inn</string>
+    <string name="intent_no_apps">Det er ingen programmer som kan hanskes med denne handlingen</string>
+    <string name="accept">Godta</string>
+    <string name="draft">Kladd</string>
+    <string name="published">Publisert</string>
+    <string name="scheduled">Planlagt</string>
+
+</resources>
