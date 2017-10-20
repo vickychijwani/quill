@@ -10,18 +10,18 @@
 
     <!-- ignoring missing translations for these strings because they are only meaningful if the user understands English -->
     <string name="translate" translatable="false">Help with translation</string>
-    <string name="translate_subtitle" translatable="false">Help me translate this app to your language!</string>
+    <string name="translate_subtitle" translatable="false">Help translate this app to your language.</string>
 
     <!-- non-critical strings that don't need translations -->
     <string name="url_help_tip" translatable="false"><![CDATA[Don\'t have a Ghost blog yet? See <a href="ghost-help">here</a> for how to get one.]]></string>
     <string name="login_help_tip" translatable="false"><![CDATA[Trouble logging in? Tap <a href="login-help">here</a> to get help]]></string>
-    <string name="post_limit_exceeded" translatable="false" tools:ignore="PluralsCandidate"><![CDATA[%1$s currently only loads the latest %2$d posts from your blog. If you would like to see support for loading older posts, <a href="%3$s">vote for this feature on Github</a> and help me prioritize development.]]></string>
+    <string name="post_limit_exceeded" translatable="false" tools:ignore="PluralsCandidate"><![CDATA[%1$s currently only loads the latest %2$d posts from your blog. If you would like to see support for loading older posts, <a href="%3$s">vote for this feature on GitHub</a> and help me prioritize development.]]></string>
 
     <string name="version_unknown" translatable="false">Unknown</string>
     <string name="open_source_libs" translatable="false">Open-source libraries</string>
 
     <string name="category_developer" translatable="false">Developer</string>
-    <string name="fork_on_github" translatable="false">Fork on Github</string>
+    <string name="fork_on_github" translatable="false">Fork on GitHub</string>
     <string name="follow_on_twitter" translatable="false">Follow on Twitter</string>
     <string name="visit_website" translatable="false">Visit website</string>
 
