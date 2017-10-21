@@ -72,7 +72,7 @@ public final class GhostApiTest {
 
     private static final String BLOG_URL = "http://localhost:2368/";
     private static final String TEST_USER = "user@example.com";
-    private static final String TEST_PWD = "ghosttest";
+    private static final String TEST_PWD = "ghosttestpwd";
 
     private static GhostApiService API;
     private static Slugify SLUGIFY;

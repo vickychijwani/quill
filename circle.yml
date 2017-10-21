@@ -30,7 +30,7 @@ test:
     - node $GHOST_DIR/index.js:
         background: true
     - sleep 10
-    - curl -vvvv -d 'setup[0][name]=User' -d 'setup[0][email]=user@example.com' -d 'setup[0][password]=ghosttest' -d 'setup[0][blogTitle]=My Blog' http://localhost:2368/ghost/api/v0.1/authentication/setup/
+    - curl -vvvv -d 'setup[0][name]=User' -d 'setup[0][email]=user@example.com' -d 'setup[0][password]=ghosttestpwd' -d 'setup[0][blogTitle]=My Blog' http://localhost:2368/ghost/api/v0.1/authentication/setup/
 
   override:
     - ./gradlew assembleDebug -PdisablePreDex --console=plain
