@@ -36,8 +36,7 @@ import com.squareup.otto.Subscribe;
 
 import java.io.IOException;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
+import butterknife.BindView;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -90,8 +89,8 @@ public class PostEditFragment extends BaseFragment implements
         EXPLICITLY_UPDATE_SCHEDULED_POST,
     }
 
-    @Bind(R.id.post_title_edit)             EditText mPostTitleEditView;
-    @Bind(R.id.post_markdown)               EditText mPostEditView;
+    @BindView(R.id.post_title_edit)             EditText mPostTitleEditView;
+    @BindView(R.id.post_markdown)               EditText mPostEditView;
 
     private PostViewActivity mActivity;
     private PostSettingsManager mPostSettingsManager;
@@ -137,7 +136,7 @@ public class PostEditFragment extends BaseFragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_post_edit, container, false);
-        ButterKnife.bind(this, view);
+        bindView(view);
 
         mActivity = ((PostViewActivity) getActivity());
         mPostSettingsManager = mActivity;

@@ -57,12 +57,14 @@ public class WebViewFragment extends BaseFragment {
     public WebViewFragment() {}
 
     @SuppressLint("SetJavaScriptEnabled")
-    @Override
+    @NonNull @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         @LayoutRes int layoutId = getArguments().getInt(KEY_LAYOUT_ID);
         View view = inflater.inflate(layoutId, container, false);
         // not using ButterKnife to ensure WebView is private
+        // but still need to call bindView() to maintain base class contract
+        bindView(view);
         mWebView = (WebView) view.findViewById(R.id.web_view);
         mUrl = getArguments().getString(BundleKeys.URL);
         if (TextUtils.isEmpty(mUrl)) {

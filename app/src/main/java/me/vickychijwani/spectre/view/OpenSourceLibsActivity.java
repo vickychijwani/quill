@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import me.vickychijwani.spectre.R;
 
@@ -45,8 +45,8 @@ public class OpenSourceLibsActivity extends BaseActivity {
 
     private LibsAdapter mLibsAdapter;
 
-    @Bind(R.id.toolbar) Toolbar mToolbar;
-    @Bind(R.id.libs_list) RecyclerView mLibsList;
+    @BindView(R.id.toolbar) Toolbar mToolbar;
+    @BindView(R.id.libs_list) RecyclerView mLibsList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,8 +117,8 @@ public class OpenSourceLibsActivity extends BaseActivity {
         }
 
         static class LibraryViewHolder extends RecyclerView.ViewHolder {
-            @Bind(R.id.lib_name) TextView name;
-            @Bind(R.id.lib_author) TextView author;
+            @BindView(R.id.lib_name) TextView name;
+            @BindView(R.id.lib_author) TextView author;
 
             public LibraryViewHolder(@NonNull View view, View.OnClickListener clickListener) {
                 super(view);

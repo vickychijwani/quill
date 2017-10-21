@@ -10,8 +10,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
+import butterknife.BindView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.auth.GhostAuth;
 import me.vickychijwani.spectre.view.BundleKeys;
@@ -22,7 +21,7 @@ public class GhostAuthFragment extends WebViewFragment {
     private static final String TAG = GhostAuthFragment.class.getSimpleName();
     private static final String KEY_REDIRECT_URI = "key:redirect_uri";
 
-    @Bind(R.id.progress) ProgressBar mLoadingProgress;
+    @BindView(R.id.progress) ProgressBar mLoadingProgress;
 
     public static GhostAuthFragment newInstance(@NonNull GhostAuth.Params params) {
         GhostAuthFragment fragment = new GhostAuthFragment();
@@ -36,10 +35,10 @@ public class GhostAuthFragment extends WebViewFragment {
 
     public GhostAuthFragment() {}
 
-    @Override
+    @NonNull @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        ButterKnife.bind(this, view);
+        bindView(view);
         setWebChromeClient(new ProgressWebChromeClient());
         return view;
     }

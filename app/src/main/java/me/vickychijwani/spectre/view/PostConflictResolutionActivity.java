@@ -14,7 +14,7 @@ import com.crashlytics.android.Crashlytics;
 
 import java.util.Date;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.analytics.AnalyticsService;
 import me.vickychijwani.spectre.event.SavePostEvent;
@@ -23,16 +23,16 @@ import me.vickychijwani.spectre.util.DateTimeUtils;
 
 public class PostConflictResolutionActivity extends BaseActivity implements View.OnClickListener {
 
-    @Bind(R.id.conflict_explanation)                TextView mExplanationView;
-    @Bind(R.id.conflict_choice)                     RadioGroup mChoiceGroup;
-    @Bind(R.id.conflict_choice_use_device_copy)     RadioButton mChoiceUseDeviceCopyBtn;
-    @Bind(R.id.conflict_choice_use_server_copy)     RadioButton mChoiceUseServerCopyBtn;
-//    @Bind(R.id.conflict_decide_later_btn)           View mDecideLaterBtn;
-    @Bind(R.id.conflict_accept_btn)                 View mAcceptBtn;
+    @BindView(R.id.conflict_explanation)                TextView mExplanationView;
+    @BindView(R.id.conflict_choice)                     RadioGroup mChoiceGroup;
+    @BindView(R.id.conflict_choice_use_device_copy)     RadioButton mChoiceUseDeviceCopyBtn;
+    @BindView(R.id.conflict_choice_use_server_copy)     RadioButton mChoiceUseServerCopyBtn;
+//    @BindView(R.id.conflict_decide_later_btn)           View mDecideLaterBtn;
+    @BindView(R.id.conflict_accept_btn)                 View mAcceptBtn;
 
-    @Bind(R.id.conflict_post_preview_status)        TextView mPostPreviewStatusView;
-    @Bind(R.id.conflict_post_preview_title)         TextView mPostPreviewTitleView;
-    @Bind(R.id.conflict_post_preview_markdown)      TextView mPostPreviewMarkdownView;
+    @BindView(R.id.conflict_post_preview_status)        TextView mPostPreviewStatusView;
+    @BindView(R.id.conflict_post_preview_title)         TextView mPostPreviewTitleView;
+    @BindView(R.id.conflict_post_preview_markdown)      TextView mPostPreviewMarkdownView;
 
     private Post mLocalPost = null;
     private Post mServerPost = null;

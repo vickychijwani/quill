@@ -17,8 +17,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
+import butterknife.BindView;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.auth.LoginOrchestrator;
@@ -34,13 +33,13 @@ public class PasswordAuthFragment extends BaseFragment implements
         LoginOrchestrator.Listener
 {
 
-    @Bind(R.id.email)                   EditText mEmailView;
-    @Bind(R.id.email_error)             TextView mEmailErrorView;
-    @Bind(R.id.password)                EditText mPasswordView;
-    @Bind(R.id.password_error)          TextView mPasswordErrorView;
-    @Bind(R.id.login_help_tip)          TextView mLoginHelpTipView;
-    @Bind(R.id.sign_in_btn)             View mSignInBtn;
-    @Bind(R.id.progress)                ProgressBar mProgress;
+    @BindView(R.id.email)                   EditText mEmailView;
+    @BindView(R.id.email_error)             TextView mEmailErrorView;
+    @BindView(R.id.password)                EditText mPasswordView;
+    @BindView(R.id.password_error)          TextView mPasswordErrorView;
+    @BindView(R.id.login_help_tip)          TextView mLoginHelpTipView;
+    @BindView(R.id.sign_in_btn)             View mSignInBtn;
+    @BindView(R.id.progress)                ProgressBar mProgress;
 
     private Listenable<LoginOrchestrator.Listener> mLoginOrchestrator = null;
 
@@ -56,7 +55,7 @@ public class PasswordAuthFragment extends BaseFragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_password_auth, container, false);
-        ButterKnife.bind(this, view);
+        bindView(view);
         mPasswordView.setOnEditorActionListener(this);
 
         final String loginHelpTip = mLoginHelpTipView.getText().toString();

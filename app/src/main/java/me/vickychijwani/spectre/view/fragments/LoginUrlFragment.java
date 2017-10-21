@@ -14,8 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
+import butterknife.BindView;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.account.AccountManager;
@@ -32,11 +31,11 @@ public class LoginUrlFragment extends BaseFragment implements
         LoginOrchestrator.Listener
 {
 
-    @Bind(R.id.blog_url)                EditText mBlogUrlView;
-    @Bind(R.id.next_btn)                View mNextBtn;
-    @Bind(R.id.blog_url_error)          TextView mBlogUrlErrorView;
-    @Bind(R.id.login_help_tip)          TextView mLoginHelpTipView;
-    @Bind(R.id.progress)                ProgressBar mProgress;
+    @BindView(R.id.blog_url)                EditText mBlogUrlView;
+    @BindView(R.id.next_btn)                View mNextBtn;
+    @BindView(R.id.blog_url_error)          TextView mBlogUrlErrorView;
+    @BindView(R.id.login_help_tip)          TextView mLoginHelpTipView;
+    @BindView(R.id.progress)                ProgressBar mProgress;
 
     private Listenable<LoginOrchestrator.Listener> mLoginOrchestrator = null;
 
@@ -52,7 +51,7 @@ public class LoginUrlFragment extends BaseFragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_login_url, container, false);
-        ButterKnife.bind(this, view);
+        bindView(view);
 
         if (AccountManager.hasActiveBlog()) {
             String blogUrl = AccountManager.getActiveBlogUrl();

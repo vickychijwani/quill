@@ -43,8 +43,8 @@ import com.squareup.otto.Subscribe;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.Bind;
 import butterknife.BindDimen;
+import butterknife.BindView;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.BuildConfig;
 import me.vickychijwani.spectre.R;
@@ -88,16 +88,16 @@ public class PostListActivity extends BaseActivity {
     // NOTE: very large timeout is needed for cases like initial sync on a blog with 100s of posts
     private static final int REFRESH_TIMEOUT = 5 * 60 * 1000;       // in milliseconds
 
-    @Bind(R.id.toolbar)                     Toolbar mToolbar;
-    @Bind(R.id.app_bar_bg)                  View mAppBarBg;
-    @Bind(R.id.user_image)                  ImageView mUserImageView;
-    @Bind(R.id.user_blog_title)             TextView mBlogTitleView;
-    @Bind(R.id.swipe_refresh_layout)        SwipeRefreshLayout mSwipeRefreshLayout;
-    @Bind(R.id.post_list_container)         FrameLayout mPostListContainer;
-    @Bind(R.id.post_list)                   RecyclerView mPostList;
+    @BindView(R.id.toolbar)                     Toolbar mToolbar;
+    @BindView(R.id.app_bar_bg)                  View mAppBarBg;
+    @BindView(R.id.user_image)                  ImageView mUserImageView;
+    @BindView(R.id.user_blog_title)             TextView mBlogTitleView;
+    @BindView(R.id.swipe_refresh_layout)        SwipeRefreshLayout mSwipeRefreshLayout;
+    @BindView(R.id.post_list_container)         FrameLayout mPostListContainer;
+    @BindView(R.id.post_list)                   RecyclerView mPostList;
 
-    @Bind(R.id.new_post_reveal)             View mNewPostRevealView;
-    @Bind(R.id.new_post_reveal_shrink)      View mNewPostRevealShrinkView;
+    @BindView(R.id.new_post_reveal)             View mNewPostRevealView;
+    @BindView(R.id.new_post_reveal_shrink)      View mNewPostRevealShrinkView;
     @BindDimen(R.dimen.toolbar_height)      int mToolbarHeight;
     @BindDimen(R.dimen.tabbar_height)       int mTabbarHeight;
     @ColorInt private                       int mColorAccent;

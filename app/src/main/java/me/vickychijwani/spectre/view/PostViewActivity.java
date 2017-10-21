@@ -41,8 +41,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import butterknife.Bind;
 import butterknife.BindDimen;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.functions.Consumer;
@@ -77,12 +77,12 @@ public class PostViewActivity extends BaseActivity implements
     private static final String TAG = PostViewActivity.class.getSimpleName();
     public static final int RESULT_CODE_DELETED = 1;
 
-    @Bind(R.id.toolbar)                         Toolbar mToolbar;
-    @Bind(R.id.toolbar_title)                   TextView mToolbarTitle;
-    @Bind(R.id.tabbar)                          TabLayout mTabLayout;
-    @Bind(R.id.view_pager)                      ViewPager mViewPager;
-    @Bind(R.id.drawer_layout)                   DrawerLayout mDrawerLayout;
-    @Bind(R.id.nav_view)                        NavigationView mNavView;
+    @BindView(R.id.toolbar)                         Toolbar mToolbar;
+    @BindView(R.id.toolbar_title)                   TextView mToolbarTitle;
+    @BindView(R.id.tabbar)                          TabLayout mTabLayout;
+    @BindView(R.id.view_pager)                      ViewPager mViewPager;
+    @BindView(R.id.drawer_layout)                   DrawerLayout mDrawerLayout;
+    @BindView(R.id.nav_view)                        NavigationView mNavView;
 
     private FormattingToolbarManager mFormattingToolbarManager = null;
     private PostImageLayoutManager mPostImageLayoutManager = null;

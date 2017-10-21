@@ -37,6 +37,7 @@ public class PostViewFragment extends BaseFragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_post_view, container, false);
+        bindView(view);
 
         mPost = getArguments().getParcelable(BundleKeys.POST);
 

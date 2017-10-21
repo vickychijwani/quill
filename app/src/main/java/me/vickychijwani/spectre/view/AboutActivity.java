@@ -8,7 +8,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.util.AppUtils;
@@ -22,9 +22,9 @@ public class AboutActivity extends BaseActivity {
     public static final String URL_GITHUB_REPO = "https://github.com/vickychijwani/quill";
     public static final String URL_GITHUB_PROFILE = "https://github.com/vickychijwani";
 
-    @Bind(R.id.toolbar) Toolbar mToolbar;
-    @Bind(R.id.about_version) TextView mVersionView;
-    @Bind(R.id.about_icon_credits) TextView mIconCreditsView;
+    @BindView(R.id.toolbar) Toolbar mToolbar;
+    @BindView(R.id.about_version) TextView mVersionView;
+    @BindView(R.id.about_icon_credits) TextView mIconCreditsView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -25,7 +25,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import me.vickychijwani.spectre.R;
 import me.vickychijwani.spectre.model.entity.Post;
@@ -262,11 +262,11 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 
     static class PostViewHolder extends RecyclerView.ViewHolder {
-        @Bind(R.id.post_title)          TextView title;
-        @Bind(R.id.post_status_text)    TextView statusText;
-        @Bind(R.id.post_status_icon)    ImageView statusIcon;
-        @Bind(R.id.post_image)          ImageView image;
-        @Bind(R.id.post_tags)           TextView tags;
+        @BindView(R.id.post_title)          TextView title;
+        @BindView(R.id.post_status_text)    TextView statusText;
+        @BindView(R.id.post_status_icon)    ImageView statusIcon;
+        @BindView(R.id.post_image)          ImageView image;
+        @BindView(R.id.post_tags)           TextView tags;
 
         public PostViewHolder(@NonNull View view, View.OnClickListener clickListener) {
             super(view);
@@ -283,7 +283,7 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 
     static class FooterViewHolder extends RecyclerView.ViewHolder {
-        @Bind(R.id.post_limit_exceeded) TextView textView;
+        @BindView(R.id.post_limit_exceeded) TextView textView;
 
         public FooterViewHolder(View view) {
             super(view);
