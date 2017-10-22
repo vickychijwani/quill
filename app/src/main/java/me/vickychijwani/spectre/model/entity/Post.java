@@ -83,6 +83,8 @@ public class Post implements RealmModel, Parcelable {
     private String metaTitle = "";
     private String metaDescription = "";
 
+    private String customExcerpt = null;
+
     // exclude from serialization / deserialization
     // NOTE: default values for these fields will be assigned to all serialized Posts (because they
     // are not touched by Retrofit), so don't assign any defaults specific to new posts here!
@@ -94,7 +96,7 @@ public class Post implements RealmModel, Parcelable {
 
     public Post() {}
 
-    // TODO remember to update this, equals, Parcelable methods, and DB migration whenever fields are changed!
+    // TODO remember to update this, equals, Parcelable methods, PostUtils.isDirty() and DB migration whenever fields are changed!
     public Post(@NonNull Post post) {
         this.setId(post.getId());
         this.setUuid(post.getUuid());
@@ -128,6 +130,8 @@ public class Post implements RealmModel, Parcelable {
 
         this.setMetaTitle(post.getMetaTitle());
         this.setMetaDescription(post.getMetaDescription());
+
+        this.setCustomExcerpt(post.getCustomExcerpt());
 
         for (PendingAction action : post.getPendingActions()) {
             this.addPendingAction(action.getType());
@@ -184,6 +188,8 @@ public class Post implements RealmModel, Parcelable {
             return false;
         if (getMetaDescription() != null ? !getMetaDescription().equals(post.getMetaDescription()) : post.getMetaDescription() != null)
             return false;
+        if (getCustomExcerpt() != null ? !getCustomExcerpt().equals(post.getCustomExcerpt()) : post.getCustomExcerpt() != null)
+            return false;
         if (getPendingActions() != null ? !getPendingActions().equals(post.getPendingActions()) : post.getPendingActions() != null)
             return false;
         if (getConflictState() != null ? !getConflictState().equals(post.getConflictState()) : post.getConflictState() != null)
@@ -221,6 +227,7 @@ public class Post implements RealmModel, Parcelable {
         dest.writeLong(this.publishedAt != null ? this.publishedAt.getTime() : -1);
         dest.writeString(this.metaTitle);
         dest.writeString(this.metaDescription);
+        dest.writeString(this.customExcerpt);
         dest.writeList(this.pendingActions);
         dest.writeString(this.conflictState);
     }
@@ -253,6 +260,7 @@ public class Post implements RealmModel, Parcelable {
         this.publishedAt = tmpPublishedAt == -1 ? null : new Date(tmpPublishedAt);
         this.metaTitle = in.readString();
         this.metaDescription = in.readString();
+        this.customExcerpt = in.readString();
         this.pendingActions = new RealmList<>();
         in.readList(this.pendingActions, PendingAction.class.getClassLoader());
         //noinspection WrongConstant
@@ -448,6 +456,14 @@ public class Post implements RealmModel, Parcelable {
 
     public void setMetaDescription(String metaDesc) {
         this.metaDescription = metaDesc;
+    }
+
+    public String getCustomExcerpt() {
+        return customExcerpt;
+    }
+
+    public void setCustomExcerpt(String customExcerpt) {
+        this.customExcerpt = customExcerpt;
     }
 
     public RealmList<PendingAction> getPendingActions() {

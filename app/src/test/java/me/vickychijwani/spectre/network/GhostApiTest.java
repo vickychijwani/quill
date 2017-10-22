@@ -68,6 +68,7 @@ import static org.junit.Assert.fail;
  * - Ghost Auth (needs a UI)
  */
 
+@SuppressWarnings("ConstantConditions") // suppress null dereference warnings because that shouldn't happen in these tests
 public final class GhostApiTest {
 
     private static final String BLOG_URL = "http://localhost:2368/";
@@ -252,7 +253,9 @@ public final class GhostApiTest {
                 assertThat(createdPost.getHtml(), is("<div class=\"kg-card-markdown\"><p>"
                         + expectedPost.getMarkdown() + "</p>\n</div>"));
                 assertThat(createdPost.getTags(), is(expectedPost.getTags()));
-                assertThat(createdPost.isFeatured(), is(false));
+                assertThat(createdPost.getCustomExcerpt(), is(expectedPost.getCustomExcerpt()));
+                assertThat(createdPost.isFeatured(), is(expectedPost.isFeatured()));
+                assertThat(createdPost.isPage(), is(expectedPost.isPage()));
             });
         });
     }
@@ -322,6 +325,9 @@ public final class GhostApiTest {
                 Tag updatedTag = new Tag("updated-tag");
                 expectedPost.setMarkdown("updated **markdown**");
                 expectedPost.setTags(new RealmList<>(updatedTag));
+                expectedPost.setCustomExcerpt("updated excerpt");
+                expectedPost.setFeatured(true);
+                expectedPost.setPage(true);
                 PostStubList postStubs = PostStubList.from(expectedPost);
 
                 Response<PostList> response = execute(API.updatePost(token.getAuthHeader(),
@@ -335,6 +341,44 @@ public final class GhostApiTest {
                 assertThat(actualPost.getMarkdown(), is(expectedPost.getMarkdown()));
                 assertThat(actualPost.getTags(), hasSize(1));
                 assertThat(actualPost.getTags().get(0).getName(), is(updatedTag.getName()));
+                assertThat(actualPost.getCustomExcerpt(), is(expectedPost.getCustomExcerpt()));
+                assertThat(actualPost.isFeatured(), is(expectedPost.isFeatured()));
+                assertThat(actualPost.isPage(), is(expectedPost.isPage()));
+            });
+        });
+    }
+
+    @Test
+    public void test_customExcerptLimit() {
+        doWithAuthToken(token -> {
+            final int CUSTOM_EXCERPT_LIMIT = 300;
+
+            // excerpt length == allowed limit => should succeed
+            createRandomPost(token, (newPost, __, created) -> {
+                Post expectedPost = new Post(newPost);
+                expectedPost.setCustomExcerpt(getRandomString(CUSTOM_EXCERPT_LIMIT));
+                PostStubList postStubs = PostStubList.from(expectedPost);
+
+                Response<PostList> response = execute(API.updatePost(token.getAuthHeader(),
+                        created.getId(), postStubs));
+                String actualPostId = response.body().posts.get(0).getId();
+                Post actualPost = execute(API.getPost(token.getAuthHeader(), actualPostId))
+                        .body().posts.get(0);
+
+                assertThat(response.code(), is(HTTP_OK));
+                assertThat(actualPost.getCustomExcerpt().length(), is(expectedPost.getCustomExcerpt().length()));
+            });
+
+            // excerpt length == (allowed limit + 1) => should fail
+            createRandomPost(token, (newPost, __, created) -> {
+                Post expectedPost = new Post(newPost);
+                expectedPost.setCustomExcerpt(getRandomString(CUSTOM_EXCERPT_LIMIT + 1));
+                PostStubList postStubs = PostStubList.from(expectedPost);
+
+                Response<PostList> response = execute(API.updatePost(token.getAuthHeader(),
+                        created.getId(), postStubs));
+
+                assertThat(response.code(), is(422));   // 422 Unprocessable Entity
             });
         });
     }
@@ -428,6 +472,7 @@ public final class GhostApiTest {
         newPost.setTitle(title);
         newPost.setMarkdown(markdown);
         newPost.setTags(new RealmList<>());
+        newPost.setCustomExcerpt(markdown.substring(0, 100));
         Response<PostList> response = execute(API.createPost(token.getAuthHeader(),
                 PostStubList.from(newPost)));
         String createdId = response.body().posts.get(0).getId();

@@ -6,4 +6,7 @@
     <integer name="animation_duration">200</integer>
     <integer name="post_grid_num_columns">1</integer>
 
+    <!-- maximum allowed length of custom post excerpt in Ghost -->
+    <integer name="post_excerpt_max_length">300</integer>
+
 </resources>

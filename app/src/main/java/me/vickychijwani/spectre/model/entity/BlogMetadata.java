@@ -6,6 +6,9 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import me.vickychijwani.spectre.analytics.AnalyticsService;
+import me.vickychijwani.spectre.model.BlogDBMigration;
+import me.vickychijwani.spectre.model.BlogDataModule;
 
 @RealmClass
 public class BlogMetadata implements RealmModel {
@@ -76,10 +79,17 @@ public class BlogMetadata implements RealmModel {
         this.permalinkFormat = permalinkFormat;
     }
 
+    // NOTE: this function should not be invoked too frequently - preferably only when opening the
+    // app, switching blogs, or logging out
     public RealmConfiguration getDataRealmConfig() {
+        final int DB_SCHEMA_VERSION = 2;
+        AnalyticsService.logDbSchemaVersion(String.valueOf(DB_SCHEMA_VERSION));
         String encodedBlogUrl = Base64.encodeToString(blogUrl.getBytes(), Base64.URL_SAFE | Base64.NO_WRAP);
         return new RealmConfiguration.Builder()
                 .name(encodedBlogUrl + ".realm")
+                .modules(new BlogDataModule())
+                .schemaVersion(DB_SCHEMA_VERSION)
+                .migration(new BlogDBMigration())
                 .build();
     }
 

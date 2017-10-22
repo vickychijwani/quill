@@ -26,6 +26,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -87,6 +88,7 @@ public class PostViewActivity extends BaseActivity implements
     private FormattingToolbarManager mFormattingToolbarManager = null;
     private PostImageLayoutManager mPostImageLayoutManager = null;
     private ChipsEditText mPostTagsEditText;
+    private EditText mPostExcerptEditText;
     private CheckBox mPostFeatureCheckBox;
     private CheckBox mPostPageCheckBox;
 
@@ -115,6 +117,7 @@ public class PostViewActivity extends BaseActivity implements
         ViewGroup postImageLayout = (ViewGroup) headerView.findViewById(R.id.post_image_edit_layout);
         mPostImageLayoutManager = new PostImageLayoutManager(postImageLayout);
         mPostTagsEditText = (ChipsEditText) headerView.findViewById(R.id.post_tags_edit);
+        mPostExcerptEditText = (EditText) headerView.findViewById(R.id.post_excerpt);
         mPostFeatureCheckBox = (CheckBox) headerView.findViewById(R.id.post_feature);
         mPostPageCheckBox = (CheckBox) headerView.findViewById(R.id.post_page);
 
@@ -145,7 +148,7 @@ public class PostViewActivity extends BaseActivity implements
                 mPostSettingsChangedListener.onPostSettingsChanged();
             }
         };
-        mPostTagsEditText.addTextChangedListener(new TextWatcher() {
+        final TextWatcher settingsTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -156,7 +159,9 @@ public class PostViewActivity extends BaseActivity implements
             public void afterTextChanged(Editable e) {
                 postSettingsChangedHandler.call();
             }
-        });
+        };
+        mPostTagsEditText.addTextChangedListener(settingsTextWatcher);
+        mPostExcerptEditText.addTextChangedListener(settingsTextWatcher);
         mPostFeatureCheckBox.setOnCheckedChangeListener((btn, checked) -> {
             postSettingsChangedHandler.call();
         });
@@ -437,6 +442,7 @@ public class PostViewActivity extends BaseActivity implements
             tagStrs.add(tag.getName());
         }
         mPostTagsEditText.setTokens(tagStrs);
+        mPostExcerptEditText.setText(mPost.getCustomExcerpt());
         mPostFeatureCheckBox.setChecked(mPost.isFeatured());
         mPostPageCheckBox.setChecked(mPost.isPage());
     }
@@ -488,6 +494,11 @@ public class PostViewActivity extends BaseActivity implements
             tags.add(new Tag(tagStr));
         }
         return tags;
+    }
+
+    @Override
+    public String getCustomExcerpt() {
+        return mPostExcerptEditText.getText().toString();
     }
 
     @Override

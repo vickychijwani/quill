@@ -71,6 +71,7 @@
     <string name="post_tags_format_hint">Use commas to separate tags</string>
     <string name="post_body_hint">Type something here…</string>
     <string name="post_image_load_error">Error loading post image</string>
+    <string name="post_excerpt_hint">Excerpt</string>
     <string name="post_feature_hint">Feature this post</string>
     <string name="post_page_hint">Turn this post into a page</string>
 

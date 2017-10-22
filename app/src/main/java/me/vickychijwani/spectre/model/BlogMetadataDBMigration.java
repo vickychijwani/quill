@@ -1,6 +1,5 @@
 package me.vickychijwani.spectre.model;
 
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -9,7 +8,6 @@ import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
 import io.realm.FieldAttribute;
 import io.realm.RealmMigration;
-import io.realm.RealmObjectSchema;
 import io.realm.RealmResults;
 import io.realm.RealmSchema;
 import me.vickychijwani.spectre.SpectreApplication;
@@ -17,11 +15,10 @@ import me.vickychijwani.spectre.model.entity.ETag;
 import me.vickychijwani.spectre.model.entity.Post;
 import me.vickychijwani.spectre.pref.AppState;
 import me.vickychijwani.spectre.pref.UserPrefs;
-import me.vickychijwani.spectre.util.functions.Action3;
 
-public class DatabaseMigration implements RealmMigration {
+public class BlogMetadataDBMigration implements RealmMigration {
 
-    private static final String TAG = DatabaseMigration.class.getSimpleName();
+    private static final String TAG = BlogMetadataDBMigration.class.getSimpleName();
 
     @Override
     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
@@ -118,27 +115,9 @@ public class DatabaseMigration implements RealmMigration {
 
             ++oldVersion;
         }
-    }
 
-    private void changeFieldType(RealmObjectSchema objectSchema, String fieldName,
-                                 Class newType, @Nullable FieldAttribute attribute,
-                                 Action3<DynamicRealmObject, String, String> transformation) {
-        String tempFieldName = fieldName + "_temp";
-        if (attribute != null) {
-            if (attribute == FieldAttribute.PRIMARY_KEY && objectSchema.hasPrimaryKey()) {
-                // remove existing primary key
-                objectSchema.removePrimaryKey();
-            }
-            objectSchema.addField(tempFieldName, newType, attribute);
-        } else {
-            objectSchema.addField(tempFieldName, newType);
-        }
-        objectSchema
-                .transform(obj -> {
-                    transformation.call(obj, fieldName, tempFieldName);
-                })
-                .removeField(fieldName)
-                .renameField(tempFieldName, fieldName);
+        // STARTING FROM V4, THE REALM THAT USED TO STORE THE BLOG DATA NOW
+        // ONLY STORES THE *METADATA* FOR ALL CONNECTED BLOGS
     }
 
 }

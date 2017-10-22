@@ -90,6 +90,30 @@
         />
 
 
+    <!-- custom excerpt -->
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/post_excerpt_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_large"
+        android:layout_marginLeft="@dimen/padding_large"
+        android:layout_marginRight="@dimen/padding_large">
+
+        <EditText
+            android:id="@+id/post_excerpt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance"
+            android:lineSpacingMultiplier="1.2"
+            android:scrollHorizontally="false"
+            android:maxLength="@integer/post_excerpt_max_length"
+            android:hint="@string/post_excerpt_hint"
+            android:imeOptions="actionDone"
+            />
+
+    </android.support.design.widget.TextInputLayout>
+
+
     <!-- make this post a page -->
     <CheckBox
         android:id="@+id/post_page"

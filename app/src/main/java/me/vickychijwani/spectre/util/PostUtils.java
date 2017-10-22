@@ -7,6 +7,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -84,10 +85,6 @@ public class PostUtils {
 
     @SuppressWarnings({"RedundantIfStatement", "OverlyComplexMethod"})
     public static boolean isDirty(@NonNull Post original, @NonNull Post current) {
-        boolean bothImagesNull = (original.getFeatureImage() == null && current.getFeatureImage() == null);
-        boolean oneImageNull = (original.getFeatureImage() != null && current.getFeatureImage() == null)
-                || (original.getFeatureImage() == null && current.getFeatureImage() != null);
-
         if (! original.getTitle().equals(current.getTitle()))
             return true;
         if (! original.getStatus().equals(current.getStatus()))
@@ -96,11 +93,13 @@ public class PostUtils {
             return true;
         if (! original.getMarkdown().equals(current.getMarkdown()))
             return true;
-        if (!bothImagesNull && (oneImageNull || !original.getFeatureImage().equals(current.getFeatureImage())))
+        if (! TextUtils.equals(original.getFeatureImage(), current.getFeatureImage()))
             return true;
         if (original.getTags().size() != current.getTags().size())
             return true;
         if (! tagListsMatch(original.getTags(), current.getTags()))
+            return true;
+        if (! TextUtils.equals(original.getCustomExcerpt(), current.getCustomExcerpt()))
             return true;
         if (original.isFeatured() != current.isFeatured())
             return true;

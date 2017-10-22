@@ -87,6 +87,12 @@ public class AnalyticsService {
         }
     }
 
+    public static void logMetadataDbSchemaVersion(@NonNull String metadataDbSchemaVersion) {
+        Timber.i("METADATA DB SCHEMA VERSION = " + metadataDbSchemaVersion);
+        Answers.getInstance().logCustom(new CustomEvent("Metadata DB Schema Version")
+                .putCustomAttribute("version", metadataDbSchemaVersion));
+    }
+
     public static void logDbSchemaVersion(@NonNull String dbSchemaVersion) {
         Timber.i("DB SCHEMA VERSION = " + dbSchemaVersion);
         Answers.getInstance().logCustom(new CustomEvent("DB Schema Version")

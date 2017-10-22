@@ -550,6 +550,7 @@ public class PostEditFragment extends BaseFragment implements
         mPost.setMarkdown(mPostEditView.getText().toString());
         mPost.setHtml(null);   // omit stale HTML from request body
         mPost.setTags(mPostSettingsManager.getTags());
+        mPost.setCustomExcerpt(mPostSettingsManager.getCustomExcerpt());
         mPost.setFeatured(mPostSettingsManager.isFeatured());
         mPost.setPage(mPostSettingsManager.isPage());
         if (newStatus != null) {
@@ -780,6 +781,7 @@ public class PostEditFragment extends BaseFragment implements
         void setOnPostSettingsChangedListener(PostViewActivity.PostSettingsChangedListener listener);
         void removeOnPostSettingsChangedListener();
         RealmList<Tag> getTags();
+        String getCustomExcerpt();
         boolean isFeatured();
         boolean isPage();
     }

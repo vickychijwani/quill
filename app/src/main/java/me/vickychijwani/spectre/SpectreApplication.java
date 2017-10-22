@@ -28,7 +28,8 @@ import me.vickychijwani.spectre.auth.LoginOrchestrator;
 import me.vickychijwani.spectre.error.UncaughtRxException;
 import me.vickychijwani.spectre.event.ApiErrorEvent;
 import me.vickychijwani.spectre.event.BusProvider;
-import me.vickychijwani.spectre.model.DatabaseMigration;
+import me.vickychijwani.spectre.model.BlogMetadataDBMigration;
+import me.vickychijwani.spectre.model.BlogMetadataModule;
 import me.vickychijwani.spectre.network.NetworkService;
 import me.vickychijwani.spectre.network.ProductionHttpClientFactory;
 import me.vickychijwani.spectre.util.CrashReportingTree;
@@ -71,7 +72,7 @@ public class SpectreApplication extends Application {
 
         RxJavaPlugins.setErrorHandler(this::uncaughtRxException);
 
-        setupRealm();
+        setupMetadataRealm();
         setupFonts();
         initOkHttpClient();
         initPicasso();
@@ -88,12 +89,13 @@ public class SpectreApplication extends Application {
         mHACKOldSchemaVersion = oldSchemaVersion;
     }
 
-    private void setupRealm() {
-        final int DB_SCHEMA_VERSION = 4;
+    private void setupMetadataRealm() {
+        final int METADATA_DB_SCHEMA_VERSION = 4;
         Realm.init(this);
         RealmConfiguration config = new RealmConfiguration.Builder()
-                .schemaVersion(DB_SCHEMA_VERSION)
-                .migration(new DatabaseMigration())
+                .modules(new BlogMetadataModule())
+                .schemaVersion(METADATA_DB_SCHEMA_VERSION)
+                .migration(new BlogMetadataDBMigration())
                 .build();
         Realm.setDefaultConfiguration(config);
 
@@ -109,7 +111,7 @@ public class SpectreApplication extends Application {
             }
         }
 
-        AnalyticsService.logDbSchemaVersion(String.valueOf(DB_SCHEMA_VERSION));
+        AnalyticsService.logDbSchemaVersion(String.valueOf(METADATA_DB_SCHEMA_VERSION));
     }
 
     private void setupFonts() {
