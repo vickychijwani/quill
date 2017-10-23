@@ -111,7 +111,7 @@ public class SpectreApplication extends Application {
             }
         }
 
-        AnalyticsService.logDbSchemaVersion(String.valueOf(METADATA_DB_SCHEMA_VERSION));
+        AnalyticsService.logMetadataDbSchemaVersion(String.valueOf(METADATA_DB_SCHEMA_VERSION));
     }
 
     private void setupFonts() {

@@ -24,7 +24,7 @@ public class BlogDBMigration implements RealmMigration {
                 Crashlytics.log(Log.DEBUG, TAG, "ADDING CUSTOM EXCERPT FIELD TO POST TABLE");
                 schema.get("Post").addField("customExcerpt", String.class);
             }
-            ++oldVersion;
+            oldVersion = 2;
         }
     }
 
