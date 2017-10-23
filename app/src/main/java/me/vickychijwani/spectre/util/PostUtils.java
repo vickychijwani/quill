@@ -99,7 +99,10 @@ public class PostUtils {
             return true;
         if (! tagListsMatch(original.getTags(), current.getTags()))
             return true;
-        if (! TextUtils.equals(original.getCustomExcerpt(), current.getCustomExcerpt()))
+        if (! TextUtils.equals(original.getCustomExcerpt(), current.getCustomExcerpt())
+                // default from API is null, and in the UI is empty string "", but they are the same
+                // so at least one of them must be non-empty for the post to be considered dirty
+                && (!TextUtils.isEmpty(original.getCustomExcerpt()) || !TextUtils.isEmpty(current.getCustomExcerpt())))
             return true;
         if (original.isFeatured() != current.isFeatured())
             return true;
