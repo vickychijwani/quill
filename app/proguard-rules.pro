@@ -58,9 +58,6 @@
 # Realm
 # proguard.txt included in library
 
-# Retrolambda
--dontwarn java.lang.invoke.*
-
 # OkHttp
 -keepattributes Signature
 -keepattributes *Annotation*
