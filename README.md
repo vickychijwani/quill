@@ -4,13 +4,13 @@
 
 [![](https://img.shields.io/circleci/project/vickychijwani/quill.svg)](https://circleci.com/gh/vickychijwani/quill)
 [![Translate on Weblate](https://hosted.weblate.org/widgets/quill/en/shields-badge.svg)](https://hosted.weblate.org/engage/quill/en/?utm_source=widget)
-[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-Quill-green.svg?style=true)](https://android-arsenal.com/details/3/3729)
-[![Join the chat on Gitter](https://badges.gitter.im/vickychijwani/quill.svg)](https://gitter.im/vickychijwani/quill?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![](https://img.shields.io/github/tag/vickychijwani/quill.svg)
+
+**DEPRECATION NOTICE: The contents of this repo now live at [TryGhost/Ghost-Android](https://github.com/TryGhost/Ghost-Android). See https://blog.ghost.org/android/.**
 
 Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get it [here on the Google Play Store][playstore].
 
-<a href='https://play.google.com/store/apps/details?id=me.vickychijwani.spectre&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' width='300px'/></a>
+<a href='https://play.google.com/store/apps/details?id=org.ghost.android&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' width='300px'/></a>
 
 ### Features
 
@@ -56,6 +56,6 @@ If you face any issues setting this up, please let me know by [filing a new issu
 - [Allan Nordhøy](https://hosted.weblate.org/user/kingu/) (Norwegian translation)
 
 
-[playstore]: https://play.google.com/store/apps/details?id=me.vickychijwani.spectre
+[playstore]: https://play.google.com/store/apps/details?id=org.ghost.android
 [weblate]: https://hosted.weblate.org/engage/quill/en/
 [conflict-ui]: https://github.com/vickychijwani/quill/issues/144#issuecomment-264991612
