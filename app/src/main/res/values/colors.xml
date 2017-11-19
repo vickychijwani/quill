@@ -27,4 +27,7 @@
     <color name="status_published">@color/text_tertiary</color>
     <color name="status_deleted">@color/text_secondary</color>
 
+    <color name="tip_background">#F2F2F2</color>
+    <color name="tip_action">@color/primary</color>
+
 </resources>

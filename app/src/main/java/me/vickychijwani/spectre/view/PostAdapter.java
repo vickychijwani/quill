@@ -1,13 +1,17 @@
 package me.vickychijwani.spectre.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorListener;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +27,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -33,11 +38,13 @@ import me.vickychijwani.spectre.model.entity.Tag;
 import me.vickychijwani.spectre.util.DeviceUtils;
 import me.vickychijwani.spectre.util.NetworkUtils;
 import me.vickychijwani.spectre.util.PostUtils;
+import me.vickychijwani.spectre.util.Tip;
 
 class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int TYPE_POST = 1;
     private static final int TYPE_FOOTER = 2;
+    private static final int TYPE_TIP = 3;
 
     private final LayoutInflater mLayoutInflater;
     private final List<Post> mPosts;
@@ -47,6 +54,7 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final View.OnClickListener mItemClickListener;
     private final Paint mLowAlphaPaint;
     private CharSequence mFooterText;
+    private final Tip mGhostAndroidTip;
 
     // animation stuff
     private static final DecelerateInterpolator ANIM_INTERPOLATOR = new DecelerateInterpolator();
@@ -72,12 +80,24 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 0,     0,     0,     0.5f,  0,    // alpha
         }));
 
+        mGhostAndroidTip = new Tip(R.drawable.quill_to_ghost_small,
+                context.getString(R.string.quill_is_now_ghost_android),
+                Arrays.asList(
+                        new Tip.Action(R.drawable.play_store, context.getString(R.string.ghost_android_download), v -> {
+                            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=org.ghost.android")));
+                        }),
+                        new Tip.Action(R.drawable.help_circle, context.getString(R.string.ghost_android_announcement), v -> {
+                            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://blog.ghost.org/android")));
+                        })));
+
         setHasStableIds(true);
     }
 
     @Override
     public int getItemCount() {
-        int count = mPosts.size();
+        int count = 0;
+        ++count;    // +1 for tip
+        count += mPosts.size();
         if (mFooterText != null) {
             ++count; // +1 for footer
         }
@@ -85,29 +105,32 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public Object getItem(int position) {
-        if (position < mPosts.size()) {
-            return mPosts.get(position);
-        } else {
-            return mFooterText;
+        final int viewType = getItemViewType(position);
+        switch (viewType) {
+            case TYPE_POST:     return mPosts.get(position-1);
+            case TYPE_TIP:      return mGhostAndroidTip;
+            case TYPE_FOOTER:   return mFooterText;
+            default:            throw new RuntimeException("Unhandled view type " + viewType);
         }
     }
 
     @Override
     public long getItemId(int position) {
-        if (getItemViewType(position) == TYPE_POST) {
-            return ((Post) getItem(position)).getId().hashCode();
-        } else {
-            return -9999;   // footer
+        final int viewType = getItemViewType(position);
+        switch (viewType) {
+            case TYPE_POST:     return ((Post) getItem(position)).getId().hashCode();
+            case TYPE_TIP:      return -9998;
+            case TYPE_FOOTER:   return -9999;
+            default:            throw new RuntimeException("Unhandled view type " + viewType);
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (position < mPosts.size()) {
-            return TYPE_POST;
-        } else {
-            return TYPE_FOOTER;
-        }
+        if (position == 0)                                      return TYPE_TIP;
+        else if (position >= 1 && position <= mPosts.size())    return TYPE_POST;
+        else if (position == mPosts.size()+1)                   return TYPE_FOOTER;
+        else    throw new RuntimeException("Unknown view type at position " + position);
     }
 
     @Override
@@ -115,6 +138,9 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (viewType == TYPE_POST) {
             View view = mLayoutInflater.inflate(R.layout.post_list_item, parent, false);
             return new PostViewHolder(view, mItemClickListener);
+        } else if (viewType == TYPE_TIP) {
+            View view = mLayoutInflater.inflate(R.layout.post_list_tip, parent, false);
+            return new TipViewHolder(view);
         } else if (viewType == TYPE_FOOTER) {
             View view = mLayoutInflater.inflate(R.layout.post_list_footer, parent, false);
 
@@ -129,7 +155,7 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             return new FooterViewHolder(view);
         }
-        throw new IllegalArgumentException("Invalid view type: " + viewType);
+        throw new IllegalArgumentException("Unhandled view type " + viewType);
     }
 
     @Override
@@ -138,6 +164,10 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             PostViewHolder postVH = (PostViewHolder) viewHolder;
             Post post = (Post) getItem(position);
             bindPost(postVH, post);
+        } else if (viewHolder instanceof TipViewHolder) {
+            TipViewHolder tipVH = (TipViewHolder) viewHolder;
+            Tip tip = (Tip) getItem(position);
+            bindTip(tipVH, tip);
         } else if (viewHolder instanceof FooterViewHolder) {
             FooterViewHolder footerVH = (FooterViewHolder) viewHolder;
             CharSequence footerText = (CharSequence) getItem(position);
@@ -187,6 +217,25 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             } else {
                 childView.setLayerType(View.LAYER_TYPE_NONE, null);
             }
+        }
+    }
+
+    private void bindTip(TipViewHolder viewHolder, Tip tip) {
+        if (tip.image > 0) {
+            viewHolder.image.setImageResource(tip.image);
+            viewHolder.image.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.image.setImageDrawable(null);
+            viewHolder.image.setVisibility(View.GONE);
+        }
+        viewHolder.content.setText(tip.content);
+        for (int i = 0; i < viewHolder.actions.getChildCount(); ++i) {
+            TextView action = (TextView) viewHolder.actions.getChildAt(i);
+            final Drawable icon = ContextCompat.getDrawable(mContext, tip.actions.get(i).icon);
+            action.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+            action.setCompoundDrawablePadding(mContext.getResources().getDimensionPixelOffset(R.dimen.padding_default));
+            action.setText(tip.actions.get(i).text);
+            action.setOnClickListener(tip.actions.get(i).clickListener);
         }
     }
 
@@ -278,6 +327,18 @@ class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public void cleanup() {
             Picasso.with(image.getContext())
                     .cancelRequest(image);
+        }
+    }
+
+
+    static class TipViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.tip_image)   ImageView image;
+        @BindView(R.id.tip_content) TextView content;
+        @BindView(R.id.tip_actions) ViewGroup actions;
+
+        TipViewHolder(View view) {
+            super(view);
+            ButterKnife.bind(this, view);
         }
     }
 

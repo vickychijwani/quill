@@ -122,4 +122,9 @@
     <string name="scheduled">Scheduled</string>
     <string name="next">Next</string>
 
+    <!-- misc -->
+    <string name="quill_is_now_ghost_android">Quill is now Ghost for Android - the same app you know and love, but now officially backed by Ghost! Quill itself will no longer receive updates.</string>
+    <string name="ghost_android_download">Get the new app</string>
+    <string name="ghost_android_announcement">Learn more</string>
+
 </resources>
