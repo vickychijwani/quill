@@ -3,7 +3,7 @@
 <img src="screenshots/demo.gif" width="320" align="right" hspace="20">
 
 [![](https://img.shields.io/circleci/project/vickychijwani/quill.svg)](https://circleci.com/gh/vickychijwani/quill)
-[![Translate on Weblate](https://hosted.weblate.org/widgets/quill/en/shields-badge.svg)](https://hosted.weblate.org/engage/quill/en/?utm_source=widget)
+[![Translate on Weblate](https://hosted.weblate.org/widgets/ghost/-/svg-badge.svg)](https://hosted.weblate.org/engage/ghost/en/?utm_source=widget)
 ![](https://img.shields.io/github/tag/vickychijwani/quill.svg)
 
 **DEPRECATION NOTICE: The contents of this repo now live at [TryGhost/Ghost-Android](https://github.com/TryGhost/Ghost-Android). See https://blog.ghost.org/android/.**
@@ -57,5 +57,5 @@ If you face any issues setting this up, please let me know by [filing a new issu
 
 
 [playstore]: https://play.google.com/store/apps/details?id=org.ghost.android
-[weblate]: https://hosted.weblate.org/engage/quill/en/
+[weblate]: https://hosted.weblate.org/engage/ghost/en/
 [conflict-ui]: https://github.com/vickychijwani/quill/issues/144#issuecomment-264991612
