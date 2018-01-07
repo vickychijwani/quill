@@ -4,7 +4,7 @@
 [![Translate on Weblate](https://hosted.weblate.org/widgets/ghost/-/svg-badge.svg)](https://hosted.weblate.org/engage/ghost/en/?utm_source=widget)
 ![](https://img.shields.io/github/tag/vickychijwani/quill.svg)
 
-### DEPRECATION NOTICE: The contents of this repo now live at [TryGhost/Ghost-Android](https://github.com/TryGhost/Ghost-Android). See https://blog.ghost.org/android/.
+### THIS REPO HAS MOVED HOUSE :truck:: It now lives at [TryGhost/Ghost-Android](https://github.com/TryGhost/Ghost-Android) since Quill became the official Android app for Ghost! See https://blog.ghost.org/android/.
 
 Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get it [here on the Google Play Store][playstore].
 
