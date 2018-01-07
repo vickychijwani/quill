@@ -1,12 +1,10 @@
-[![](http://i.imgur.com/iuTrwv9.png)][playstore]
-
 <img src="screenshots/demo.gif" width="320" align="right" hspace="20">
 
 [![](https://img.shields.io/circleci/project/vickychijwani/quill.svg)](https://circleci.com/gh/vickychijwani/quill)
 [![Translate on Weblate](https://hosted.weblate.org/widgets/ghost/-/svg-badge.svg)](https://hosted.weblate.org/engage/ghost/en/?utm_source=widget)
 ![](https://img.shields.io/github/tag/vickychijwani/quill.svg)
 
-**DEPRECATION NOTICE: The contents of this repo now live at [TryGhost/Ghost-Android](https://github.com/TryGhost/Ghost-Android). See https://blog.ghost.org/android/.**
+### DEPRECATION NOTICE: The contents of this repo now live at [TryGhost/Ghost-Android](https://github.com/TryGhost/Ghost-Android). See https://blog.ghost.org/android/.
 
 Quill is the beautiful Android app for your [Ghost](https://ghost.org) blog. Get it [here on the Google Play Store][playstore].
 
